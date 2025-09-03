@@ -148,7 +148,7 @@ export default function DeliveryMap() {
     }
 
     return (
-        <div style={{ height: "100vh", display: "flex", flexDirection: "column", minWidth: "1600px" }}>
+        <div style={{ height: "100%", display: "flex", flexDirection: "column", width: "100%" }}>
             <header style={{ padding: "8px 12px", borderBottom: "1px solid #eee" }}>
                 <strong>Delivery Admin Map</strong>
                 <span style={{ marginLeft: 12, opacity: 0.7 }}>Курьеров: {info.count}</span>
