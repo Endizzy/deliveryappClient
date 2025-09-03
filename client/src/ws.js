@@ -1,7 +1,8 @@
 // Укажи сюда публичный URL от ngrok, когда будешь тестировать с телефона
 // Локально для браузера можно оставить ws://localhost:4000
 // export const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:4000';
-export const WS_URL = 'wss://server-production-a343.up.railway.app';
+export const WS_URL = 'wss://deliveryappserver-1.onrender.com';
+
 
 
 export function createAdminSocket(onMessage) {
