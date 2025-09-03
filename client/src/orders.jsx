@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-const API_URL = 'https://a5548baccf7a.ngrok-free.app/api/orders'; // замени на свой
+const API_URL = 'https://server-production-a343.up.railway.app/api/orders'; // замени на свой
 
 export default function Orders() {
     const [orders, setOrders] = useState([]);
