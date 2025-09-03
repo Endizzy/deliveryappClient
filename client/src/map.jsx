@@ -10,10 +10,10 @@ export default function DeliveryMap() {
     const markersRef = useRef(new Map()); // courierId -> marker
     const routesRef = useRef(new Map());  // courierId -> polyline
     const ordersRef = useRef(new Map());  // courierId -> order marker
-    const [info, setInfo] = useState({ count: 0, last: null });
+    const [info, setInfo] = useState({count: 0, last: null});
 
     useEffect(() => {
-        const map = L.map("map", { zoomControl: true }).setView(defaultCenter, 12);
+        const map = L.map("map", {zoomControl: true}).setView(defaultCenter, 12);
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
             attribution: "&copy; OpenStreetMap contributors",
         }).addTo(map);
@@ -23,11 +23,11 @@ export default function DeliveryMap() {
         const ws = createAdminSocket(async (msg) => {
             if (msg.type === "snapshot") {
                 for (const it of msg.items) await upsertMarker(it);
-                setInfo((p) => ({ ...p, count: msg.items.length }));
+                setInfo((p) => ({...p, count: msg.items.length}));
             }
             if (msg.type === "location") {
                 await upsertMarker(msg);
-                setInfo((p) => ({ ...p, last: msg }));
+                setInfo((p) => ({...p, last: msg}));
             }
         });
 
@@ -40,7 +40,7 @@ export default function DeliveryMap() {
                     lat: courierMarker.getLatLng().lat,
                     lng: courierMarker.getLatLng().lng,
                     status: "assigned",
-                    order: { lat: 56.955, lng: 24.115 }, // тестовая точка заказа
+                    order: {lat: 56.955, lng: 24.115}, // тестовая точка заказа
                 });
             }
         }, 2000);
@@ -54,10 +54,10 @@ export default function DeliveryMap() {
     async function fetchRoute(from, to) {
         try {
             const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${ORS_API_KEY}`;
-            const body = { coordinates: [[from.lng, from.lat], [to.lng, to.lat]] };
+            const body = {coordinates: [[from.lng, from.lat], [to.lng, to.lat]]};
             const res = await fetch(url, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(body),
             });
             const data = await res.json();
@@ -71,7 +71,7 @@ export default function DeliveryMap() {
         }
     }
 
-    async function upsertMarker({ courierId, lat, lng, speedKmh, status, order }) {
+    async function upsertMarker({courierId, lat, lng, speedKmh, status, order}) {
         const key = String(courierId);
         const map = mapRef.current;
         if (!map) return;
@@ -96,11 +96,11 @@ export default function DeliveryMap() {
 
         let marker = markersRef.current.get(key);
         if (!marker) {
-            const icon = L.divIcon({ html, className: "", iconSize: [41, 60], iconAnchor: [20, 41] });
-            marker = L.marker([lat, lng], { icon }).addTo(map);
+            const icon = L.divIcon({html, className: "", iconSize: [41, 60], iconAnchor: [20, 41]});
+            marker = L.marker([lat, lng], {icon}).addTo(map);
             markersRef.current.set(key, marker);
         } else {
-            marker.setIcon(L.divIcon({ html, className: "", iconSize: [41, 60], iconAnchor: [20, 41] }));
+            marker.setIcon(L.divIcon({html, className: "", iconSize: [41, 60], iconAnchor: [20, 41]}));
             marker.setLatLng([lat, lng]);
         }
 
@@ -131,7 +131,7 @@ export default function DeliveryMap() {
             const oldLine = routesRef.current.get(key);
             if (oldLine) map.removeLayer(oldLine);
 
-            const polyline = L.polyline(routeCoords, { color: "blue", weight: 3, dashArray: "5,5" }).addTo(map);
+            const polyline = L.polyline(routeCoords, {color: "blue", weight: 3, dashArray: "5,5"}).addTo(map);
             routesRef.current.set(key, polyline);
         } else {
             const oldLine = routesRef.current.get(key);
@@ -148,17 +148,45 @@ export default function DeliveryMap() {
     }
 
     return (
-        <div style={{ height: "100%", display: "flex", flexDirection: "column", width: "100%" }}>
-            <header style={{ padding: "8px 12px", borderBottom: "1px solid #eee" }}>
+        <div
+            style={{
+                height: "100vh",
+                width: "100vw",
+                display: "flex",
+                flexDirection: "column",
+                margin: 0,
+                padding: 0,
+                boxSizing: "border-box"
+            }}
+        >
+            <header
+                style={{
+                    padding: "8px 12px",
+                    borderBottom: "1px solid #eee",
+                    width: "100%",
+                    boxSizing: "border-box",
+                    background: "#black",
+                    zIndex: 1000
+                }}
+            >
                 <strong>Delivery Admin Map</strong>
                 <span style={{ marginLeft: 12, opacity: 0.7 }}>Курьеров: {info.count}</span>
                 {info.last && (
                     <span style={{ marginLeft: 12, opacity: 0.7 }}>
-            Последний апдейт: #{info.last.courierId} ({info.last.lat.toFixed(5)}, {info.last.lng.toFixed(5)})
-          </span>
+          Последний апдейт: #{info.last.courierId} ({info.last.lat.toFixed(5)}, {info.last.lng.toFixed(5)})
+        </span>
                 )}
             </header>
-            <div id="map" style={{ flex: 1, width: "100%", height: "100%" }} />
+
+            <div
+                id="map"
+                style={{
+                    flexGrow: 1,
+                    width: "100%",
+                    height: "100%",
+                    boxSizing: "border-box"
+                }}
+            />
         </div>
     );
 }
