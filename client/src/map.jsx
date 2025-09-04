@@ -6,18 +6,18 @@ const defaultCenter = [56.94937, 24.10525]; // Riga
 
 export default function Map() {
     const mapRef = useRef(null);
-    const markersRef = useRef(new Map()); // courierId -> marker
+    const markersRef = useRef(new window.Map()); // courierId -> marker
     const [info, setInfo] = useState({ count: 0, last: null });
 
     useEffect(() => {
-        // Инициализация карты
+        // map
         const map = L.map('map', { zoomControl: true }).setView(defaultCenter, 12);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors',
         }).addTo(map);
         mapRef.current = map;
 
-        // WS соединение
+        // WS 
         const ws = createAdminSocket((msg) => {
             if (msg.type === 'snapshot') {
                 msg.items.forEach((it) => upsertMarker(it));
@@ -65,7 +65,6 @@ export default function Map() {
             marker.addTo(map);
             markersRef.current.set(key, marker);
         } else {
-            // обновляем HTML и плавно перемещаем
             marker.setIcon(L.divIcon({ html, className: '', iconSize: [41, 60], iconAnchor: [20, 41] }));
 
             const from = marker.getLatLng();
