@@ -14,7 +14,7 @@ export default function App() {
             <div style={{ padding:'2%', display: "flex", justifyContent: "center", gap: "20px" }}>
                 <button
                     style={{ padding: "10px", minWidth: "140px", borderRadius: "5px", border: "2px solid black" }}
-                    onClick={() => navigate('/orders')}
+                    onClick={() => navigate('/orderPanel')}
                 >
                     <h1 style={{ fontSize: "20px" }}>Панель заказов</h1>
                 </button>
