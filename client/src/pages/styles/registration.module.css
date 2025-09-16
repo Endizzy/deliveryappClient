@@ -1,0 +1,375 @@
+:root {
+    --app-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --app-gradient-dark: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+}
+
+.authContainer {
+    width: 100%;
+    /*max-width: 420px;*/
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: var(--app-gradient);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    animation: slideIn 0.4s ease-out;
+}
+
+.authBlock {
+    max-width: 420px;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.logoSection {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.logoIcon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+}
+
+.logoIcon svg {
+    color: white;
+}
+
+.logoText {
+    font-size: 28px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: -0.5px;
+}
+
+.authSubtitle {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+}
+
+.authCard {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    width: 100%;
+}
+
+.authHeader {
+    margin-bottom: 24px;
+}
+
+.authTitle {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 8px;
+}
+
+.authDescription {
+    font-size: 14px;
+    color: #64748b;
+}
+
+.formGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.formGrid .formGroup {
+    margin-bottom: 0;
+}
+
+.formGroup {
+    margin-bottom: 20px;
+}
+
+.formLabel {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 8px;
+}
+
+.formInput {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.formInput:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.inputWithIcon {
+    position: relative;
+}
+
+.inputIcon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    width: 16px;
+    height: 16px;
+}
+
+.inputWithIcon .formInput {
+    padding-left: 40px;
+}
+
+.passwordToggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.passwordToggle:hover {
+    color: #667eea;
+}
+
+.passwordStrength {
+    display: flex;
+    gap: 4px;
+    margin-top: 8px;
+    height: 4px;
+}
+
+.strengthBar {
+    flex: 1;
+    background: #e2e8f0;
+    border-radius: 2px;
+    transition: all 0.3s ease;
+}
+
+.strengthBar.activeWeak {
+    background: #ef4444;
+}
+
+.strengthBar.activeMedium {
+    background: #f59e0b;
+}
+
+.strengthBar.activeStrong {
+    background: #10b981;
+}
+
+.passwordHint {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 4px;
+}
+
+.formCheckbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.formCheckbox input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #667eea;
+    cursor: pointer;
+}
+
+.formCheckbox label {
+    font-size: 14px;
+    color: #475569;
+    cursor: pointer;
+}
+
+.termsCheckbox {
+    font-size: 13px;
+}
+
+.termsCheckbox a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.termsCheckbox a:hover {
+    text-decoration: underline;
+}
+
+.captchaContainer {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.captchaCode {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    user-select: none;
+    font-family: 'Courier New', monospace;
+}
+
+.captchaRefresh {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.captchaRefresh:hover {
+    border-color: #667eea;
+    transform: rotate(180deg);
+}
+
+.btnPrimary {
+    width: 100%;
+    padding: 12px 24px;
+    background: var(--app-gradient);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btnPrimary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 24px 0;
+}
+
+.dividerLine {
+    flex: 1;
+    height: 1px;
+    background: #e2e8f0;
+}
+
+.dividerText {
+    font-size: 12px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.socialButtons {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.socialBtn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    color: #475569;
+}
+
+.socialBtn:hover {
+    border-color: #667eea;
+    background: #f8fafc;
+    transform: translateY(-1px);
+}
+
+.authFooter {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 14px;
+    color: #64748b;
+}
+
+.authFooter a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.authFooter a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+    .authCard {
+        padding: 24px 20px;
+    }
+
+    .formGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .socialButtons {
+        flex-direction: column;
+    }
+}
