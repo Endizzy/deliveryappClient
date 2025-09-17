@@ -6,8 +6,8 @@ import Map from './map.jsx';
 import './index.css';
 import OrderPanel from "./orderPanel.jsx";
 import CreateOrder from "./CreateOrder.jsx";
-import Login from "./pages/Login.jsx";
-import Registration from "./pages/Registration.jsx";
+import Login from "./pages/login.jsx";
+import Registration from "./pages/registration.jsx";
 import {ThemeProvider} from "./provider/ThemeContext.jsx";
 
 createRoot(document.getElementById('root')).render(
