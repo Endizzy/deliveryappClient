@@ -72,14 +72,43 @@ const Registration = () => {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+
         if (formData.password !== formData.confirmPassword) {
             alert('Пароли не совпадают');
             return;
         }
-        console.log('Registration form submitted:', formData);
+
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
+                    email: formData.email,
+                    phone: formData.phone,
+                    password: formData.password,
+                    role: "client"
+                }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                alert(data.error || "Ошибка регистрации");
+                return;
+            }
+
+            // Успех → сразу на логин
+            navigate("/login");
+        } catch (err) {
+            console.error("Ошибка регистрации:", err);
+            alert("Не удалось подключиться к серверу");
+        }
     };
+
 
     const renderPasswordStrengthBars = () => {
         const strengthClasses = ['', 'activeWeak', 'activeMedium', 'activeStrong'];
