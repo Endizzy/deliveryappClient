@@ -228,7 +228,7 @@ const OrderPanel = () => {
                             <div className="header-cell">Адрес доставки</div>
                             <div className="header-cell">Имя/телефон</div>
                             <div className="header-cell">Сумма</div>
-                            <div className="header-cell">Товар/комплектация</div>
+                            <div className="header-cell">Ресторан</div>
                             <div className="header-cell">Курьер</div>
                             <div className="header-cell">Диспетчер</div>
                         </div>
