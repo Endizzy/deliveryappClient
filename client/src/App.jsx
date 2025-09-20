@@ -8,7 +8,7 @@ export default function App() {
         <div>
             <header style={{ background: "black", padding: "2%" }}>
                 <h1 style={{ fontSize: "20px", display: "Flex", justifyContent: "center", color: "White" }}>
-                    Добро пожаловать в приложение!
+                    DeliveryApp Client
                 </h1>
             </header>
             <div style={{ padding:'2%', display: "flex", justifyContent: "center", gap: "20px" }}>

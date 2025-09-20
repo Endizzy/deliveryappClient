@@ -44,6 +44,7 @@ const OrderPanel = () => {
                 phone: "+37127424725",
                 amount: "134,12",
                 items: "Aleja",
+                payment: "Наличные",
                 courier: "Mihail",
             },
             {
@@ -56,6 +57,7 @@ const OrderPanel = () => {
                 phone: "+37127424725",
                 amount: "32,50",
                 items: "Briana",
+                payment: "Карта",
                 courier: "Danila",
             },
         ],
@@ -70,6 +72,7 @@ const OrderPanel = () => {
                 phone: "+37127424725",
                 amount: "0,00",
                 items: "Briana (демо)",
+                payment: "Наличные",
                 courier: "Егор",
             },
         ],
@@ -84,6 +87,7 @@ const OrderPanel = () => {
                 phone: "+37127424725",
                 amount: "17,00",
                 items: "Briana (демо)",
+                payment: "Наличные",
                 courier: "Егор",
             },
         ],
@@ -259,8 +263,9 @@ const OrderPanel = () => {
                                     </div>
                                     <div className="cell customer-cell">
                                         <div className="customer-info">
-                                            <span className="name">{order.customer} / </span>
-                                            <span className="phone">{order.phone}</span>
+                                            <span className="name">{order.customer} / {order.phone}</span>
+                                            {/*<span className="phone">{order.phone}</span>*/}
+                                            <span className="payment">{order.payment}</span>
                                         </div>
                                     </div>
                                     <div className="cell amount-cell">

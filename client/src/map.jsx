@@ -3,6 +3,7 @@ import L from "leaflet";
 import { createAdminSocket } from "./ws";
 import './map.css'
 import {useNavigate} from "react-router-dom";
+import { ThemeProvider, useTheme } from "./provider/ThemeContext";
 
 const defaultCenter = [56.94937, 24.10525]; // Riga
 const ORS_API_KEY = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImIyMzc2M2E2YjZmZDRmMjFiMTg1ZWJkN2Y1MzZhNmE2IiwiaCI6Im11cm11cjY0In0=";

@@ -409,6 +409,16 @@
     gap: 4px;
 }
 
+.customer-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.customer-info .payment {
+    color: #d97706;
+    font-weight: bold;
+}
+
 .name {
     font-size: 13px;
     font-weight: 500;
