@@ -6,6 +6,7 @@ import Map from "./map.jsx";
 import "./index.css";
 import OrderPanel from "./orderPanel.jsx";
 import CreateOrder from "./CreateOrder.jsx";
+import OwnerSettings from "./pages/OwnerSettings.jsx";
 import Login from "./pages/login.jsx";
 import Registration from "./pages/registration.jsx";
 import { ThemeProvider } from "./provider/ThemeContext.jsx";
@@ -16,17 +17,26 @@ createRoot(document.getElementById("root")).render(
     <BrowserRouter>
         <ThemeProvider>
             <Routes>
-                {/* публичные страницы */}
+                {/* общедоступные */}
                 <Route path="/" element={<App />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/registration" element={<Registration />} />
                 <Route path="/unauthorized" element={<Unauthorized />} />
 
-                {/* защищённые маршруты */}
+                <Route
+                    path="/ownerSettings"
+                    element={
+                        <ProtectedRoute allowedRoles={["owner"]}>
+                            <OwnerSettings />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* только для owner и admin */}
                 <Route
                     path="/map"
                     element={
-                        <ProtectedRoute roles={["owner", "admin"]}>
+                        <ProtectedRoute allowedRoles={["owner", "admin"]}>
                             <Map />
                         </ProtectedRoute>
                     }
@@ -34,7 +44,7 @@ createRoot(document.getElementById("root")).render(
                 <Route
                     path="/orderPanel"
                     element={
-                        <ProtectedRoute roles={["owner", "admin"]}>
+                        <ProtectedRoute allowedRoles={["owner", "admin"]}>
                             <OrderPanel />
                         </ProtectedRoute>
                     }
@@ -42,7 +52,7 @@ createRoot(document.getElementById("root")).render(
                 <Route
                     path="/createOrder"
                     element={
-                        <ProtectedRoute roles={["owner", "admin"]}>
+                        <ProtectedRoute allowedRoles={["owner", "admin"]}>
                             <CreateOrder />
                         </ProtectedRoute>
                     }

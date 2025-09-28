@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./styles/login.module.css";
+import { RefreshCcw } from 'lucide-react';
 
 const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -136,7 +137,7 @@ const Login = () => {
                                     className={styles.passwordToggle}
                                     onClick={togglePassword}
                                 >
-                                    {showPassword ? "Скрыть" : "Показать"}
+                                    {/*{showPassword ? "Скрыть" : "Показать"}*/}
                                 </button>
                             </div>
                         </div>
@@ -149,7 +150,7 @@ const Login = () => {
                                 className={styles.captchaRefresh}
                                 onClick={handleCaptchaRefresh}
                             >
-                                Обновить
+                                <RefreshCcw size={24}/>
                             </button>
                             <input
                                 type="text"

@@ -1,0 +1,149 @@
+/* базовая сетка/цвета как в orderPanel */
+.owner-page {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    background: var(--app-gradient);
+    min-height: 100vh;
+    color: #334155;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ----- Header ----- */
+.owner-header {
+    background: var(--app-gradient);
+    color: white;
+    padding: 0 24px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.25);
+    position: relative;
+    z-index: 100;
+}
+.owner-header-left { display: flex; align-items: center; }
+.owner-logo { display: flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 700; }
+.owner-logo-icon { width: 40px; height: 40px; background: rgba(255,255,255,.15); border-radius: 12px; display:flex; align-items:center; justify-content:center; backdrop-filter: blur(10px); }
+.owner-header-right { display: flex; align-items: center; gap: 12px; }
+.owner-icon-btn { background: rgba(255,255,255,.1); border: none; height: 40px; border-radius: 10px; cursor: pointer; transition: .2s; display:grid; place-items:center; color:white; padding:0 10px; }
+.owner-icon-btn:hover { background: rgba(255,255,255,.2); transform: translateY(-1px); }
+.owner-user-info { display:flex; align-items:center; gap:12px; padding-left:16px; border-left:1px solid rgba(255,255,255,.2); }
+.owner-user-name { font-size:14px; font-weight:500; opacity:.9; }
+.owner-logout-btn { background: rgba(255,255,255,.15); border: none; color: white; padding: 6px 12px; border-radius:6px; font-size:12px; cursor:pointer; }
+.owner-logout-btn:hover { background: rgba(255,255,255,.25); }
+
+/* ----- Tabs/Stats ----- */
+.owner-tabs {
+    background: white;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05);
+}
+.owner-title { padding: 16px 0; font-size: 18px; }
+.owner-stats { display:flex; gap:8px; }
+.owner-chip {
+    background:#f1f5f9; color:#475569; padding:6px 10px; border-radius:10px;
+    font-size:12px; display:flex; align-items:center; gap:6px; font-weight:600;
+}
+
+/* ----- Content ----- */
+.owner-content { flex:1; padding:24px; display:flex; flex-direction:column; gap:16px; }
+.owner-card {
+    background:white; border-radius:12px; box-shadow: 0 1px 3px rgba(0,0,0,.05), 0 10px 25px rgba(0,0,0,.05);
+    overflow:hidden; padding:16px;
+}
+.owner-card-header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding-bottom:10px; border-bottom:1px solid #e2e8f0; }
+.owner-card-title { display:flex; align-items:center; gap:8px; font-weight:700; color:#334155; }
+.owner-card-actions { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+
+/* fields */
+.owner-grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:12px; }
+.owner-grid-6 { display:grid; grid-template-columns: 40px 2fr 1.3fr 1fr 1fr 1.4fr; gap:0; }
+.owner-grid-5 { display:grid; grid-template-columns: 40px 1.2fr 1.8fr 2fr 1.6fr; gap:0; }
+
+.owner-field { display:flex; flex-direction:column; gap:6px; }
+.owner-field label { font-size:12px; text-transform:uppercase; letter-spacing:.4px; color:#64748b; font-weight:700; }
+.owner-field input, .owner-field select {
+    background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; font-size:14px; color:#334155;
+}
+.owner-field input:focus, .owner-field select:focus { outline:none; border-color:#667eea; box-shadow: 0 0 0 3px rgba(102,126,234,.1); background:white; }
+
+/* logo uploader */
+.owner-logo-uploader { display:flex; align-items:center; gap:12px; }
+.owner-logo-preview { width:60px; height:60px; object-fit:cover; border-radius:12px; border:1px solid #e2e8f0; }
+.owner-logo-placeholder { width:60px; height:60px; border-radius:12px; border:1px dashed #cbd5e1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; color:#94a3b8; font-size:11px; }
+
+/* table */
+.owner-table { margin-top:12px; }
+.owner-thead { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-bottom:1px solid #e2e8f0; padding:12px; font-size:12px; font-weight:700; color:#64748b; }
+.owner-tbody { display:flex; flex-direction:column; }
+.owner-row { border-bottom:1px solid #f1f5f9; min-height:58px; display:grid; align-items:center; }
+.owner-row:hover { background:#f8fafc; }
+.owner-row.muted { opacity:.55; }
+.owner-cell { padding:8px 12px; font-size:14px; color:#374151; display:flex; align-items:center; gap:8px; }
+.owner-cell.index { justify-content:center; font-weight:700; color:white; background:#667eea; width:28px; height:28px; border-radius:8px; }
+.owner-cell.actions { gap:8px; }
+
+/* role badges */
+.owner-role { font-weight:700; padding:4px 8px; border-radius:6px; font-size:12px; text-transform:uppercase; }
+.owner-role.admin { background:#dbeafe; color:#1d4ed8; }
+.owner-role.courier { background:#d1fae5; color:#047857; }
+
+/* discount chip */
+.owner-discount { display:inline-flex; align-items:center; gap:6px; background:#fef3c7; color:#b45309; font-weight:700; padding:4px 8px; border-radius:6px; font-size:12px; }
+
+/* search/sort */
+.owner-search { position:relative; display:flex; align-items:center; }
+.owner-search-icon { position:absolute; left:10px; color:#94a3b8; }
+.owner-search input { background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px 8px 32px; font-size:14px; width:240px; }
+.owner-search input:focus { outline:none; border-color:#667eea; box-shadow: 0 0 0 3px rgba(102,126,234,.1); background:white; }
+.owner-sort select { background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; }
+
+/* buttons */
+.owner-primary-btn, .owner-secondary-btn, .owner-upload-btn, .owner-icon {
+    border:none; cursor:pointer; display:inline-flex; align-items:center; gap:8px; border-radius:10px; padding:10px 14px; font-weight:700; font-size:14px;
+}
+.owner-primary-btn { color:white; background: var(--app-gradient); box-shadow: 0 6px 16px rgba(102,126,234,.25); }
+.owner-primary-btn:hover { transform: translateY(-1px); }
+.owner-secondary-btn { background:#f1f5f9; color:#475569; }
+.owner-upload-btn { background:#e0e7ff; color:#3730a3; }
+.owner-icon { background:#f1f5f9; color:#475569; padding:8px; border-radius:10px; }
+.owner-icon.small { padding:6px; }
+.owner-icon.danger { background:#fee2e2; color:#b91c1c; }
+
+/* switch */
+.owner-switch { display:inline-flex; align-items:center; gap:8px; }
+.owner-switch input { display:none; }
+.owner-switch span {
+    width:36px; height:20px; background:#cbd5e1; border-radius:999px; position:relative; transition:.2s;
+}
+.owner-switch span::after {
+    content:""; position:absolute; width:16px; height:16px; top:2px; left:2px; background:white; border-radius:50%; transition:.2s; box-shadow: 0 1px 3px rgba(0,0,0,.15);
+}
+.owner-switch input:checked + span { background:#86efac; }
+.owner-switch input:checked + span::after { left:18px; }
+.owner-switch small { color:#64748b; }
+
+/* empty */
+.owner-empty { padding:20px; text-align:center; color:#94a3b8; }
+
+/* contacts */
+.owner-contact { display:flex; align-items:center; gap:6px; color:#475569; }
+
+/* modal */
+.owner-modal { position:fixed; inset:0; background:rgba(15,23,42,.44); display:flex; align-items:center; justify-content:center; z-index:999; }
+.owner-modal-card { width: min(720px, 92vw); background:white; border-radius:14px; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+.owner-modal-header { padding:14px 16px; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; }
+.owner-modal-body { padding:16px; }
+.owner-modal-footer { padding:12px 16px; border-top:1px solid #e2e8f0; display:flex; justify-content:flex-end; gap:10px; }
+
+/* responsive */
+@media (max-width: 900px) {
+    .owner-grid-2 { grid-template-columns: 1fr; }
+    .owner-grid-6 { grid-template-columns: 40px 2fr 1fr 1fr 1fr 1.6fr; }
+    .owner-grid-5 { grid-template-columns: 40px 1fr 1.5fr 1.8fr 1.6fr; }
+    .owner-search input { width: 190px; }
+}

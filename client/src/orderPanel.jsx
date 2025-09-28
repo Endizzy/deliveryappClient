@@ -155,12 +155,12 @@ const OrderPanel = () => {
 
                     <div className="header-right">
                         <div className="header-icons">
-                            <ThemeSelector />
-                            <button className="icon-btn">
-                                <Settings size={24} />
+                            <ThemeSelector/>
+                            <button className="icon-btn" onClick={() => navigate("/ownerSettings")}>
+                                <Settings size={24}/>
                             </button>
                             <button className="icon-btn" onClick={() => navigate("/map")}>
-                                <Map size={24} />
+                                <Map size={24}/>
                             </button>
                             <div className="user-info">
                                 <span className="user-name">Briana</span>
