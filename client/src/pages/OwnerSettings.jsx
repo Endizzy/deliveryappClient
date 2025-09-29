@@ -198,10 +198,10 @@ export default function OwnerSettings() {
 
                 <div className="owner-header-right">
                     <button className="owner-icon-btn" onClick={() => navigate("/orderPanel")}>
-                        <Package size={20} />
+                        <Package size={24} />
                     </button>
                     <button className="owner-icon-btn">
-                        <Settings size={20} />
+                        <Settings size={24} />
                     </button>
                     <div className="owner-user-info">
                         <span className="owner-user-name">Owner</span>

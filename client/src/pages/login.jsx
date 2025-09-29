@@ -136,8 +136,9 @@ const Login = () => {
                                     type="button"
                                     className={styles.passwordToggle}
                                     onClick={togglePassword}
+                                    aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
                                 >
-                                    {/*{showPassword ? "Скрыть" : "Показать"}*/}
+                                    {showPassword ? "🙈" : "👁️"}
                                 </button>
                             </div>
                         </div>

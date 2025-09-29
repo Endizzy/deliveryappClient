@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Map, Settings, Sun, Moon } from "lucide-react";
+import { Map, Settings, Sun, Moon, User } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./orderPanel.css";
 import { ThemeProvider, useTheme } from "./provider/ThemeContext";
@@ -161,6 +161,9 @@ const OrderPanel = () => {
                             </button>
                             <button className="icon-btn" onClick={() => navigate("/map")}>
                                 <Map size={24}/>
+                            </button>
+                            <button className="icon-btn" onClick={() => navigate("/userProfile")}>
+                                <User size={24}/>
                             </button>
                             <div className="user-info">
                                 <span className="user-name">Briana</span>
