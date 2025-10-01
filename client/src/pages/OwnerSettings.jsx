@@ -1,96 +1,109 @@
+// OwnerSettings.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-    Settings,
-    Save,
-    Upload,
-    Image as ImageIcon,
-    Plus,
-    Edit,
-    Trash2,
-    Search,
-    Percent,
-    Package,
-    Users,
-    Shield,
-    Phone,
-    Mail,
-    BadgeCheck,
-    X,
-    ChevronDown,
-    ChevronUp,
+    Settings, Save, Upload, Image as ImageIcon, Plus, Edit, Trash2,
+    Search, Percent, Package, Users, Shield, Phone, Mail,
+    BadgeCheck, X, ChevronDown, ChevronUp
 } from "lucide-react";
 import "./ownerSettings.css";
 
-// Хелперы
-const uid = () => `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 const toEUR = (n) => `€${Number(n || 0).toFixed(2)}`;
-
-// Ключи localStorage
-const LS_KEYS = {
-    restaurant: "owner.restaurant",
-    menu: "owner.menu",
-    staff: "owner.staff",
-};
 
 export default function OwnerSettings() {
     const navigate = useNavigate();
+    const API = import.meta.env.VITE_API_URL;
 
-    // ---------- Состояния ----------
-    const [restaurant, setRestaurant] = useState(() => {
-        const saved = localStorage.getItem(LS_KEYS.restaurant);
-        return saved
-            ? JSON.parse(saved)
-            : { name: "", logo: "", createdAt: new Date().toISOString() };
-    });
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
-    const [menu, setMenu] = useState(() => {
-        const saved = localStorage.getItem(LS_KEYS.menu);
-        return saved
-            ? JSON.parse(saved)
-            : [
-                { id: uid(), name: "Суши лосось", price: 2.5, discount: 0, category: "Суши", available: true },
-                { id: uid(), name: "Ролл Филадельфия", price: 9.2, discount: 10, category: "Роллы", available: true },
-                { id: uid(), name: "Рамен с курицей", price: 7.5, discount: 0, category: "Горячее", available: true },
-            ];
-    });
+    // визуальные поля
+    const [restaurant, setRestaurant] = useState({ name: "", logo: "", createdAt: new Date().toISOString() });
 
-    const [staff, setStaff] = useState(() => {
-        const saved = localStorage.getItem(LS_KEYS.staff);
-        return saved
-            ? JSON.parse(saved)
-            : [
-                { id: uid(), role: "admin", nickname: "Dispatcher1", phone: "+37120000001", email: "disp@example.com", active: true },
-                { id: uid(), role: "courier", nickname: "CourierMihail", phone: "+37120000002", email: "", active: true },
-            ];
-    });
-
-    // Поисковые строки
+    // --- Меню (из API) ---
+    const [menu, setMenu] = useState([]);
     const [menuSearch, setMenuSearch] = useState("");
-    const [staffSearch, setStaffSearch] = useState("");
-
-    // UI-модалки
-    const [menuModal, setMenuModal] = useState({ open: false, editId: null, form: { name: "", price: "", discount: 0, category: "", available: true } });
-    const [staffModal, setStaffModal] = useState({ open: false, editId: null, form: { role: "courier", nickname: "", phone: "", email: "" } });
-
     const [menuSortBy, setMenuSortBy] = useState({ field: "name", dir: "asc" });
 
-    // ---------- Persist ----------
-    useEffect(() => localStorage.setItem(LS_KEYS.restaurant, JSON.stringify(restaurant)), [restaurant]);
-    useEffect(() => localStorage.setItem(LS_KEYS.menu, JSON.stringify(menu)), [menu]);
-    useEffect(() => localStorage.setItem(LS_KEYS.staff, JSON.stringify(staff)), [staff]);
+    // --- Сотрудники (из API) ---
+    const [staff, setStaff] = useState([]);
+    const [staffSearch, setStaffSearch] = useState("");
+    const [staffLoading, setStaffLoading] = useState(false);
 
-    // ---------- Derived ----------
+    const [staffModal, setStaffModal] = useState({
+        open: false,
+        editId: null,
+        form: { role: "courier", nickname: "", phone: "", email: "", password: "" }
+    });
+
+    // ---- auth ----
+    const token = useMemo(
+        () => localStorage.getItem("token") || sessionStorage.getItem("token"),
+        []
+    );
+    const authHeaders = useMemo(
+        () => ({ "Content-Type": "application/json", Authorization: `Bearer ${token}` }),
+        [token]
+    );
+
+    // ---- profile + menu ----
+    const fetchProfile = async () => {
+        const res = await fetch(`${API}/user/me`, { headers: authHeaders });
+        if (res.status === 401) throw new Error("Не авторизован");
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error || "Не удалось получить профиль");
+        setUser(data.user);
+    };
+
+    const fetchMenu = async () => {
+        const res = await fetch(`${API}/menu`, { headers: authHeaders });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || "Не удалось загрузить меню");
+        setMenu(data.items);
+    };
+
+    // ---- staff ----
+    const fetchStaff = async (q = "") => {
+        setStaffLoading(true);
+        try {
+            const url = q ? `${API}/staff?q=${encodeURIComponent(q)}` : `${API}/staff`;
+            const res = await fetch(url, { headers: authHeaders });
+            const data = await res.json();
+            if (!res.ok || !data.ok) throw new Error(data.error || "Не удалось загрузить сотрудников");
+            setStaff(data.items);
+        } finally {
+            setStaffLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (!token) { navigate("/login"); return; }
+        (async () => {
+            try {
+                await fetchProfile();
+                await fetchMenu();
+                await fetchStaff();
+            } catch (e) {
+                setError(e.message);
+                if (String(e.message).includes("Не авторизован")) navigate("/login");
+            } finally {
+                setLoading(false);
+            }
+        })();
+    }, [navigate]);
+
+    // ---- derived: menu ----
     const filteredMenu = useMemo(() => {
-        let list = [...menu].filter(
-            (m) =>
-                m.name.toLowerCase().includes(menuSearch.toLowerCase()) ||
-                m.category.toLowerCase().includes(menuSearch.toLowerCase())
+        const q = menuSearch.trim().toLowerCase();
+        let list = !q ? [...menu] : menu.filter(m =>
+            (m.name || "").toLowerCase().includes(q) ||
+            (m.category || "").toLowerCase().includes(q)
         );
         const { field, dir } = menuSortBy;
         list.sort((a, b) => {
-            const va = field === "price" || field === "discount" ? Number(a[field]) : String(a[field]).toLowerCase();
-            const vb = field === "price" || field === "discount" ? Number(b[field]) : String(b[field]).toLowerCase();
+            const va = field === "price" || field === "discount" ? Number(a[field]) : String(a[field] ?? "").toLowerCase();
+            const vb = field === "price" || field === "discount" ? Number(b[field]) : String(b[field] ?? "").toLowerCase();
             if (va < vb) return dir === "asc" ? -1 : 1;
             if (va > vb) return dir === "asc" ? 1 : -1;
             return 0;
@@ -98,86 +111,215 @@ export default function OwnerSettings() {
         return list;
     }, [menu, menuSearch, menuSortBy]);
 
-    const filteredStaff = useMemo(() => {
-        return staff.filter(
-            (s) =>
-                s.nickname.toLowerCase().includes(staffSearch.toLowerCase()) ||
-                s.role.toLowerCase().includes(staffSearch.toLowerCase()) ||
-                s.phone.toLowerCase().includes(staffSearch.toLowerCase())
-        );
-    }, [staff, staffSearch]);
-
     const stats = useMemo(() => {
         const total = menu.length;
-        const active = menu.filter((m) => m.available).length;
-        const avg = total ? menu.reduce((acc, m) => acc + Number(m.price), 0) / total : 0;
+        const active = menu.filter(m => m.available).length;
+        const avg = total ? menu.reduce((a, m) => a + Number(m.price || 0), 0) / total : 0;
         return { total, active, avg };
     }, [menu]);
 
-    // ---------- Handlers: Restaurant ----------
-    const onLogoChange = async (e) => {
+    // ---- derived: staff ----
+    const filteredStaff = useMemo(() => {
+        const q = staffSearch.trim().toLowerCase();
+        if (!q) return staff;
+        return staff.filter(s =>
+            (s.nickname || "").toLowerCase().includes(q) ||
+            (s.role || "").toLowerCase().includes(q) ||
+            (s.phone || "").toLowerCase().includes(q)
+        );
+    }, [staff, staffSearch]);
+
+    // ---- restaurant logo ----
+    const onLogoChange = (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = () => setRestaurant((r) => ({ ...r, logo: reader.result }));
+        reader.onload = () => setRestaurant(r => ({ ...r, logo: reader.result }));
         reader.readAsDataURL(file);
     };
 
-    // ---------- Handlers: Menu ----------
+    // ---- MENU modal ----
+    const [menuModal, setMenuModal] = useState({
+        open: false, editId: null,
+        form: { name: "", price: "", discount: 0, category: "", available: true }
+    });
+
     const openAddMenu = () =>
-        setMenuModal({ open: true, editId: null, form: { name: "", price: "", discount: 0, category: "", available: true } });
+        setMenuModal({ open: true, editId: null,
+            form: { name: "", price: "", discount: 0, category: "", available: true } });
 
     const openEditMenu = (item) =>
-        setMenuModal({ open: true, editId: item.id, form: { name: item.name, price: item.price, discount: item.discount, category: item.category, available: item.available } });
+        setMenuModal({ open: true, editId: item.id,
+            form: { name: item.name, price: item.price, discount: item.discount, category: item.category, available: !!item.available } });
 
-    const closeMenuModal = () => setMenuModal((m) => ({ ...m, open: false }));
+    const closeMenuModal = () => setMenuModal(m => ({ ...m, open: false }));
 
-    const saveMenu = () => {
-        const f = menuModal.form;
-        if (!f.name || f.price === "") return alert("Введите название и цену");
-        if (menuModal.editId) {
-            setMenu((list) => list.map((it) => (it.id === menuModal.editId ? { ...it, ...f, price: Number(f.price), discount: Number(f.discount) } : it)));
-        } else {
-            setMenu((list) => [...list, { id: uid(), ...f, price: Number(f.price), discount: Number(f.discount) }]);
-        }
-        closeMenuModal();
+    // ---- MENU CRUD ----
+    const createMenuItem = async (payload) => {
+        const res = await fetch(`${API}/menu`, { method: "POST", headers: authHeaders, body: JSON.stringify(payload) });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || "Не удалось создать позицию");
+        return data.item;
+    };
+    const updateMenuItem = async (id, payload) => {
+        const res = await fetch(`${API}/menu/${id}`, { method: "PUT", headers: authHeaders, body: JSON.stringify(payload) });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || "Не удалось обновить позицию");
+        return data.item;
+    };
+    const deleteMenuItem = async (id) => {
+        const res = await fetch(`${API}/menu/${id}`, { method: "DELETE", headers: authHeaders });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || "Не удалось удалить позицию");
     };
 
-    const deleteMenu = (id) => {
+    const toggleAvailable = async (item) => {
+        const updated = await updateMenuItem(item.id, { available: !item.available });
+        setMenu(list => list.map(m => (m.id === item.id ? updated : m)));
+    };
+
+    const saveMenu = async () => {
+        try {
+            const f = menuModal.form;
+            if (!f.name || f.price === "") return alert("Введите название и цену");
+            if (menuModal.editId) {
+                const updated = await updateMenuItem(menuModal.editId, {
+                    name: f.name,
+                    category: f.category,
+                    price: Number(f.price),
+                    discount: Number(f.discount || 0),
+                    available: !!f.available,
+                });
+                setMenu(list => list.map(it => (it.id === updated.id ? updated : it)));
+            } else {
+                const created = await createMenuItem({
+                    name: f.name,
+                    category: f.category,
+                    price: Number(f.price),
+                    discount: Number(f.discount || 0),
+                    available: !!f.available,
+                });
+                setMenu(list => [...list, created]);
+            }
+            closeMenuModal();
+        } catch (e) {
+            alert(e.message);
+        }
+    };
+
+    const deleteMenu = async (id) => {
         if (!confirm("Удалить позицию меню?")) return;
-        setMenu((list) => list.filter((it) => it.id !== id));
-    };
-
-    // ---------- Handlers: Staff ----------
-    const openAddStaff = () =>
-        setStaffModal({ open: true, editId: null, form: { role: "courier", nickname: "", phone: "", email: "" } });
-
-    const openEditStaff = (user) =>
-        setStaffModal({ open: true, editId: user.id, form: { role: user.role, nickname: user.nickname, phone: user.phone, email: user.email || "" } });
-
-    const closeStaffModal = () => setStaffModal((m) => ({ ...m, open: false }));
-
-    const saveStaff = () => {
-        const f = staffModal.form;
-        if (!f.nickname || !f.role) return alert("Укажите роль и никнейм");
-        if (staffModal.editId) {
-            setStaff((list) => list.map((u) => (u.id === staffModal.editId ? { ...u, ...f } : u)));
-        } else {
-            setStaff((list) => [...list, { id: uid(), active: true, ...f }]);
+        try {
+            await deleteMenuItem(id);
+            setMenu(list => list.filter(it => it.id !== id));
+        } catch (e) {
+            alert(e.message);
         }
-        closeStaffModal();
     };
 
-    const deleteStaff = (id) => {
+    // ---- STAFF helpers ----
+    const genPassword = () => {
+        const chars =
+            "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%^&*";
+        let s = "";
+        for (let i = 0; i < 12; i++) s += chars[Math.floor(Math.random() * chars.length)];
+        return s;
+    };
+
+    // ---- STAFF modal ----
+    const openAddStaff = () =>
+        setStaffModal({
+            open: true, editId: null,
+            form: { role: "courier", nickname: "", phone: "", email: "", password: genPassword() }
+        });
+
+    const openEditStaff = (u) =>
+        setStaffModal({
+            open: true, editId: u.id,
+            form: { role: u.role, nickname: u.nickname, phone: u.phone, email: u.email || "", password: "" } // пустой пароль = не менять
+        });
+
+    const closeStaffModal = () => setStaffModal(m => ({ ...m, open: false }));
+
+    // ---- STAFF CRUD ----
+    const createStaff = async (payload) => {
+        const res = await fetch(`${API}/staff`, { method: "POST", headers: authHeaders, body: JSON.stringify(payload) });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || "Не удалось создать аккаунт");
+        return data.item;
+    };
+
+    const updateStaff = async (id, payload) => {
+        const res = await fetch(`${API}/staff/${id}`, { method: "PUT", headers: authHeaders, body: JSON.stringify(payload) });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || "Не удалось обновить аккаунт");
+        return data.item;
+    };
+
+    const deleteStaffApi = async (id) => {
+        const res = await fetch(`${API}/staff/${id}`, { method: "DELETE", headers: authHeaders });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || "Не удалось удалить аккаунт");
+    };
+
+    const saveStaff = async () => {
+        const f = staffModal.form;
+        if (!f.nickname || !f.role || !f.phone) {
+            alert("Укажите роль, никнейм и телефон");
+            return;
+        }
+        try {
+            if (staffModal.editId) {
+                const payload = {
+                    role: f.role, nickname: f.nickname, phone: f.phone, email: f.email || null,
+                };
+                if (f.password) payload.password = f.password; // меняем пароль только если введён
+                const updated = await updateStaff(staffModal.editId, payload);
+                setStaff(list => list.map(u => (u.id === updated.id ? updated : u)));
+            } else {
+                if (!f.password) f.password = genPassword();
+                const created = await createStaff({
+                    role: f.role, nickname: f.nickname, phone: f.phone, email: f.email || null, password: f.password,
+                });
+                setStaff(list => [created, ...list]);
+            }
+            closeStaffModal();
+        } catch (e) {
+            alert(e.message);
+        }
+    };
+
+    const toggleActive = async (u) => {
+        try {
+            const updated = await updateStaff(u.id, { active: !u.active });
+            setStaff(list => list.map(x => (x.id === u.id ? updated : x)));
+        } catch (e) {
+            alert(e.message);
+        }
+    };
+
+    const deleteStaff = async (id) => {
         if (!confirm("Удалить аккаунт?")) return;
-        setStaff((list) => list.filter((u) => u.id !== id));
+        try {
+            await deleteStaffApi(id);
+            setStaff(list => list.filter(u => u.id !== id));
+        } catch (e) {
+            alert(e.message);
+        }
     };
 
-    const toggleActive = (id) => {
-        setStaff((list) => list.map((u) => (u.id === id ? { ...u, active: !u.active } : u)));
-    };
+    // live-поиск: можно дергать API, если хочешь серверный фильтр
+    useEffect(() => {
+        // Если хочешь именно серверный поиск — раскомментируй:
+        // const q = staffSearch.trim();
+        // fetchStaff(q).catch(() => {});
+    }, [staffSearch]);
 
-    // ---------- Render ----------
+    // ---- render ----
+    if (loading) return <div className="owner-page"><div className="owner-content">Загрузка…</div></div>;
+    if (error)   return <div className="owner-page"><div className="owner-content">Ошибка: {error}</div></div>;
+    if (!user)   return null;
+
     return (
         <div className="owner-page">
             {/* Header */}
@@ -186,10 +328,7 @@ export default function OwnerSettings() {
                     <div className="owner-logo">
                         <div className="owner-logo-icon">
                             <svg viewBox="0 0 24 24" width="32" height="32">
-                                <path
-                                    fill="currentColor"
-                                    d="M12 2L2 7L12 12L22 7L12 2M2 17L12 22L22 17M2 12L12 17L22 12"
-                                />
+                                <path fill="currentColor" d="M12 2L2 7L12 12L22 7L12 2M2 17L12 22L22 17M2 12L12 17L22 12" />
                             </svg>
                         </div>
                         <span className="owner-logo-text">DeliveryApp</span>
@@ -204,17 +343,22 @@ export default function OwnerSettings() {
                         <Settings size={24} />
                     </button>
                     <div className="owner-user-info">
-                        <span className="owner-user-name">Owner</span>
-                        <button className="owner-logout-btn" onClick={() => navigate("/login")}>Выход</button>
+            <span className="owner-user-name">
+              {user.firstName} {user.lastName}
+            </span>
+                        <button
+                            className="owner-logout-btn"
+                            onClick={() => { localStorage.removeItem("token"); sessionStorage.removeItem("token"); navigate("/login"); }}
+                        >
+                            Выход
+                        </button>
                     </div>
                 </div>
             </header>
 
             {/* Tabs */}
             <nav className="owner-tabs">
-                <strong className="owner-title">
-                    Настройки ресторана
-                </strong>
+                <strong className="owner-title">Настройки ресторана</strong>
                 <div className="owner-stats">
                     <div className="owner-chip"><BadgeCheck size={14}/> Позиции: {stats.total}</div>
                     <div className="owner-chip"><ChevronUp size={14}/> Активно: {stats.active}</div>
@@ -224,13 +368,11 @@ export default function OwnerSettings() {
 
             {/* Content */}
             <div className="owner-content">
-                {/* Блок: Общие настройки ресторана */}
+                {/* Общие сведения */}
                 <section className="owner-card">
                     <div className="owner-card-header">
-                        <div className="owner-card-title">
-                            <Shield size={18}/> Общие сведения
-                        </div>
-                        <button className="owner-primary-btn" onClick={() => alert("В проде тут полетит PATCH на API")}>
+                        <div className="owner-card-title"><Shield size={18}/> Общие сведения</div>
+                        <button className="owner-primary-btn" onClick={() => alert("Здесь будет PATCH /api/company/:id")}>
                             <Save size={16}/> Сохранить
                         </button>
                     </div>
@@ -244,7 +386,6 @@ export default function OwnerSettings() {
                                 placeholder="Например, Briana Sushi"
                             />
                         </div>
-
                         <div className="owner-field">
                             <label>Логотип</label>
                             <div className="owner-logo-uploader">
@@ -270,13 +411,10 @@ export default function OwnerSettings() {
                     </div>
                 </section>
 
-                {/* Блок: Меню */}
+                {/* Меню */}
                 <section className="owner-card">
                     <div className="owner-card-header">
-                        <div className="owner-card-title">
-                            <Package size={18}/> Меню ресторана
-                        </div>
-
+                        <div className="owner-card-title"><Package size={18}/> Меню ресторана</div>
                         <div className="owner-card-actions">
                             <div className="owner-search">
                                 <Search className="owner-search-icon" size={16}/>
@@ -286,7 +424,6 @@ export default function OwnerSettings() {
                                     onChange={(e) => setMenuSearch(e.target.value)}
                                 />
                             </div>
-
                             <div className="owner-sort">
                                 <select
                                     value={`${menuSortBy.field}:${menuSortBy.dir}`}
@@ -303,7 +440,6 @@ export default function OwnerSettings() {
                                     <option value="discount:asc">Скидка ↑</option>
                                 </select>
                             </div>
-
                             <button className="owner-primary-btn" onClick={openAddMenu}>
                                 <Plus size={16}/> Добавить позицию
                             </button>
@@ -312,12 +448,8 @@ export default function OwnerSettings() {
 
                     <div className="owner-table">
                         <div className="owner-thead owner-grid-6">
-                            <div>#</div>
-                            <div>Название</div>
-                            <div>Категория</div>
-                            <div>Цена</div>
-                            <div>Скидка</div>
-                            <div>Действия</div>
+                            <div>#</div><div>Название</div><div>Категория</div>
+                            <div>Цена</div><div>Скидка</div><div>Действия</div>
                         </div>
 
                         <div className="owner-tbody">
@@ -328,23 +460,14 @@ export default function OwnerSettings() {
                                     <div className="owner-cell">{it.category || "-"}</div>
                                     <div className="owner-cell">{toEUR(it.price)}</div>
                                     <div className="owner-cell">
-                                        {it.discount ? (
-                                            <span className="owner-discount"><Percent size={12}/> -{it.discount}%</span>
-                                        ) : "—"}
+                                        {it.discount
+                                            ? <span className="owner-discount"><Percent size={12}/> -{it.discount}%</span>
+                                            : "—"}
                                     </div>
                                     <div className="owner-cell actions">
                                         <label className="owner-switch">
-                                            <input
-                                                type="checkbox"
-                                                checked={!!it.available}
-                                                onChange={() =>
-                                                    setMenu((list) =>
-                                                        list.map((m) => (m.id === it.id ? { ...m, available: !m.available } : m))
-                                                    )
-                                                }
-                                            />
-                                            <span/>
-                                            <small>{it.available ? "В продаже" : "Скрыто"}</small>
+                                            <input type="checkbox" checked={!!it.available} onChange={() => toggleAvailable(it)} />
+                                            <span/><small>{it.available ? "В продаже" : "Скрыто"}</small>
                                         </label>
                                         <button className="owner-icon small" onClick={() => openEditMenu(it)} title="Редактировать">
                                             <Edit size={16}/>
@@ -355,17 +478,12 @@ export default function OwnerSettings() {
                                     </div>
                                 </div>
                             ))}
-
-                            {filteredMenu.length === 0 && (
-                                <div className="owner-empty">
-                                    Нет позиций. Добавьте первую.
-                                </div>
-                            )}
+                            {filteredMenu.length === 0 && <div className="owner-empty">Нет позиций. Добавьте первую.</div>}
                         </div>
                     </div>
                 </section>
 
-                {/* Блок: Сотрудники */}
+                {/* Сотрудники */}
                 <section className="owner-card">
                     <div className="owner-card-header">
                         <div className="owner-card-title">
@@ -398,7 +516,8 @@ export default function OwnerSettings() {
                         </div>
 
                         <div className="owner-tbody">
-                            {filteredStaff.map((u, idx) => (
+                            {staffLoading && <div className="owner-empty">Загрузка сотрудников…</div>}
+                            {!staffLoading && filteredStaff.map((u, idx) => (
                                 <div key={u.id} className="owner-row owner-grid-5">
                                     <div className="owner-cell index">{idx + 1}</div>
                                     <div className="owner-cell">
@@ -411,9 +530,8 @@ export default function OwnerSettings() {
                                     </div>
                                     <div className="owner-cell actions">
                                         <label className="owner-switch">
-                                            <input type="checkbox" checked={!!u.active} onChange={() => toggleActive(u.id)} />
-                                            <span/>
-                                            <small>{u.active ? "Активен" : "Отключен"}</small>
+                                            <input type="checkbox" checked={!!u.active} onChange={() => toggleActive(u)} />
+                                            <span/><small>{u.active ? "Активен" : "Отключен"}</small>
                                         </label>
                                         <button className="owner-icon small" onClick={() => openEditStaff(u)} title="Редактировать">
                                             <Edit size={16}/>
@@ -424,8 +542,7 @@ export default function OwnerSettings() {
                                     </div>
                                 </div>
                             ))}
-
-                            {filteredStaff.length === 0 && (
+                            {!staffLoading && filteredStaff.length === 0 && (
                                 <div className="owner-empty">Нет аккаунтов.</div>
                             )}
                         </div>
@@ -433,7 +550,7 @@ export default function OwnerSettings() {
                 </section>
             </div>
 
-            {/* ---------- МОДАЛКИ ---------- */}
+            {/* ---- МОДАЛКА Меню ---- */}
             {menuModal.open && (
                 <div className="owner-modal" onMouseDown={closeMenuModal}>
                     <div className="owner-modal-card" onMouseDown={(e) => e.stopPropagation()}>
@@ -447,7 +564,7 @@ export default function OwnerSettings() {
                                 <label>Название</label>
                                 <input
                                     value={menuModal.form.name}
-                                    onChange={(e) => setMenuModal((m) => ({ ...m, form: { ...m.form, name: e.target.value } }))}
+                                    onChange={(e) => setMenuModal(m => ({ ...m, form: { ...m.form, name: e.target.value } }))}
                                     placeholder="Например, Ролл Калифорния"
                                 />
                             </div>
@@ -455,38 +572,33 @@ export default function OwnerSettings() {
                                 <label>Категория</label>
                                 <input
                                     value={menuModal.form.category}
-                                    onChange={(e) => setMenuModal((m) => ({ ...m, form: { ...m.form, category: e.target.value } }))}
+                                    onChange={(e) => setMenuModal(m => ({ ...m, form: { ...m.form, category: e.target.value } }))}
                                     placeholder="Суши / Роллы / Горячее…"
                                 />
                             </div>
                             <div className="owner-field">
                                 <label>Цена</label>
                                 <input
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
+                                    type="number" step="0.01" min="0"
                                     value={menuModal.form.price}
-                                    onChange={(e) => setMenuModal((m) => ({ ...m, form: { ...m.form, price: e.target.value } }))}
+                                    onChange={(e) => setMenuModal(m => ({ ...m, form: { ...m.form, price: e.target.value } }))}
                                     placeholder="0.00"
                                 />
                             </div>
                             <div className="owner-field">
                                 <label>Скидка, %</label>
                                 <input
-                                    type="number"
-                                    min="0"
-                                    max="90"
+                                    type="number" min="0" max="90"
                                     value={menuModal.form.discount}
-                                    onChange={(e) => setMenuModal((m) => ({ ...m, form: { ...m.form, discount: e.target.value } }))}
+                                    onChange={(e) => setMenuModal(m => ({ ...m, form: { ...m.form, discount: e.target.value } }))}
                                     placeholder="0"
                                 />
                             </div>
-
                             <label className="owner-checkbox">
                                 <input
                                     type="checkbox"
                                     checked={menuModal.form.available}
-                                    onChange={(e) => setMenuModal((m) => ({ ...m, form: { ...m.form, available: e.target.checked } }))}
+                                    onChange={(e) => setMenuModal(m => ({ ...m, form: { ...m.form, available: e.target.checked } }))}
                                 />
                                 В продаже
                             </label>
@@ -500,6 +612,7 @@ export default function OwnerSettings() {
                 </div>
             )}
 
+            {/* ---- МОДАЛКА Сотрудники ---- */}
             {staffModal.open && (
                 <div className="owner-modal" onMouseDown={closeStaffModal}>
                     <div className="owner-modal-card" onMouseDown={(e) => e.stopPropagation()}>
@@ -546,6 +659,25 @@ export default function OwnerSettings() {
                                     onChange={(e) => setStaffModal((s) => ({ ...s, form: { ...s.form, email: e.target.value } }))}
                                     placeholder="dispatcher@company.com"
                                 />
+                            </div>
+
+                            <div className="owner-field">
+                                <label>Пароль {staffModal.editId ? "(оставь пустым — не менять)" : ""}</label>
+                                <div className="owner-password-row">
+                                    <input
+                                        type="text"
+                                        value={staffModal.form.password}
+                                        onChange={(e) => setStaffModal((s) => ({ ...s, form: { ...s.form, password: e.target.value } }))}
+                                        placeholder="Сгенерировать или ввести"
+                                    />
+                                    <button
+                                        type="button"
+                                        className="owner-secondary-btn"
+                                        onClick={() => setStaffModal((s) => ({ ...s, form: { ...s.form, password: genPassword() } }))}
+                                    >
+                                        Сгенерировать
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
