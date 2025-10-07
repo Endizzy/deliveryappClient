@@ -15,7 +15,13 @@ const formatPhoneNumber = (value) => {
     return cleaned;
 };
 
-const CreateOrder = ({ onBack, onSubmit }) => {
+// хелперы для дат/времени
+const pad2 = (n) => String(n).padStart(2, "0");
+const toLocalDateInput = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+const toLocalTimeInput = (d) => `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+const PREORDER_MIN_OFFSET_MIN = 15;
+
+const CreateOrder = ({ onBack }) => {
     const navigate = useNavigate();
     const API = import.meta.env.VITE_API_URL;
 
@@ -41,18 +47,22 @@ const CreateOrder = ({ onBack, onSubmit }) => {
         code: "",
         courierId: "",
         payment: "",
-        pickupId: "",          // точка комплектации (admin из company_units)
+        pickupId: "",
         orderType: "active",
-        notes: ""
+        notes: "",
+        scheduledDate: "",
+        scheduledTime: ""
     });
 
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // ---- курьеры с API ----
-    const [couriers, setCouriers] = useState([]);         // [{id, nickname}]
-    // ---- точки комплектации (админы) с API ----
-    const [pickupPoints, setPickupPoints] = useState([]); // [{id, nickname}]
+    // ---- курьеры/точки/меню ----
+    const [couriers, setCouriers] = useState([]);
+    const [pickupPoints, setPickupPoints] = useState([]);
+    const [allMenu, setAllMenu] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [showSearchResults, setShowSearchResults] = useState(false);
 
     const fetchCouriers = async () => {
         const res = await fetch(`${API}/order-support/couriers`, { headers: authHeaders });
@@ -70,11 +80,6 @@ const CreateOrder = ({ onBack, onSubmit }) => {
         setPickupPoints(data.items || []);
     };
 
-    // ---- меню: предзагрузка + локальный поиск ----
-    const [allMenu, setAllMenu] = useState([]); // всё активное меню компании
-    const [searchTerm, setSearchTerm] = useState("");
-    const [showSearchResults, setShowSearchResults] = useState(false);
-
     const fetchAllMenu = async () => {
         const res = await fetch(`${API}/order-support/menu?all=1`, { headers: authHeaders });
         if (res.status === 401) { navigate("/login"); return; }
@@ -83,7 +88,6 @@ const CreateOrder = ({ onBack, onSubmit }) => {
         setAllMenu(data.items || []);
     };
 
-    // загрузка курьеров, точек комплектации и меню при монтировании
     useEffect(() => {
         if (!token) { navigate("/login"); return; }
         (async () => {
@@ -93,19 +97,17 @@ const CreateOrder = ({ onBack, onSubmit }) => {
                 alert(e.message);
             }
         })();
-    }, [token, navigate]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [token, navigate]); // eslint-disable-line
 
-    // локальный поиск по предзагруженному меню
-    const searchResults = useMemo(() => {
+    // локальный поиск
+    const searchResults = React.useMemo(() => {
         const q = searchTerm.trim().toLowerCase();
         if (!q) return [];
         const filtered = allMenu.filter(it =>
             (it.name || "").toLowerCase().includes(q) ||
             (it.category || "").toLowerCase().includes(q)
         );
-        return filtered
-            .sort((a, b) => a.name.localeCompare(b.name))
-            .slice(0, 8);
+        return filtered.sort((a, b) => a.name.localeCompare(b.name)).slice(0, 8);
     }, [searchTerm, allMenu]);
 
     // ---- выбранные товары ----
@@ -135,7 +137,20 @@ const CreateOrder = ({ onBack, onSubmit }) => {
     const handleInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
         if (errors[field]) setErrors(prev => ({ ...prev, [field]: "" }));
+        if (field === "orderType" && value === "active") {
+            setFormData(prev => ({ ...prev, scheduledDate: "", scheduledTime: "" }));
+            setErrors(prev => ({ ...prev, scheduledDate: "", scheduledTime: "" }));
+        }
     };
+
+    // минимум для предзаказа
+    const now = new Date();
+    const minDate = toLocalDateInput(now);
+    const minTimeToday = (() => {
+        const t = new Date(now);
+        t.setMinutes(t.getMinutes() + PREORDER_MIN_OFFSET_MIN);
+        return toLocalTimeInput(t);
+    })();
 
     const validateForm = () => {
         const e = {};
@@ -146,37 +161,71 @@ const CreateOrder = ({ onBack, onSubmit }) => {
         if (!formData.courierId) e.courier = "Выберите курьера";
         if (!formData.pickupId) e.restaurant = "Выберите точку комплектации";
         if (!formData.payment) e.payment = "Выберите способ оплаты";
+
+        if (formData.orderType === "preorder") {
+            if (!formData.scheduledDate) e.scheduledDate = "Укажите дату доставки";
+            if (!formData.scheduledTime) e.scheduledTime = "Укажите время доставки";
+            if (formData.scheduledDate && formData.scheduledTime) {
+                const scheduled = new Date(`${formData.scheduledDate}T${formData.scheduledTime}`);
+                const minAllowed = new Date();
+                minAllowed.setMinutes(minAllowed.getMinutes() + PREORDER_MIN_OFFSET_MIN);
+                if (scheduled < minAllowed) {
+                    e.scheduledTime = `Время не может быть раньше чем через ${PREORDER_MIN_OFFSET_MIN} мин`;
+                }
+            }
+        }
+
         setErrors(e);
         return Object.keys(e).length === 0;
     };
 
-    // отправка наверх как раньше (бэкенд создания заказа пока не нужен)
+    // submit -> API
     const handleSubmit = async () => {
         if (!validateForm()) return;
         setIsSubmitting(true);
         try {
-            await new Promise(r => setTimeout(r, 400));
-            const courierName =
-                couriers.find(c => String(c.id) === String(formData.courierId))?.nickname || "";
-            const pickupName =
-                pickupPoints.find(p => String(p.id) === String(formData.pickupId))?.nickname || "";
+            const scheduledAt =
+                formData.orderType === "preorder" && formData.scheduledDate && formData.scheduledTime
+                    ? `${formData.scheduledDate}T${formData.scheduledTime}`
+                    : null;
 
-            const newOrder = {
-                id: Date.now(),
-                number: `N заказа ${Date.now()}`,
-                status: formData.orderType === "preorder" ? "Новый" : "В пути",
-                time: new Date().toLocaleTimeString("ru", { hour: "2-digit", minute: "2-digit" }) + " 00:00",
+            const payload = {
+                orderType: formData.orderType,
+                status: "new",
+                scheduledAt,
+                courierId: Number(formData.courierId) || null,
+                pickupId: Number(formData.pickupId) || null,
+                payment: formData.payment === "Наличные" ? "cash" : formData.payment === "Карта" ? "card" : "wire",
                 customer: formData.customer,
                 phone: formData.phone,
-                amount: calculateTotal().toFixed(2),
-                items: selectedItems.map(i => `${i.name} x${i.quantity}`).join(", "),
-                courier: courierName,
-                pickupPoint: pickupName,
-                courierId: Number(formData.courierId),
-                pickupId: Number(formData.pickupId),
-                selectedItems
+                street: formData.street,
+                house: formData.house,
+                apart: formData.apart,
+                building: formData.building,
+                floor: formData.floor,
+                code: formData.code,
+                notes: formData.notes,
+                selectedItems: selectedItems.map((i) => ({
+                    id: i.id,
+                    name: i.name,
+                    price: i.price,
+                    discount: i.discount || 0,
+                    quantity: i.quantity,
+                })),
             };
-            onSubmit?.(newOrder);
+
+            const res = await fetch(`${API}/current-orders`, {
+                method: "POST",
+                headers: authHeaders,
+                body: JSON.stringify(payload),
+            });
+            const data = await res.json();
+            if (!res.ok || !data.ok) throw new Error(data.error || "Ошибка создания заказа");
+
+            // редирект на панель — там список подтянется через GET/WS
+            navigate("/orderPanel");
+        } catch (e) {
+            alert(e.message);
         } finally {
             setIsSubmitting(false);
         }
@@ -284,6 +333,41 @@ const CreateOrder = ({ onBack, onSubmit }) => {
                                     </label>
                                 </div>
                             </div>
+
+                            {/* Появляется только для предзаказа */}
+                            {formData.orderType === "preorder" && (
+                                <>
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label htmlFor="scheduledDate">Дата доставки *</label>
+                                            <input
+                                                id="scheduledDate"
+                                                type="date"
+                                                min={minDate}
+                                                value={formData.scheduledDate}
+                                                onChange={(e) => handleInputChange("scheduledDate", e.target.value)}
+                                                className={errors.scheduledDate ? "error" : ""}
+                                            />
+                                            {errors.scheduledDate && <span className="error-text">{errors.scheduledDate}</span>}
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="scheduledTime">Время доставки *</label>
+                                            <input
+                                                id="scheduledTime"
+                                                type="time"
+                                                value={formData.scheduledTime}
+                                                onChange={(e) => handleInputChange("scheduledTime", e.target.value)}
+                                                className={errors.scheduledTime ? "error" : ""}
+                                                min={formData.scheduledDate === minDate ? minTimeToday : undefined}
+                                            />
+                                            {errors.scheduledTime && <span className="error-text">{errors.scheduledTime}</span>}
+                                        </div>
+                                    </div>
+                                    <div className="hint muted" style={{ marginTop: 4 }}>
+                                        Минимальное время предзаказа — через {PREORDER_MIN_OFFSET_MIN} минут от текущего момента.
+                                    </div>
+                                </>
+                            )}
                         </div>
 
                         {/* Товары */}

@@ -13,6 +13,7 @@ import Registration from "./pages/registration.jsx";
 import { ThemeProvider } from "./provider/ThemeContext.jsx";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute.jsx";
 import Unauthorized from "./pages/Unauthorized.jsx";
+import EditOrder from "./EditOrder";
 
 createRoot(document.getElementById("root")).render(
     <BrowserRouter>
@@ -40,6 +41,14 @@ createRoot(document.getElementById("root")).render(
                     element={
                         <ProtectedRoute allowedRoles={["owner", "admin"]}>
                             <Map />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/editOrder/:id"
+                    element={
+                        <ProtectedRoute allowedRoles={["owner", "admin"]}>
+                            <EditOrder />
                         </ProtectedRoute>
                     }
                 />
