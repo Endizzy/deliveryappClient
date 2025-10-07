@@ -1,5 +1,6 @@
+// orderPanel.jsx
 import React, { useEffect, useMemo, useState } from "react";
-import { Map, Settings, Sun, Moon, User } from "lucide-react";
+import { Map as MapIcon, Settings, Sun, Moon, User } from "lucide-react"; // <-- переименовано
 import { useNavigate } from "react-router-dom";
 import "./orderPanel.css";
 import { ThemeProvider, useTheme } from "./provider/ThemeContext";
@@ -29,6 +30,15 @@ function mergeById(oldArr = [], newArr = []) {
     newArr.forEach(o => map.set(o.id, o));
     return Array.from(map.values()).sort(byNewest);
 }
+const safeTime = (iso) => {
+    const d = new Date(iso);
+    return Number.isNaN(d.getTime()) ? "" : d.toLocaleTimeString("ru", { hour: "2-digit", minute: "2-digit" });
+};
+const isValidCurrentOrder = (o) =>
+    o && typeof o === "object" &&
+    typeof o.id !== "undefined" &&
+    !!o.createdAt &&
+    (o.orderType === "active" || o.orderType === "preorder");
 
 const OrderPanel = () => {
     const navigate = useNavigate();
@@ -92,28 +102,31 @@ const OrderPanel = () => {
         ws.addEventListener("open", () => {
             ws.send(JSON.stringify({ type: "hello", role: "admin" }));
         });
+
         ws.addEventListener("message", (ev) => {
             let msg;
             try { msg = JSON.parse(ev.data); } catch { return; }
 
-            if (msg.type === "order_created" || msg.type === "order_updated") {
-                if (msg.order) upsertOrderToTabs(msg.order);
+            // игнорируем демо-сообщения/старый снапшот
+            if (
+                msg.type === "orders_snapshot" ||
+                msg.type === "demo_orders_snapshot" ||
+                msg.type === "demo_order_created" ||
+                msg.type === "demo_order_updated" ||
+                msg.type === "demo_order_deleted"
+            ) return;
+
+            if ((msg.type === "order_created" || msg.type === "order_updated") && msg.order) {
+                if (isValidCurrentOrder(msg.order)) upsertOrderToTabs(msg.order);
+                return;
             }
-            if (msg.type === "order_deleted") {
-                if (msg.orderId) removeOrderFromTabs(msg.orderId);
-            }
-            // ВАЖНО: не перетирать состояние пустым снапшотом
-            if (msg.type === "orders_snapshot" && Array.isArray(msg.items) && msg.items.length > 0) {
-                const active = [];
-                const preorders = [];
-                msg.items.forEach(o => (o.orderType === "preorder" ? preorders : active).push(o));
-                setOrdersByTab(prev => ({
-                    ...prev,
-                    active: mergeById(prev.active, active),
-                    preorders: mergeById(prev.preorders, preorders),
-                }));
+
+            if (msg.type === "order_deleted" && msg.orderId) {
+                removeOrderFromTabs(msg.orderId);
+                return;
             }
         });
+
         return () => ws.close();
     }, [token, navigate]); // eslint-disable-line
 
@@ -147,7 +160,7 @@ const OrderPanel = () => {
                         <div className="header-icons">
                             <ThemeSelector/>
                             <button className="icon-btn" onClick={() => navigate("/ownerSettings")}><Settings size={24}/></button>
-                            <button className="icon-btn" onClick={() => navigate("/map")}><Map size={24}/></button>
+                            <button className="icon-btn" onClick={() => navigate("/map")}><MapIcon size={24}/></button>
                             <button className="icon-btn" onClick={() => navigate("/userProfile")}><User size={24}/></button>
                             <div className="user-info">
                                 <span className="user-name">Briana</span>
@@ -218,7 +231,7 @@ const OrderPanel = () => {
                                     onKeyDown={(e) => (e.key === "Enter" ? navigate(`/editOrder/${order.id}`) : null)}
                                 >
                                     <div className="cell order-number">
-                                        <span className="order-id">{order.orderNo || order.id}</span>
+                                        <span className="order-id">{order.orderSeq ?? order.orderNo ?? order.id}</span>
                                     </div>
                                     <div className="cell">
                     <span className={`status-badge ${getStatusColor(order.status)}`}>
@@ -227,9 +240,7 @@ const OrderPanel = () => {
                                     </div>
                                     <div className="cell time-cell">
                                         <div className="time-info">
-                      <span className="time">
-                        {new Date(order.createdAt).toLocaleTimeString("ru", { hour: "2-digit", minute: "2-digit" })}
-                      </span>
+                                            <span className="time">{safeTime(order.createdAt)}</span>
                                         </div>
                                     </div>
                                     <div className="cell address-cell">
