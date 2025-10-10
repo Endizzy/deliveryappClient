@@ -1,6 +1,5 @@
-// orderPanel.jsx
 import React, { useEffect, useMemo, useState } from "react";
-import { Map as MapIcon, Settings, Sun, Moon, User } from "lucide-react"; // <-- переименовано
+import { Map as MapIcon, Settings, Sun, Moon, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "./orderPanel.css";
 import { ThemeProvider, useTheme } from "./provider/ThemeContext";
@@ -43,6 +42,7 @@ const isValidCurrentOrder = (o) =>
 const OrderPanel = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("active");
+    const [companyId, setCompanyId] = useState(null); // <— добавили
 
     const token = useMemo(
         () => localStorage.getItem("token") || sessionStorage.getItem("token"),
@@ -64,6 +64,24 @@ const OrderPanel = () => {
         { key: "preorders", label: "ПРЕДЗАКАЗЫ", count: ordersByTab.preorders.length },
         { key: "completed", label: "ЗАВЕРШЕННЫЕ", count: ordersByTab.completed.length },
     ];
+
+    // 1) тянем профиль, чтобы узнать companyId
+    useEffect(() => {
+        if (!token) { navigate("/login"); return; }
+        (async () => {
+            try {
+                const r = await fetch(`${API}/profile`, { headers: authHeaders });
+                if (r.status === 401) { navigate("/login"); return; }
+                const d = await r.json();
+                if (d.ok) {
+                    const cid = d.user?.companyId ?? d.user?.company_id ?? null;
+                    setCompanyId(typeof cid === "number" ? cid : Number(cid));
+                }
+            } catch (e) {
+                console.error("profile", e);
+            }
+        })();
+    }, [token, navigate]); // eslint-disable-line
 
     async function loadTab(tab) {
         const q = tab === "completed" ? "active" : tab;
@@ -93,21 +111,27 @@ const OrderPanel = () => {
         }));
     }
 
+    // 2) когда есть companyId — грузим данные и подключаем WS
     useEffect(() => {
-        if (!token) { navigate("/login"); return; }
+        if (!token || !companyId) return;
+
         loadTab("active").catch(console.error);
         loadTab("preorders").catch(console.error);
 
         const ws = new WebSocket(`${WS_URL.replace(/\/$/, "")}`);
         ws.addEventListener("open", () => {
-            ws.send(JSON.stringify({ type: "hello", role: "admin" }));
+            // отправляем hello с companyId — сервер привяжет сокет к компании
+            ws.send(JSON.stringify({ type: "hello", role: "admin", companyId }));
         });
 
         ws.addEventListener("message", (ev) => {
             let msg;
             try { msg = JSON.parse(ev.data); } catch { return; }
 
-            // игнорируем демо-сообщения/старый снапшот
+            // фильтруем по companyId, если указан в payload
+            if (typeof msg.companyId === "number" && msg.companyId !== companyId) return;
+
+            // игнорируем старые демо-сообщения/снапшоты
             if (
                 msg.type === "orders_snapshot" ||
                 msg.type === "demo_orders_snapshot" ||
@@ -128,7 +152,7 @@ const OrderPanel = () => {
         });
 
         return () => ws.close();
-    }, [token, navigate]); // eslint-disable-line
+    }, [token, companyId]); // eslint-disable-line
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -231,7 +255,7 @@ const OrderPanel = () => {
                                     onKeyDown={(e) => (e.key === "Enter" ? navigate(`/editOrder/${order.id}`) : null)}
                                 >
                                     <div className="cell order-number">
-                                        <span className="order-id">{order.orderSeq ?? order.orderNo ?? order.id}</span>
+                                        <span className="order-id">{order.orderNo || order.id}</span>
                                     </div>
                                     <div className="cell">
                     <span className={`status-badge ${getStatusColor(order.status)}`}>
