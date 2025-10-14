@@ -7,6 +7,30 @@ import { ThemeProvider, useTheme } from "./provider/ThemeContext";
 const API = import.meta.env.VITE_API_URL;
 const WS_URL = (API || "").replace(/^http/, "ws");
 
+const PAYMENT_LABELS = {
+    cash: "Наличные",
+    card: "Карта",
+    wire: "Перечислением",
+};
+
+const STATUS_LABEL = {
+    new: "Новый",
+    ready: "Готов",
+    enroute: "В пути",
+    paused: "Остановлен",
+    cancelled: "Завершен",
+}
+
+function formatPaymentMethod(v) {
+    const key = String(v || "").toLowerCase();
+    return PAYMENT_LABELS[key] || v; // если прилетело что-то неизвестное — покажем как есть
+}
+
+function formatOrderStatus(v) {
+    const key = String (v || "").toLowerCase();
+    return STATUS_LABEL[key] || v;
+}
+
 function ThemeSelector() {
     const { changeTheme } = useTheme();
     return (
@@ -255,11 +279,11 @@ const OrderPanel = () => {
                                     onKeyDown={(e) => (e.key === "Enter" ? navigate(`/editOrder/${order.id}`) : null)}
                                 >
                                     <div className="cell order-number">
-                                        <span className="order-id">{order.orderNo || order.id}</span>
+                                        <span className="order-id">{order.orderSeq ?? order.orderNo ?? order.id}</span>
                                     </div>
                                     <div className="cell">
                     <span className={`status-badge ${getStatusColor(order.status)}`}>
-                      {order.status}
+                      {formatOrderStatus(order.status)}
                     </span>
                                     </div>
                                     <div className="cell time-cell">
@@ -273,7 +297,7 @@ const OrderPanel = () => {
                                     <div className="cell customer-cell">
                                         <div className="customer-info">
                                             <span className="name">{order.customer} / {order.phone}</span>
-                                            <span className="payment">{order.paymentMethod}</span>
+                                            <span className="payment">{formatPaymentMethod(order.paymentMethod)}</span>
                                         </div>
                                     </div>
                                     <div className="cell amount-cell">
@@ -295,19 +319,6 @@ const OrderPanel = () => {
                 </div>
 
                 <footer className="footer-actions">
-                    <div className="bulk-actions">
-                        <button className="action-btn secondary">
-                            <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M19,13H5V11H19V13Z" /></svg>
-                            Скрыть выбранные
-                        </button>
-                        <button className="action-btn primary">
-                            <svg viewBox="0 0 24 24" width="16" height="16">
-                                <path fill="currentColor"
-                                      d="M17,13H7V11H17M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
-                            </svg>
-                            Обновить статус
-                        </button>
-                    </div>
                 </footer>
             </div>
         </ThemeProvider>
