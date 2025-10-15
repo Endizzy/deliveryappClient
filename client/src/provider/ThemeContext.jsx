@@ -1,4 +1,3 @@
-// src/provider/ThemeContext.jsx
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { themes } from "../themes/themes";
 

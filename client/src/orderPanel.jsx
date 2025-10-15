@@ -3,6 +3,7 @@ import { Map as MapIcon, Settings, Sun, Moon, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "./orderPanel.css";
 import { ThemeProvider, useTheme } from "./provider/ThemeContext";
+import Header from "./components/Header/Header.jsx";
 
 const API = import.meta.env.VITE_API_URL;
 const WS_URL = (API || "").replace(/^http/, "ws");
@@ -31,16 +32,6 @@ function formatOrderStatus(v) {
     return STATUS_LABEL[key] || v;
 }
 
-function ThemeSelector() {
-    const { changeTheme } = useTheme();
-    return (
-        <div style={{ display: "Flex", gap: 16 }}>
-            <button className="icon-btn" onClick={() => changeTheme("purpleTheme")}><Sun size={24} /></button>
-            <button className="icon-btn" onClick={() => changeTheme("darkGreenTheme")}><Moon size={24} /></button>
-        </div>
-    );
-}
-
 // утилиты
 const byNewest = (a, b) => {
     const ad = new Date(a.createdAt).getTime() || 0;
@@ -66,7 +57,7 @@ const isValidCurrentOrder = (o) =>
 const OrderPanel = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("active");
-    const [companyId, setCompanyId] = useState(null); // <— добавили
+    const [companyId, setCompanyId] = useState(null);
 
     const token = useMemo(
         () => localStorage.getItem("token") || sessionStorage.getItem("token"),
@@ -89,7 +80,7 @@ const OrderPanel = () => {
         { key: "completed", label: "ЗАВЕРШЕННЫЕ", count: ordersByTab.completed.length },
     ];
 
-    // 1) тянем профиль, чтобы узнать companyId
+    // companyId
     useEffect(() => {
         if (!token) { navigate("/login"); return; }
         (async () => {
@@ -135,7 +126,7 @@ const OrderPanel = () => {
         }));
     }
 
-    // 2) когда есть companyId — грузим данные и подключаем WS
+    // когда есть companyId — грузим данные и подключаем WS
     useEffect(() => {
         if (!token || !companyId) return;
 
@@ -144,7 +135,7 @@ const OrderPanel = () => {
 
         const ws = new WebSocket(`${WS_URL.replace(/\/$/, "")}`);
         ws.addEventListener("open", () => {
-            // отправляем hello с companyId — сервер привяжет сокет к компании
+            // отправляем hello с companyId
             ws.send(JSON.stringify({ type: "hello", role: "admin", companyId }));
         });
 
@@ -192,31 +183,7 @@ const OrderPanel = () => {
     return (
         <ThemeProvider>
             <div className="order-panel">
-                <header className="header">
-                    <div className="header-left">
-                        <div className="logo">
-                            <div className="logo-icon">
-                                <svg viewBox="0 0 24 24" width="32" height="32">
-                                    <path fill="currentColor" d="M12 2L2 7L12 12L22 7L12 2M2 17L12 22L22 17M2 12L12 17L22 12" />
-                                </svg>
-                            </div>
-                            <span className="logo-text">DeliveryApp</span>
-                        </div>
-                    </div>
-
-                    <div className="header-right">
-                        <div className="header-icons">
-                            <ThemeSelector/>
-                            <button className="icon-btn" onClick={() => navigate("/ownerSettings")}><Settings size={24}/></button>
-                            <button className="icon-btn" onClick={() => navigate("/map")}><MapIcon size={24}/></button>
-                            <button className="icon-btn" onClick={() => navigate("/userProfile")}><User size={24}/></button>
-                            <div className="user-info">
-                                <span className="user-name">Briana</span>
-                                <button className="logout-btn">Выход</button>
-                            </div>
-                        </div>
-                    </div>
-                </header>
+                <Header/>
 
                 <nav className="nav-tabs">
                     <div>
@@ -318,7 +285,10 @@ const OrderPanel = () => {
                     </div>
                 </div>
 
-                <footer className="footer-actions">
+                <footer className="footer-section">
+                    <div className="footer-section__text">
+                        <h1>Demo version of application</h1>
+                    </div>
                 </footer>
             </div>
         </ThemeProvider>
