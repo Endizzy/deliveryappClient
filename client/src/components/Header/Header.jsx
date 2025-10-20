@@ -4,7 +4,7 @@ import {Map as MapIcon, Moon, Settings, Sun, User} from "lucide-react";
 import { ThemeProvider, useTheme } from "../../provider/ThemeContext.jsx";
 import { useNavigate } from "react-router-dom";
 
-const Header = () => {
+const Header = ({user = null}) => {
 
     const navigate = useNavigate();
 
@@ -39,7 +39,9 @@ const Header = () => {
                     <button className={styles.icon_btn} onClick={() => navigate("/map")}><MapIcon size={24}/></button>
                     <button className={styles.icon_btn} onClick={() => navigate("/userProfile")}><User size={24}/></button>
                     <div className={styles.user_info}>
-                        <span className={styles.user_name}>Briana</span>
+                        <span className={styles.user_name}>
+                            {user?.firstName ?? 'undefined'} {user?.lastName ?? 'undefined'}
+                        </span>
                         <button className={styles.logout_btn}>Выход</button>
                     </div>
                 </div>

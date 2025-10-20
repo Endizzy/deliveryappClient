@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./styles/userProfile.module.css";
 import { Package } from "lucide-react";
+import Header from "../components/Header/Header.jsx";
 
 export default function UserProfile() {
     const navigate = useNavigate();
@@ -97,29 +98,30 @@ export default function UserProfile() {
 
     return (
         <div className={styles.page}>
-            <header className={styles.header}>
-                <div className={styles.headerLeft}>
-                    <div className={styles.logo}>
-                        <div className={styles.logoIcon}>
-                            <svg viewBox="0 0 24 24" width="24" height="24">
-                                <path fill="currentColor" d="M12 2L2 7L12 12L22 7L12 2M2 17L12 22L22 17M2 12L12 17L22 12" />
-                            </svg>
-                        </div>
-                        <span>DeliveryApp</span>
-                    </div>
-                </div>
+            {/*<header className={styles.header}>*/}
+            {/*    <div className={styles.headerLeft}>*/}
+            {/*        <div className={styles.logo}>*/}
+            {/*            <div className={styles.logoIcon}>*/}
+            {/*                <svg viewBox="0 0 24 24" width="24" height="24">*/}
+            {/*                    <path fill="currentColor" d="M12 2L2 7L12 12L22 7L12 2M2 17L12 22L22 17M2 12L12 17L22 12" />*/}
+            {/*                </svg>*/}
+            {/*            </div>*/}
+            {/*            <span>DeliveryApp</span>*/}
+            {/*        </div>*/}
+            {/*    </div>*/}
 
-                <div className={styles.headerRight}>
-                    <button className="owner-icon-btn" onClick={() => navigate("/orderPanel")}>
-                        <Package size={24} />
-                    </button>
-                    <div className={styles.userInfo}>
-                        <div className={styles.userName}>{user.firstName} {user.lastName}</div>
-                        <span className={`${styles.roleBadge} ${styles[`role_${user.role}`]}`}>{user.role}</span>
-                    </div>
-                    <button className={styles.logoutBtn} onClick={logout}>Выйти</button>
-                </div>
-            </header>
+            {/*    <div className={styles.headerRight}>*/}
+            {/*        <button className="owner-icon-btn" onClick={() => navigate("/orderPanel")}>*/}
+            {/*            <Package size={24} />*/}
+            {/*        </button>*/}
+            {/*        <div className={styles.userInfo}>*/}
+            {/*            <div className={styles.userName}>{user.firstName} {user.lastName}</div>*/}
+            {/*            <span className={`${styles.roleBadge} ${styles[`role_${user.role}`]}`}>{user.role}</span>*/}
+            {/*        </div>*/}
+            {/*        <button className={styles.logoutBtn} onClick={logout}>Выйти</button>*/}
+            {/*    </div>*/}
+            {/*</header>*/}
+            <Header user={user}/>
 
             <main className={styles.container}>
                 {/* Карточка пользователя */}
