@@ -5,7 +5,7 @@
     background: var(--app-gradient);
     color: white;
     padding: 0 24px;
-    height: 64px;
+    height: auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -55,6 +55,21 @@
     gap: 16px;
 }
 
+.icon_span {
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.icon_content {
+    display: grid;
+    align-items: center;
+    text-align: center;
+    /*gap: 16px;*/
+    /*margin-top: 15px;*/
+    margin-bottom: 15px;
+    /*padding: 24px;*/
+}
+
 .icon_btn {
     background: rgba(255, 255, 255, 0.1);
     border: none;
@@ -66,7 +81,7 @@
     display: grid;
     place-items: center;
     color: white;
-    margin-right: 10px;
+    /*margin-right: 10px;*/
 }
 
 .icon_btn:hover {

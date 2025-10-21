@@ -84,7 +84,7 @@
 .owner-row:hover { background:#f8fafc; }
 .owner-row.muted { opacity:.55; }
 .owner-cell { padding:8px 12px; font-size:14px; color:#374151; display:flex; align-items:center; gap:8px; }
-.owner-cell.index { justify-content:center; font-weight:700; color:white; background:#667eea; width:28px; height:28px; border-radius:8px; }
+.owner-cell.index { justify-content:center; font-weight:700; color:white; background: var(--app-gradient); width:28px; height:28px; border-radius:8px; }
 .owner-cell.actions { gap:8px; }
 
 /* role badges */

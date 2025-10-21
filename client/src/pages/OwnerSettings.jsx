@@ -7,6 +7,7 @@ import {
     BadgeCheck, X, ChevronDown, ChevronUp
 } from "lucide-react";
 import "./ownerSettings.css";
+import Header from "../components/Header/Header.jsx";
 
 const toEUR = (n) => `€${Number(n || 0).toFixed(2)}`;
 
@@ -310,7 +311,7 @@ export default function OwnerSettings() {
 
     // live-поиск: можно дергать API, если хочешь серверный фильтр
     useEffect(() => {
-        // Если хочешь именно серверный поиск — раскомментируй:
+        // Серверный поиск
         // const q = staffSearch.trim();
         // fetchStaff(q).catch(() => {});
     }, [staffSearch]);
@@ -322,39 +323,7 @@ export default function OwnerSettings() {
 
     return (
         <div className="owner-page">
-            {/* Header */}
-            <header className="owner-header">
-                <div className="owner-header-left">
-                    <div className="owner-logo">
-                        <div className="owner-logo-icon">
-                            <svg viewBox="0 0 24 24" width="32" height="32">
-                                <path fill="currentColor" d="M12 2L2 7L12 12L22 7L12 2M2 17L12 22L22 17M2 12L12 17L22 12" />
-                            </svg>
-                        </div>
-                        <span className="owner-logo-text">DeliveryApp</span>
-                    </div>
-                </div>
-
-                <div className="owner-header-right">
-                    <button className="owner-icon-btn" onClick={() => navigate("/orderPanel")}>
-                        <Package size={24} />
-                    </button>
-                    <button className="owner-icon-btn">
-                        <Settings size={24} />
-                    </button>
-                    <div className="owner-user-info">
-            <span className="owner-user-name">
-              {user.firstName} {user.lastName}
-            </span>
-                        <button
-                            className="owner-logout-btn"
-                            onClick={() => { localStorage.removeItem("token"); sessionStorage.removeItem("token"); navigate("/login"); }}
-                        >
-                            Выход
-                        </button>
-                    </div>
-                </div>
-            </header>
+            <Header user={user}/>
 
             {/* Tabs */}
             <nav className="owner-tabs">

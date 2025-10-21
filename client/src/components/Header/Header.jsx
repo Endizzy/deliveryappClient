@@ -1,6 +1,6 @@
 import React from "react";
 import styles from "./Header.module.css";
-import {Map as MapIcon, Moon, Settings, Sun, User} from "lucide-react";
+import {Map as MapIcon, Moon, Settings, Sun, User, Box} from "lucide-react";
 import { ThemeProvider, useTheme } from "../../provider/ThemeContext.jsx";
 import { useNavigate } from "react-router-dom";
 
@@ -34,10 +34,27 @@ const Header = ({user = null}) => {
             <div className={styles.header_right}>
                 <div className={styles.header_icons}>
                     <ThemeSelector/>
-                    <button className={styles.icon_btn} onClick={() => navigate("/ownerSettings")}><Settings size={24}/>
-                    </button>
-                    <button className={styles.icon_btn} onClick={() => navigate("/map")}><MapIcon size={24}/></button>
-                    <button className={styles.icon_btn} onClick={() => navigate("/userProfile")}><User size={24}/></button>
+                    <div className={styles.icon_content}>
+                        <span className={styles.icon_span}>Настройки</span>
+                        <button className={styles.icon_btn} onClick={() => navigate("/ownerSettings")}><Settings
+                            size={24}/>
+                        </button>
+                    </div>
+                    <div className={styles.icon_content}>
+                        <span className={styles.icon_span}>Карта</span>
+                        <button className={styles.icon_btn} onClick={() => navigate("/map")}><MapIcon size={24}/>
+                        </button>
+                    </div>
+                    <div className={styles.icon_content}>
+                        <span className={styles.icon_span}>Профиль</span>
+                        <button className={styles.icon_btn} onClick={() => navigate("/userProfile")}><User size={24}/>
+                        </button>
+                    </div>
+                    <div className={styles.icon_content}>
+                        <span className={styles.icon_span}>Заказы</span>
+                        <button className={styles.icon_btn} onClick={() => navigate("/orderPanel")}><Box size={24}/>
+                        </button>
+                    </div>
                     <div className={styles.user_info}>
                         <span className={styles.user_name}>
                             {user?.firstName ?? 'undefined'} {user?.lastName ?? 'undefined'}

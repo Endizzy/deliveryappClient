@@ -60,7 +60,7 @@
 .cardHeader { display: flex; align-items: center; gap: 16px; }
 .avatar {
     width: 56px; height: 56px; border-radius: 14px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: var(--app-gradient);
     color: white; display: grid; place-items: center; font-weight: 800; font-size: 18px;
 }
 

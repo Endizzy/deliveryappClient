@@ -160,7 +160,7 @@
 
 .table-header {
     display: grid;
-    grid-template-columns: 80px 120px 120px 1fr 200px 100px 1fr 120px 120px;
+    grid-template-columns: 80px 120px 120px 1fr 200px 100px 100px 120px 120px;
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     border-bottom: 1px solid #e2e8f0;
     position: sticky;
@@ -195,7 +195,7 @@
 
 .table-row {
     display: grid;
-    grid-template-columns: 80px 120px 120px 1fr 200px 100px 1fr 120px 120px;
+    grid-template-columns: 80px 120px 120px 1fr 200px 100px 100px 120px 120px;
     border-bottom: 1px solid #f1f5f9;
     transition: all 0.2s ease;
     min-height: 72px;
@@ -234,7 +234,7 @@
 }
 
 .order-id {
-    background: #667eea;
+    background: var(--app-gradient);
     color: white;
     width: 24px;
     height: 24px;

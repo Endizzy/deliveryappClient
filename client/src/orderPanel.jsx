@@ -287,7 +287,7 @@ const OrderPanel = () => {
 
                 <footer className="footer-section">
                     <div className="footer-section__text">
-                        <h1>Demo version of application</h1>
+                        <h1>Demo version </h1>
                     </div>
                 </footer>
             </div>
