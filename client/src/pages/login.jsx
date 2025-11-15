@@ -5,7 +5,7 @@ import { RefreshCcw } from 'lucide-react';
 
 const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
-    const [captchaCode, setCaptchaCode] = useState("7B4K9");
+    // const [captchaCode, setCaptchaCode] = useState("7B4K9"); login
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
 
@@ -16,18 +16,18 @@ const Login = () => {
         remember: false,
     });
 
-    const generateCaptcha = () => {
-        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        let captcha = "";
-        for (let i = 0; i < 5; i++) {
-            captcha += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return captcha;
-    };
+    // const generateCaptcha = () => {
+    //     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    //     let captcha = "";
+    //     for (let i = 0; i < 5; i++) {
+    //         captcha += chars.charAt(Math.floor(Math.random() * chars.length));
+    //     }
+    //     return captcha;
+    // };
 
-    const handleCaptchaRefresh = () => {
-        setCaptchaCode(generateCaptcha());
-    };
+    // const handleCaptchaRefresh = () => {
+    //     setCaptchaCode(generateCaptcha());
+    // };
 
     const togglePassword = () => {
         setShowPassword(!showPassword);
@@ -44,10 +44,10 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (formData.captcha !== captchaCode) {
-            alert("Неверная капча");
-            return;
-        }
+        // if (formData.captcha !== captchaCode) {
+        //     alert("Неверная капча");
+        //     return;
+        // }
 
         setLoading(true);
         try {
@@ -144,24 +144,24 @@ const Login = () => {
                         </div>
 
                         {/* Капча */}
-                        <div className={styles.captchaContainer}>
-                            <span className={styles.captchaCode}>{captchaCode}</span>
-                            <button
-                                type="button"
-                                className={styles.captchaRefresh}
-                                onClick={handleCaptchaRefresh}
-                            >
-                                <RefreshCcw size={24}/>
-                            </button>
-                            <input
-                                type="text"
-                                name="captcha"
-                                className={styles.formInput}
-                                placeholder="Введите код"
-                                value={formData.captcha}
-                                onChange={handleInputChange}
-                            />
-                        </div>
+                        {/*<div className={styles.captchaContainer}>*/}
+                        {/*    <span className={styles.captchaCode}>{captchaCode}</span>*/}
+                        {/*    <button*/}
+                        {/*        type="button"*/}
+                        {/*        className={styles.captchaRefresh}*/}
+                        {/*        onClick={handleCaptchaRefresh}*/}
+                        {/*    >*/}
+                        {/*        <RefreshCcw size={24}/>*/}
+                        {/*    </button>*/}
+                        {/*    <input*/}
+                        {/*        type="text"*/}
+                        {/*        name="captcha"*/}
+                        {/*        className={styles.formInput}*/}
+                        {/*        placeholder="Введите код"*/}
+                        {/*        value={formData.captcha}*/}
+                        {/*        onChange={handleInputChange}*/}
+                        {/*    />*/}
+                        {/*</div>*/}
 
                         <div className={styles.formCheckbox}>
                             <input

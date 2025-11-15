@@ -478,7 +478,7 @@ const CreateOrder = ({ onBack }) => {
                     </div>
 
                     <div className="form-footer">
-                        <button type="button" className="btn-secondary" onClick={onBack}>Отменить</button>
+                        <button type="button" className="btn-secondary" onClick={() => navigate('/orderPanel')}>Отменить</button>
                         <button type="button" className="btn-primary" disabled={isSubmitting} onClick={handleSubmit}>
                             <Save size={16}/> {isSubmitting ? "Создание..." : "Создать заказ"}
                         </button>
