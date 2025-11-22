@@ -16,13 +16,13 @@ export default function App() {
                     style={{ padding: "10px", minWidth: "140px", borderRadius: "5px", border: "2px solid black" }}
                     onClick={() => navigate('/orderPanel')}
                 >
-                    <h1 style={{ fontSize: "20px" }}>Панель заказов</h1>
+                    <h1 style={{ fontSize: "20px" }}>Вход для владельца</h1>
                 </button>
                 <button
                     style={{ padding: "10px", minWidth: "140px", borderRadius: "5px", border: "2px solid black" }}
                     onClick={() => navigate('/map')}
                 >
-                    <h1 style={{ fontSize: "20px" }}>Карта</h1>
+                    <h1 style={{ fontSize: "20px" }}>Вход сотрудника</h1>
                 </button>
             </div>
         </div>

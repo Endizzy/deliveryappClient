@@ -71,6 +71,11 @@
     font-size: 14px;
 }
 
+.authDesc {
+    font-size: 14px;
+    color: red;
+}
+
 .authCard {
     background: white;
     border-radius: 16px;

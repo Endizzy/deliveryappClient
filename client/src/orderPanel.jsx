@@ -224,7 +224,7 @@ const OrderPanel = () => {
                 <div className="orders-container">
                     <div className="orders-table">
                         <div className="table-header">
-                            <div className="header-cell">№ заказа</div>
+                            <div className="header-number">№ </div>
                             <div className="header-cell">Состояние</div>
                             <div className="header-cell">Время</div>
                             <div className="header-cell">Адрес доставки</div>

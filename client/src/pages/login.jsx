@@ -98,6 +98,7 @@ const Login = () => {
                         <span className={styles.logoText}>DeliveryApp</span>
                     </div>
                     <p className={styles.authSubtitle}>Система управления доставкой</p>
+                    <p className={styles.authDesc}>Вход для владельца компании</p>
                 </div>
 
                 <div className={styles.authCard}>

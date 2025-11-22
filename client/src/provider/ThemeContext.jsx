@@ -23,6 +23,7 @@ export const ThemeProvider = ({ children }) => {
             // прокидываем градиент в CSS-переменную
             document.documentElement.style.setProperty("--app-gradient", theme.gradient);
             document.documentElement.style.setProperty("--app-fontColor", theme.fontColor);
+            document.documentElement.style.setProperty("--app-headerGradient", theme.headerGradient);
         }
     }, [themeKey]);
 
