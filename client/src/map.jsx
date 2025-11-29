@@ -10,6 +10,8 @@ const defaultCenter = [56.94937, 24.10525]; // Riga
 export default function DeliveryMap() {
     const mapRef = useRef(null);
     const markersRef = useRef(new Map()); // courierId -> marker
+    // animation handles per marker
+    const animRef = useRef(new Map()); // courierId -> { rafId, start, duration, from, to }
 
     // Список активных курьеров для отображения в UI
     const [couriers, setCouriers] = useState(new Map()); // courierId -> {courierId, lat, lng, speedKmh, status}
@@ -22,7 +24,7 @@ export default function DeliveryMap() {
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
             attribution: "&copy; OpenStreetMap contributors",
         }).addTo(map);
-        map.zoomControl.setPosition('bottomright');
+        map.zoomControl.setPosition("bottomright");
         mapRef.current = map;
 
         // WS соединение
@@ -39,6 +41,10 @@ export default function DeliveryMap() {
 
         return () => {
             ws.close();
+            // cancel any running animations
+            for (const { rafId } of animRef.current.values()) {
+                if (rafId) cancelAnimationFrame(rafId);
+            }
             map.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -56,15 +62,9 @@ export default function DeliveryMap() {
         map.setView(latLng, 16, { animate: true });
     }
 
-    async function upsertMarker({ courierId, lat, lng, speedKmh, status }) {
-        const key = String(courierId);
-        const map = mapRef.current;
-        if (!map) return;
-
-        // Маркер курьера
-        const speedText =
-            typeof speedKmh === "number" ? `${speedKmh.toFixed(0)} км/ч` : "—";
-        const html = `
+    function createIconHTML(key, speedKmh) {
+        const speedText = typeof speedKmh === "number" ? `${speedKmh.toFixed(0)} км/ч` : "—";
+        return `
       <div style="display:flex;flex-direction:column;align-items:center;">
         <img src="/car.png" style="width:41px;height:41px;" />
         <div style="
@@ -78,6 +78,66 @@ export default function DeliveryMap() {
         </div>
       </div>
     `;
+    }
+
+    // Простая функция гаверсина для расстояния (км)
+    function haversineKm([lat1, lon1], [lat2, lon2]) {
+        const toRad = (d) => (d * Math.PI) / 180;
+        const R = 6371; // km
+        const dLat = toRad(lat2 - lat1);
+        const dLon = toRad(lon2 - lon1);
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+
+    // Анимация маркера от from -> to за duration миллисекунд
+    function animateMarker(key, marker, from, to, speedKmh) {
+        // отменяем предыдущую анимацию
+        const prev = animRef.current.get(key);
+        if (prev && prev.rafId) cancelAnimationFrame(prev.rafId);
+
+        // duration: попытка вычислить по реальной скорости, иначе дефолт
+        let distanceKm = haversineKm([from.lat, from.lng], [to.lat, to.lng]);
+        let duration = 1000; // ms default
+        if (typeof speedKmh === "number" && speedKmh > 0 && distanceKm > 0) {
+            duration = (distanceKm / speedKmh) * 3600 * 1000; // hours -> ms
+        }
+        // clamp duration чтобы не было слишком медленно или мгновенно
+        duration = Math.max(200, Math.min(duration, 6000));
+
+        const start = performance.now();
+
+        function step(now) {
+            const t = Math.min(1, (now - start) / duration);
+            // easeInOutQuad for nicer motion
+            const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+
+            const lat = from.lat + (to.lat - from.lat) * ease;
+            const lng = from.lng + (to.lng - from.lng) * ease;
+            marker.setLatLng([lat, lng]);
+
+            if (t < 1) {
+                const rafId = requestAnimationFrame(step);
+                animRef.current.set(key, { rafId, start, duration, from, to });
+            } else {
+                // finished
+                animRef.current.delete(key);
+            }
+        }
+
+        const rafId = requestAnimationFrame(step);
+        animRef.current.set(key, { rafId, start, duration, from, to });
+    }
+
+    async function upsertMarker({ courierId, lat, lng, speedKmh, status }) {
+        const key = String(courierId);
+        const map = mapRef.current;
+        if (!map) return;
+
+        const html = createIconHTML(key, speedKmh);
 
         let marker = markersRef.current.get(key);
         if (!marker) {
@@ -90,6 +150,7 @@ export default function DeliveryMap() {
             marker = L.marker([lat, lng], { icon }).addTo(map);
             markersRef.current.set(key, marker);
         } else {
+            // Обновляем иконку (чтобы текст/скорость обновились)
             marker.setIcon(
                 L.divIcon({
                     html,
@@ -98,7 +159,19 @@ export default function DeliveryMap() {
                     iconAnchor: [20, 41],
                 })
             );
-            marker.setLatLng([lat, lng]);
+
+            // Плавная анимация от текущего положения к новому
+            const from = marker.getLatLng();
+            const to = L.latLng(lat, lng);
+
+            // Если координаты одинаковые (или очень близки) — просто устанавливаем
+            const distanceMeters = map.distance(from, to);
+            if (distanceMeters < 1) {
+                // очень близко
+                marker.setLatLng(to);
+            } else {
+                animateMarker(key, marker, { lat: from.lat, lng: from.lng }, { lat: to.lat, lng: to.lng }, speedKmh);
+            }
         }
 
         // Обновляем React-стейт курьеров
@@ -165,10 +238,7 @@ export default function DeliveryMap() {
                             <div className={styles.courierMain}>
                                 <span className={styles.courierId}>#{c.courierId}</span>
                                 <span className={styles.courierMeta}>
-                  {c.status || "unknown"} ·{" "}
-                                    {typeof c.speedKmh === "number"
-                                        ? `${c.speedKmh.toFixed(0)} км/ч`
-                                        : "скорость —"}
+                  {c.status || "unknown"} · {typeof c.speedKmh === "number" ? `${c.speedKmh.toFixed(0)} км/ч` : "скорость —"}
                 </span>
                             </div>
                             <div className={styles.courierActions}>
@@ -179,13 +249,6 @@ export default function DeliveryMap() {
                                 >
                                     <Navigation2 className={styles.icon} />
                                 </button>
-                                {/*<button*/}
-                                {/*    type="button"*/}
-                                {/*    className={styles.iconButton}*/}
-                                {/*    title="Чат с курьером"*/}
-                                {/*>*/}
-                                {/*    <MessageCircle className={styles.icon} />*/}
-                                {/*</button>*/}
                                 <button
                                     type="button"
                                     className={styles.iconButton}
