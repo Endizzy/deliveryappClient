@@ -5,7 +5,7 @@
 
   /* color-scheme: light dark; */
   color: rgba(255, 255, 255, 0.87);
-  background-color: black;
+  background: var(--app-gradient);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -30,6 +30,7 @@ a:hover {
 
 body {
   margin: 0;
+  background: var(--app-gradient)
 }
 
 h1 {

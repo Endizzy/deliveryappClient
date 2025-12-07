@@ -11,7 +11,7 @@ export default function App() {
                     DeliveryApp Client
                 </h1>
             </header>
-            <div style={{ padding:'2%', display: "flex", justifyContent: "center", gap: "20px", backgroundColor: "white", height: "90vh", alignItems: "center" }}>
+            <div style={{ padding:'2%', display: "flex", justifyContent: "center", gap: "20px", backgroundColor: "var(--app-gradient)", height: "90vh", alignItems: "center" }}>
                 <button
                     style={{ padding: "10px", minWidth: "140px", borderRadius: "5px", border: "2px solid black" }}
                     onClick={() => navigate('/orderPanel')}
