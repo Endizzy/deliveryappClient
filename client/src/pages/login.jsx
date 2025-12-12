@@ -2,12 +2,15 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./styles/login.module.css";
 import { RefreshCcw } from 'lucide-react';
+import useNotification from "../hooks/useNotification.jsx";
 
 const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
     // const [captchaCode, setCaptchaCode] = useState("7B4K9"); login
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+
+    const notify = useNotification();
 
     const [formData, setFormData] = useState({
         email: "",
@@ -63,7 +66,7 @@ const Login = () => {
             const data = await res.json();
 
             if (!res.ok) {
-                alert(data.error || "Ошибка входа");
+                notify({ type: 'error', title: 'Ошибка входа', message: data.error || 'Неверный логин или пароль', duration: 4500 });
             } else {
                 localStorage.setItem("token", data.token);
 
@@ -71,12 +74,12 @@ const Login = () => {
                     sessionStorage.setItem("token", data.token);
                 }
 
-                alert("Успешный вход!");
+                notify({ type: 'success', title: 'Успешный вход', message: 'Вы успешно вошли в систему', duration: 2500 });
                 navigate("/orderPanel"); // редиректим в панель заказов
             }
         } catch (err) {
             console.error("Ошибка сети:", err);
-            alert("Ошибка сети. Попробуйте позже.");
+            notify({ type: 'error', title: 'Ошибка сети', message: 'Ошибка сети. Попробуйте позже.', duration: 4500 });
         } finally {
             setLoading(false);
         }
