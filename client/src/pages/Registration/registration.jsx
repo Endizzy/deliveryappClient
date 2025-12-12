@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import styles from './styles/registration.module.css';
+import styles from './registration.module.css';
 import {useNavigate} from "react-router-dom";
 import { RefreshCcw } from 'lucide-react';
 

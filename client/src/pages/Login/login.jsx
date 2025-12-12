@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import styles from "./styles/login.module.css";
+import styles from "./login.module.css";
 import { RefreshCcw } from 'lucide-react';
-import useNotification from "../hooks/useNotification.jsx";
+import useNotification from "../../hooks/useNotification.jsx";
 
 const Login = () => {
     const [showPassword, setShowPassword] = useState(false);

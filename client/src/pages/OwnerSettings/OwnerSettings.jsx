@@ -7,7 +7,7 @@ import {
     BadgeCheck, X, ChevronDown, ChevronUp
 } from "lucide-react";
 import "./ownerSettings.css";
-import Header from "../components/Header/Header.jsx";
+import Header from "../../components/Header/Header.jsx";
 
 const toEUR = (n) => `€${Number(n || 0).toFixed(2)}`;
 

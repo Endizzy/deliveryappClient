@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import styles from "./styles/userProfile.module.css";
+import styles from "./userProfile.module.css";
 import { Package } from "lucide-react";
-import Header from "../components/Header/Header.jsx";
+import Header from "../../components/Header/Header.jsx";
 
 export default function UserProfile() {
     const navigate = useNavigate();

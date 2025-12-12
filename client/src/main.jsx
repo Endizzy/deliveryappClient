@@ -2,18 +2,18 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import App from "./App.jsx";
-import Map from "./map.jsx";
+import Map from "./pages/Map/map.jsx";
 import "./index.css";
 import OrderPanel from "./orderPanel.jsx";
 import CreateOrder from "./CreateOrder.jsx";
-import OwnerSettings from "./pages/OwnerSettings.jsx";
-import UserProfile from "./pages/userProfile.jsx";
-import Login from "./pages/login.jsx";
-import Registration from "./pages/registration.jsx";
+import OwnerSettings from "./pages/OwnerSettings/OwnerSettings.jsx";
+import UserProfile from "./pages/UserProfile/userProfile.jsx";
+import Login from "./pages/Login/login.jsx";
+import Registration from "./pages/Registration/registration.jsx";
 import { ThemeProvider } from "./provider/ThemeContext.jsx";
 import NotificationProvider from "./provider/NotificationProvider.jsx";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute.jsx";
-import Unauthorized from "./pages/Unauthorized.jsx";
+import Unauthorized from "./pages/UnAuthorized/Unauthorized.jsx";
 import EditOrder from "./EditOrder";
 
 createRoot(document.getElementById("root")).render(

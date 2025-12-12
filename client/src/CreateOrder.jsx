@@ -1,4 +1,3 @@
-// CreateOrder.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import {
     ArrowLeft, Save, User, Phone, Package, Truck, Clock,
@@ -6,6 +5,7 @@ import {
 } from "lucide-react";
 import "./CreateOrder.css";
 import { useNavigate } from "react-router-dom";
+import useNotification from "./hooks/useNotification.jsx";
 
 // формат номера LV
 const formatPhoneNumber = (value) => {
@@ -34,6 +34,8 @@ const CreateOrder = ({ onBack }) => {
         () => ({ "Content-Type": "application/json", Authorization: `Bearer ${token}` }),
         [token]
     );
+
+    const notify = useNotification();
 
     // ---- форма ----
     const [formData, setFormData] = useState({
@@ -94,7 +96,7 @@ const CreateOrder = ({ onBack }) => {
             try {
                 await Promise.all([fetchCouriers(), fetchPickupPoints(), fetchAllMenu()]);
             } catch (e) {
-                alert(e.message);
+                notify({ type: 'error', title: 'Ошибка загрузки', message: e.message || 'Не удалось загрузить данные', duration: 5000 });
             }
         })();
     }, [token, navigate]); // eslint-disable-line
@@ -181,7 +183,10 @@ const CreateOrder = ({ onBack }) => {
 
     // submit -> API
     const handleSubmit = async () => {
-        if (!validateForm()) return;
+        if (!validateForm()) {
+            notify({ type: 'error', title: 'Ошибка', message: 'Пожалуйста заполните обязательные поля', duration: 4500 });
+            return;
+        }
         setIsSubmitting(true);
         try {
             const scheduledAt =
@@ -221,11 +226,12 @@ const CreateOrder = ({ onBack }) => {
             });
             const data = await res.json();
             if (!res.ok || !data.ok) throw new Error(data.error || "Ошибка создания заказа");
+            notify({ type: 'success', title: 'Заказ создан', message: 'Заказ успешно добавлен', duration: 4500 });
 
             // редирект на панель — там список подтянется через GET/WS
             navigate("/orderPanel");
         } catch (e) {
-            alert(e.message);
+            notify({ type: 'error', title: 'Ошибка', message: e.message || 'Ошибка создания заказа', duration: 5000 });
         } finally {
             setIsSubmitting(false);
         }
