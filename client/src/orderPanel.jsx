@@ -2,8 +2,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Map as MapIcon, Settings, Sun, Moon, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "./orderPanel.css";
-import { ThemeProvider, useTheme } from "./provider/ThemeContext";
+import { useTheme } from "./provider/ThemeContext";
 import Header from "./components/Header/Header.jsx";
+import ModalSettings from './components/ModalSettings/ModalSettings.jsx';
 
 const API = import.meta.env.VITE_API_URL;
 const WS_URL = (API || "").replace(/^http/, "ws");
@@ -181,9 +182,8 @@ const OrderPanel = () => {
     const orders = ordersByTab[activeTab] || [];
 
     return (
-        <ThemeProvider>
-            <div className="order-panel">
-                <Header/>
+        <div className="order-panel">
+            <Header />
 
                 <nav className="nav-tabs">
                     <div>
@@ -290,8 +290,9 @@ const OrderPanel = () => {
                         <h1>Demo version </h1>
                     </div>
                 </footer>
+                {/* ModalSettings is provided globally by ThemeProvider in main.jsx */}
             </div>
-        </ThemeProvider>
+        
     );
 };
 

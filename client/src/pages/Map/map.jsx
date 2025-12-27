@@ -194,26 +194,6 @@ export default function DeliveryMap() {
 
     return (
         <div className={styles.container}>
-            {/* <header className={styles.header}>
-                <div className={styles.headerLeft}>
-                    <span className={styles.brand}>Delivery Admin Map</span>
-                    <span className={styles.counter}>
-            Курьеров: <strong>{couriers.size}</strong>
-          </span>
-                    {info.last && (
-                        <span className={styles.lastUpdate}>
-              Последний апдейт: #{info.last.courierId} (
-                            {info.last.lat.toFixed(5)}, {info.last.lng.toFixed(5)})
-            </span>
-                    )}
-                </div>
-                <button
-                    className={styles.ordersButton}
-                    onClick={() => navigate("/orderPanel")}
-                >
-                    Панель заказов
-                </button>
-            </header> */}
             <Header />
 
             {/* Панель с курьерами в левом верхнем углу */}

@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import styles from "./Header.module.css";
-import {Map as MapIcon, Moon, Settings, Sun, User, Box, Menu, X} from "lucide-react";
+import {Map as MapIcon, Moon, Settings, MonitorCog, Sun, User, Box, Menu, X} from "lucide-react";
 import { ThemeProvider, useTheme } from "../../provider/ThemeContext.jsx";
 import { useNavigate } from "react-router-dom";
 
 const Header = ({user = null}) => {
     const navigate = useNavigate();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { openSettings } = useTheme();
 
     function ThemeSelector() {
         const { changeTheme } = useTheme();
@@ -40,6 +41,11 @@ const Header = ({user = null}) => {
             <nav className={styles.header_right}>
                 <div className={styles.header_icons}>
                     <ThemeSelector/>
+                    <div className={styles.icon_content}>
+                        <span className={styles.icon_span}>Настройки</span>
+                        <button className={styles.icon_btn} onClick={openSettings} title="Настройки"><MonitorCog size={24}/>
+                        </button>
+                    </div>
                     <div className={styles.icon_content}>
                         <span className={styles.icon_span}>Настройки</span>
                         <button className={styles.icon_btn} onClick={() => handleNavigation("/ownerSettings")} title="Настройки"><Settings size={24}/>
@@ -85,6 +91,13 @@ const Header = ({user = null}) => {
                         <div className={styles.mobile_theme_selector}>
                             <ThemeSelector/>
                         </div>
+                        <button 
+                            className={styles.mobile_menu_item}
+                            onClick={openSettings}
+                        >
+                            <MonitorCog size={20} />
+                            <span>Персонализация</span>
+                        </button>
                         <button 
                             className={styles.mobile_menu_item}
                             onClick={() => handleNavigation("/ownerSettings")}

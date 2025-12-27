@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { themes } from "../themes/themes";
+import ModalSettings from "../components/ModalSettings/ModalSettings.jsx";
 
 const ThemeContext = createContext();
 
@@ -33,11 +34,17 @@ export const ThemeProvider = ({ children }) => {
         }
     };
 
+    // settings modal state available globally via theme context
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const openSettings = () => setIsSettingsOpen(true);
+    const closeSettings = () => setIsSettingsOpen(false);
+
     const theme = themes[themeKey];
 
     return (
-        <ThemeContext.Provider value={{ theme, changeTheme }}>
+        <ThemeContext.Provider value={{ theme, changeTheme, openSettings, closeSettings, isSettingsOpen }}>
             {children}
+            <ModalSettings isOpen={isSettingsOpen} onClose={closeSettings} />
         </ThemeContext.Provider>
     );
 };
