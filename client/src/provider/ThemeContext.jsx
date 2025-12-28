@@ -42,7 +42,16 @@ export const ThemeProvider = ({ children }) => {
     const theme = themes[themeKey];
 
     return (
-        <ThemeContext.Provider value={{ theme, changeTheme, openSettings, closeSettings, isSettingsOpen }}>
+        <ThemeContext.Provider 
+            value={{ 
+                theme, 
+                changeTheme, 
+                themeKey, 
+                openSettings,
+                closeSettings, 
+                isSettingsOpen 
+            }}
+        >
             {children}
             <ModalSettings isOpen={isSettingsOpen} onClose={closeSettings} />
         </ThemeContext.Provider>

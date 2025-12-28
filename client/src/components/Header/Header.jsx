@@ -9,15 +9,15 @@ const Header = ({user = null}) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { openSettings } = useTheme();
 
-    function ThemeSelector() {
-        const { changeTheme } = useTheme();
-        return (
-            <div className={styles.theme_selector}>
-                <button className={styles.icon_btn} onClick={() => changeTheme("purpleTheme")} title="Светлая тема"><Sun size={20} /></button>
-                <button className={styles.icon_btn} onClick={() => changeTheme("darkGreenTheme")} title="Тёмная тема"><Moon size={20} /></button>
-            </div>
-        );
-    }
+    // function ThemeSelector() {
+    //     const { changeTheme } = useTheme();
+    //     return (
+    //         <div className={styles.theme_selector}>
+    //             <button className={styles.icon_btn} onClick={() => changeTheme("purpleTheme")} title="Светлая тема"><Sun size={20} /></button>
+    //             <button className={styles.icon_btn} onClick={() => changeTheme("darkGreenTheme")} title="Тёмная тема"><Moon size={20} /></button>
+    //         </div>
+    //     );
+    // }
 
     const handleNavigation = (path) => {
         navigate(path);
@@ -40,7 +40,7 @@ const Header = ({user = null}) => {
             {/* Desktop Navigation */}
             <nav className={styles.header_right}>
                 <div className={styles.header_icons}>
-                    <ThemeSelector/>
+                    {/* <ThemeSelector/> */}
                     <div className={styles.icon_content}>
                         <span className={styles.icon_span}>Настройки</span>
                         <button className={styles.icon_btn} onClick={openSettings} title="Настройки"><MonitorCog size={24}/>
@@ -88,9 +88,9 @@ const Header = ({user = null}) => {
             {isMobileMenuOpen && (
                 <nav className={styles.mobile_menu}>
                     <div className={styles.mobile_menu_content}>
-                        <div className={styles.mobile_theme_selector}>
+                        {/* <div className={styles.mobile_theme_selector}>
                             <ThemeSelector/>
-                        </div>
+                        </div> */}
                         <button 
                             className={styles.mobile_menu_item}
                             onClick={openSettings}
