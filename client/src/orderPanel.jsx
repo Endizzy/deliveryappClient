@@ -5,6 +5,7 @@ import "./orderPanel.css";
 import { useTheme } from "./provider/ThemeContext";
 import Header from "./components/Header/Header.jsx";
 import ModalSettings from './components/ModalSettings/ModalSettings.jsx';
+import { useSound } from "./provider/SoundContext.jsx"; // импортируем хук useSound
 
 const API = import.meta.env.VITE_API_URL;
 const WS_URL = (API || "").replace(/^http/, "ws");
@@ -59,6 +60,8 @@ const OrderPanel = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("active");
     const [companyId, setCompanyId] = useState(null);
+
+    const { notifier } = useSound();
 
     const token = useMemo(
         () => localStorage.getItem("token") || sessionStorage.getItem("token"),
@@ -157,9 +160,20 @@ const OrderPanel = () => {
             ) return;
 
             if ((msg.type === "order_created" || msg.type === "order_updated") && msg.order) {
-                if (isValidCurrentOrder(msg.order)) upsertOrderToTabs(msg.order);
+                if (isValidCurrentOrder(msg.order)) {
+                    upsertOrderToTabs(msg.order);
+
+                    // звук только на новый заказ
+                    if (msg.type === "order_created") {
+                        // eventId приходит с сервера 
+                        // fallback: если вдруг нет eventId
+                        const eid = msg.eventId || `order:${msg.order.id}`;
+                        notifier.playOnce(eid);
+                    }
+                }
                 return;
             }
+
 
             if (msg.type === "order_deleted" && msg.orderId) {
                 removeOrderFromTabs(msg.orderId);

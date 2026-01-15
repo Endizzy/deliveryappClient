@@ -3,6 +3,8 @@ import styles from './ModalSettings.module.css';
 import { X, MonitorCog, PaintbrushVertical, BellRing } from 'lucide-react';
 import { ThemeProvider, useTheme } from "../../provider/ThemeContext.jsx";
 import useNotification from "../../hooks/useNotification.jsx";
+import { useSound } from "../../provider/SoundContext.jsx";
+
 
 export default function ModalSettings({ isOpen, onClose }) {
 
@@ -10,6 +12,8 @@ export default function ModalSettings({ isOpen, onClose }) {
   const { changeTheme, themeKey } = useTheme();
 
   const notify = useNotification();
+
+  const { soundEnabled, setSoundEnabled, unlock, notifier } = useSound();
 
   const handleSave = () => {
     notify({ type: 'success', title: 'Настройки сохранены', message: 'Вы успешно сохранили настройки', duration: 3500 });
@@ -51,14 +55,34 @@ export default function ModalSettings({ isOpen, onClose }) {
               <BellRing className={styles.bellIcon} />
               <h3>Звук оповещения</h3>
             </div>
+
             <div className={styles.cardAction}>
-              <select name="notificationSound" id="notificationSound" className={styles.select}>
-                <option value="Sound1">Bell</option>
-                <option value="Sound2">Sea</option>
-                <option value="Sound3">Forest</option>
-                <option value="Sound4">Magic</option>
-                <option value="Sound5">Alarm</option>
-              </select>
+              <div className={styles.switchRow}>
+
+                <label className={styles.switch} aria-label="Звук оповещения">
+                  <input
+                    className={styles.switchInput}
+                    type="checkbox"
+                    checked={soundEnabled}
+                    onChange={async (e) => {
+                      const next = e.target.checked;
+
+                      setSoundEnabled(next);
+
+                      if (next) {
+                        const ok = await unlock();
+                        if (!ok) {
+                          alert("Браузер блокирует звук. Кликни ещё раз по переключателю, чтобы разрешить воспроизведение.");
+                        }
+                        notifier.playOnce(`test:${Date.now()}`);
+                      }
+                    }}
+                  />
+                  <span className={styles.switchTrack}>
+                    <span className={styles.switchThumb} />
+                  </span>
+                </label>
+              </div>
             </div>
           </div>
         </div>

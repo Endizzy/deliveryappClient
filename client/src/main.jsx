@@ -16,71 +16,74 @@ import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute.jsx";
 import Unauthorized from "./pages/UnAuthorized/Unauthorized.jsx";
 import EditOrder from "./EditOrder";
 import './i18n';
+import { SoundProvider } from "./provider/SoundContext.jsx";
 
 createRoot(document.getElementById("root")).render(
     <BrowserRouter>
         <NotificationProvider>
-            <ThemeProvider>
-            <Routes>
-                {/* общедоступные */}
-                <Route path="/" element={<App />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/registration" element={<Registration />} />
-                <Route path="/unauthorized" element={<Unauthorized />} />
+            <SoundProvider>
+                <ThemeProvider>
+                    <Routes>
+                        {/* общедоступные */}
+                        <Route path="/" element={<App />} />
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/registration" element={<Registration />} />
+                        <Route path="/unauthorized" element={<Unauthorized />} />
 
-                {/* только для owner */}
-                <Route
-                    path="/ownerSettings"
-                    element={
-                        <ProtectedRoute allowedRoles={["owner"]}>
-                            <OwnerSettings />
-                        </ProtectedRoute>
-                    }
-                />
+                        {/* только для owner */}
+                        <Route
+                            path="/ownerSettings"
+                            element={
+                                <ProtectedRoute allowedRoles={["owner"]}>
+                                    <OwnerSettings />
+                                </ProtectedRoute>
+                            }
+                        />
 
-                {/* только для owner и admin */}
-                <Route
-                    path="/map"
-                    element={
-                        <ProtectedRoute allowedRoles={["owner", "admin"]}>
-                            <Map />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/editOrder/:id"
-                    element={
-                        <ProtectedRoute allowedRoles={["owner", "admin"]}>
-                            <EditOrder />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/userProfile"
-                    element={
-                        <ProtectedRoute allowedRoles={["owner", "admin"]}>
-                            <UserProfile />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/orderPanel"
-                    element={
-                        <ProtectedRoute allowedRoles={["owner", "admin"]}>
-                            <OrderPanel />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/createOrder"
-                    element={
-                        <ProtectedRoute allowedRoles={["owner", "admin"]}>
-                            <CreateOrder />
-                        </ProtectedRoute>
-                    }
-                />
-            </Routes>
-            </ThemeProvider>
+                        {/* только для owner и admin */}
+                        <Route
+                            path="/map"
+                            element={
+                                <ProtectedRoute allowedRoles={["owner", "admin"]}>
+                                    <Map />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/editOrder/:id"
+                            element={
+                                <ProtectedRoute allowedRoles={["owner", "admin"]}>
+                                    <EditOrder />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/userProfile"
+                            element={
+                                <ProtectedRoute allowedRoles={["owner", "admin"]}>
+                                    <UserProfile />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/orderPanel"
+                            element={
+                                <ProtectedRoute allowedRoles={["owner", "admin"]}>
+                                    <OrderPanel />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/createOrder"
+                            element={
+                                <ProtectedRoute allowedRoles={["owner", "admin"]}>
+                                    <CreateOrder />
+                                </ProtectedRoute>
+                            }
+                        />
+                    </Routes>
+                </ThemeProvider>
+            </SoundProvider>
         </NotificationProvider>
     </BrowserRouter>
 );

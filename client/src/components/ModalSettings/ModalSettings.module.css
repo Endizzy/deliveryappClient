@@ -110,3 +110,75 @@
   border-color: var(--app-gradient);
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
+
+/* --- Toggle switch --- */
+
+.switchRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* label */
+.switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.switchInput {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.switchTrack {
+  width: 46px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  padding: 3px;
+}
+
+.switchThumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+  transform: translateX(0);
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+
+/* ON */
+.switchInput:checked + .switchTrack {
+  border-color: transparent;
+  background: var(--app-gradient);
+}
+
+.switchInput:checked + .switchTrack .switchThumb {
+  transform: translateX(20px);
+}
+
+/* hover */
+.switch:hover .switchTrack {
+  border-color: #cbd5e1;
+}
+
+.switchInput:focus-visible + .switchTrack {
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.switchInput:disabled + .switchTrack {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
