@@ -15,6 +15,7 @@ import NotificationProvider from "./provider/NotificationProvider.jsx";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute.jsx";
 import Unauthorized from "./pages/UnAuthorized/Unauthorized.jsx";
 import EditOrder from "./EditOrder";
+import './i18n';
 
 createRoot(document.getElementById("root")).render(
     <BrowserRouter>

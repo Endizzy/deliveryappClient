@@ -3,11 +3,17 @@ import styles from "./Header.module.css";
 import {Map as MapIcon, Moon, Settings, MonitorCog, Sun, User, Box, Menu, X} from "lucide-react";
 import { ThemeProvider, useTheme } from "../../provider/ThemeContext.jsx";
 import { useNavigate } from "react-router-dom";
+import LanguageSelector from "./../LanguageSelect/LanguageSelect.jsx";
+import { useTranslation } from "react-i18next";
+
+
 
 const Header = ({user = null}) => {
     const navigate = useNavigate();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { openSettings } = useTheme();
+    const { t } = useTranslation();
+
 
     // function ThemeSelector() {
     //     const { changeTheme } = useTheme();
@@ -41,13 +47,14 @@ const Header = ({user = null}) => {
             <nav className={styles.header_right}>
                 <div className={styles.header_icons}>
                     {/* <ThemeSelector/> */}
+                    <LanguageSelector/>
                     <div className={styles.icon_content}>
-                        <span className={styles.icon_span}>Настройки</span>
+                        <span className={styles.icon_span}>{t("header.settings")}</span>
                         <button className={styles.icon_btn} onClick={openSettings} title="Настройки"><MonitorCog size={24}/>
                         </button>
                     </div>
                     <div className={styles.icon_content}>
-                        <span className={styles.icon_span}>Настройки</span>
+                        <span className={styles.icon_span}>{t("header.settings")}</span>
                         <button className={styles.icon_btn} onClick={() => handleNavigation("/ownerSettings")} title="Настройки"><Settings size={24}/>
                         </button>
                     </div>
@@ -70,7 +77,7 @@ const Header = ({user = null}) => {
                         <span className={styles.user_name}>
                             {user?.firstName ?? 'undefined'} {user?.lastName ?? 'undefined'}
                         </span>
-                        <button className={styles.logout_btn}>Выход</button>
+                        <button className={styles.logout_btn}>{t("header.logout")}</button>
                     </div>
                 </div>
             </nav>

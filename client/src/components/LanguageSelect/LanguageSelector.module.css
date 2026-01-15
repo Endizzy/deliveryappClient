@@ -1,0 +1,96 @@
+.wrapper {
+    position: relative;
+}
+
+/* main button */
+.button {
+    height: 40px;
+    padding: 0 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 10px;
+    color: white;
+
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.label {
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* arrow */
+.chevron {
+    transition: transform 0.2s ease;
+}
+
+.chevron.open {
+    transform: rotate(180deg);
+}
+
+/* dropdown */
+.dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+    border-radius: 12px;
+    padding: 6px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    min-width: 64px;
+    z-index: 200;
+
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+/* dropdown item */
+.item {
+    background: transparent;
+    border: none;
+    color: white;
+
+    padding: 8px;
+    border-radius: 8px;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.item:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.item.active {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* mobile tweaks */
+@media (max-width: 768px) {
+    .button {
+        height: 36px;
+        padding: 0 10px;
+    }
+
+    .label {
+        font-size: 11px;
+    }
+}
