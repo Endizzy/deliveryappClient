@@ -20,7 +20,7 @@ export default function OwnerSettings() {
     const [error, setError] = useState("");
 
     // визуальные поля
-    const [restaurant, setRestaurant] = useState({ name: "", logo: "", createdAt: new Date().toISOString() });
+    const [restaurant, setRestaurant] = useState({ name: "", logo: "" });
 
     // --- Меню (из API) ---
     const [menu, setMenu] = useState([]);
@@ -47,6 +47,21 @@ export default function OwnerSettings() {
         () => ({ "Content-Type": "application/json", Authorization: `Bearer ${token}` }),
         [token]
     );
+
+    const fetchCompany = async () => {
+        const res = await fetch(`${API}/company/me`, { headers: authHeaders });
+        if (res.status === 401) throw new Error("Не авторизован");
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error || "Не удалось получить данные компании");
+
+        if (data.company) {
+            setRestaurant(r => ({
+                ...r,
+                name: data.company.name || "",
+                logo: data.company.logoUrl || "",
+            }));
+        }
+    };
 
     // ---- profile + menu ----
     const fetchProfile = async () => {
@@ -82,6 +97,7 @@ export default function OwnerSettings() {
         if (!token) { navigate("/login"); return; }
         (async () => {
             try {
+                await fetchCompany();
                 await fetchProfile();
                 await fetchMenu();
                 await fetchStaff();

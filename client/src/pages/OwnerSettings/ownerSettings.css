@@ -73,7 +73,7 @@
 
 /* logo uploader */
 .owner-logo-uploader { display:flex; align-items:center; gap:12px; }
-.owner-logo-preview { width:60px; height:60px; object-fit:cover; border-radius:12px; border:1px solid #e2e8f0; }
+.owner-logo-preview { width:auto; height:60px; object-fit:cover; border-radius:12px; border:1px solid #e2e8f0; }
 .owner-logo-placeholder { width:60px; height:60px; border-radius:12px; border:1px dashed #cbd5e1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; color:#94a3b8; font-size:11px; }
 
 /* table */
