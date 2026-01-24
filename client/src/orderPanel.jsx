@@ -6,6 +6,9 @@ import { useTheme } from "./provider/ThemeContext";
 import Header from "./components/Header/Header.jsx";
 import ModalSettings from './components/ModalSettings/ModalSettings.jsx';
 import { useSound } from "./provider/SoundContext.jsx"; // импортируем хук useSound
+import { useNow } from "./provider/TimeContext"; // time counter для колонки ВРЕМЯ
+import { formatDuration } from "./utils/time/time.js";
+
 
 const API = import.meta.env.VITE_API_URL;
 const WS_URL = (API || "").replace(/^http/, "ws");
@@ -60,6 +63,22 @@ const OrderPanel = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("active");
     const [companyId, setCompanyId] = useState(null);
+
+    const now = useNow();
+    const getOrderDuration = (order, now) => {
+    if (!order?.createdAt) return "";
+
+    const start = new Date(order.createdAt).getTime();
+    if (Number.isNaN(start)) return "";
+
+    // если заказ завершён — фиксируем время
+    const end = order.completedAt
+        ? new Date(order.completedAt).getTime()
+        : now;
+
+    return formatDuration(end - start);
+};
+
 
     const { notifier } = useSound();
 
@@ -269,7 +288,12 @@ const OrderPanel = () => {
                                     </div>
                                     <div className="cell time-cell">
                                         <div className="time-info">
-                                            <span className="time">{safeTime(order.createdAt)}</span>
+                                            <span className="time">
+                                                {safeTime(order.createdAt)}
+                                            </span>
+                                            <span className="time-duration">
+                                                {getOrderDuration(order, now)}
+                                            </span>
                                         </div>
                                     </div>
                                     <div className="cell address-cell">

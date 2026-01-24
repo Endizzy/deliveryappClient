@@ -302,9 +302,17 @@
     gap: 2px;
 }
 
-.time {
+.time-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
     font-size: 13px;
     font-weight: 500;
+}
+
+.time {
+    font-size: 13px;
+    font-weight: 700;
 }
 
 .address-cell {

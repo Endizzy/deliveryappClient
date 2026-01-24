@@ -17,11 +17,13 @@ import Unauthorized from "./pages/UnAuthorized/Unauthorized.jsx";
 import EditOrder from "./EditOrder";
 import './i18n';
 import { SoundProvider } from "./provider/SoundContext.jsx";
+import { TimeCounterProvider } from "./provider/TimeContext.jsx";
 
 createRoot(document.getElementById("root")).render(
     <BrowserRouter>
         <NotificationProvider>
             <SoundProvider>
+                <TimeCounterProvider>
                 <ThemeProvider>
                     <Routes>
                         {/* общедоступные */}
@@ -83,6 +85,7 @@ createRoot(document.getElementById("root")).render(
                         />
                     </Routes>
                 </ThemeProvider>
+                </TimeCounterProvider>
             </SoundProvider>
         </NotificationProvider>
     </BrowserRouter>
