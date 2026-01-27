@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import styles from "./userProfile.module.css";
 import { Package } from "lucide-react";
 import Header from "../../components/Header/Header.jsx";
+import TwoFactorSection from "../../components/TwoFactorSection/TwoFactorSection.jsx";
 
 export default function UserProfile() {
     const navigate = useNavigate();
@@ -171,6 +172,9 @@ export default function UserProfile() {
                         </>
                     )}
                 </section>
+
+                {/* 2FA Security Section */}
+                <TwoFactorSection />
             </main>
         </div>
     );
