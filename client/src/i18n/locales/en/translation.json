@@ -1,6 +1,12 @@
 {
   "header": {
-    "settings": "Settings",
+    "appName": "DeliveryApp",
+    "personalization": "Personalization",
+    "ownerSettings": "Settings",
+    "map": "Map",
+    "profile": "Profile",
+    "orders": "Orders",
+    "menu": "Menu",
     "logout": "Logout"
   },
   "login": {
@@ -71,5 +77,342 @@
     "loginTitle": "Two-Factor Verification",
     "loginSubtitle": "Enter the 6-digit code from your authenticator app",
     "backToLogin": "Back to login"
+  },
+  "createOrder": {
+    "back": "Back",
+    "title": "Create a new order",
+    "subtitle": "Fill in all required fields to create an order",
+    "sections": {
+      "customerInfo": "Customer information",
+      "delivery": "Delivery",
+      "items": "Items",
+      "notes": "Additional notes"
+    },
+    "fields": {
+      "phone": "Phone",
+      "customer": "Customer name",
+      "street": "Street",
+      "house": "House",
+      "building": "Building",
+      "apart": "Apartment",
+      "floor": "Floor",
+      "code": "Code",
+      "courier": "Courier",
+      "orderType": "Order type",
+      "scheduledDate": "Delivery date",
+      "scheduledTime": "Delivery time",
+      "searchItems": "Search items",
+      "payment": "Payment method",
+      "pickup": "Pickup point",
+      "notes": "Notes (optional)"
+    },
+    "placeholders": {
+      "phone": "+371XXXXXXXX",
+      "customer": "Enter customer name",
+      "street": "Enter street",
+      "house": "Enter house",
+      "building": "Enter building",
+      "apart": "Enter apartment",
+      "floor": "Enter floor",
+      "code": "Enter code",
+      "courier": "Select courier",
+      "search": "Start typing dish name...",
+      "payment": "Select payment method",
+      "pickup": "Select pickup point",
+      "notes": "Additional order information"
+    },
+    "orderType": {
+      "active": "Active order",
+      "preorder": "Preorder"
+    },
+    "preorderHint": "Minimum preorder time — {{min}} minutes from now.",
+    "selectedItemsTitle": "Selected items:",
+    "totalToPay": "Total to pay: €{{total}}",
+    "payment": {
+      "cash": "Cash",
+      "card": "Card",
+      "wire": "Bank transfer"
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "create": "Create order",
+      "creating": "Creating..."
+    },
+    "validation": {
+      "customerRequired": "Customer name is required",
+      "phoneRequired": "Phone is required",
+      "phoneInvalid": "Enter a valid phone (+371XXXXXXXX)",
+      "itemsRequired": "Add at least one item",
+      "courierRequired": "Select a courier",
+      "pickupRequired": "Select a pickup point",
+      "paymentRequired": "Select a payment method",
+      "scheduledDateRequired": "Specify delivery date",
+      "scheduledTimeRequired": "Specify delivery time",
+      "scheduledTooEarly": "Time cannot be earlier than in {{min}} min"
+    },
+    "notifications": {
+      "loadErrorTitle": "Loading error",
+      "loadErrorMessage": "Failed to load data",
+      "validationErrorTitle": "Error",
+      "validationErrorMessage": "Please fill in required fields",
+      "createdTitle": "Order created",
+      "createdMessage": "Order has been successfully added",
+      "createErrorTitle": "Error",
+      "createErrorMessage": "Failed to create order"
+    },
+    "errors": {
+      "couriersLoadFailed": "Failed to load couriers",
+      "pickupPointsLoadFailed": "Failed to load pickup points",
+      "menuLoadFailed": "Failed to load menu",
+      "createOrderFailed": "Failed to create order"
+    }
+  },
+  "userProfile": {
+    "loading": "Loading…",
+    "errorTitle": "Error",
+    "actions": {
+      "loginAgain": "Log in again"
+    },
+    "errors": {
+      "profileFetchFailed": "Failed to load profile"
+    },
+    "fields": {
+      "email": "Email",
+      "phone": "Phone",
+      "role": "Role",
+      "companyId": "Company (ID)",
+      "userId": "User ID",
+      "createdAt": "Created"
+    },
+    "company": {
+      "id": "ID: {{id}}",
+      "noCompany": "You don't have a company",
+      "phone": "Phone",
+      "ownerEmail": "Owner email",
+      "ownerUserId": "Owner ID",
+      "menuId": "Menu (ID)",
+      "createdAt": "Created"
+    }
+  },
+  "ownerSettings": {
+    "loading": "Loading…",
+    "errorWithMessage": "Error: {{message}}",
+    "title": "Restaurant settings",
+    "sections": {
+      "general": "General information",
+      "menu": "Restaurant menu",
+      "accounts": "Accounts (admins and couriers)"
+    },
+    "stats": {
+      "items": "Items: {{total}}",
+      "active": "Active: {{active}}",
+      "avgPrice": "Average price: {{price}}"
+    },
+    "actions": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "upload": "Upload",
+      "delete": "Delete",
+      "edit": "Edit"
+    },
+    "general": {
+      "restaurantName": "Restaurant name",
+      "restaurantNamePlaceholder": "For example, Briana Sushi",
+      "logo": "Logo",
+      "noLogo": "No logo"
+    },
+    "menu": {
+      "searchPlaceholder": "Search by name/category…",
+      "addItem": "Add item",
+      "inSale": "On sale",
+      "hidden": "Hidden",
+      "empty": "No items yet. Add the first one.",
+      "sort": {
+        "nameAsc": "Name ↑",
+        "nameDesc": "Name ↓",
+        "priceAsc": "Price ↑",
+        "priceDesc": "Price ↓",
+        "discountDesc": "Discount ↓",
+        "discountAsc": "Discount ↑"
+      },
+      "table": {
+        "name": "Name",
+        "category": "Category",
+        "price": "Price",
+        "discount": "Discount",
+        "actions": "Actions"
+      }
+    },
+    "menuModal": {
+      "addTitle": "Add item",
+      "editTitle": "Edit item",
+      "fields": {
+        "name": "Name",
+        "category": "Category",
+        "price": "Price",
+        "discount": "Discount, %",
+        "available": "On sale"
+      },
+      "placeholders": {
+        "name": "For example, California roll",
+        "category": "Sushi / Rolls / Hot dishes…"
+      }
+    },
+    "staff": {
+      "searchPlaceholder": "Search by role/nickname/phone…",
+      "createAccount": "Create account",
+      "loading": "Loading staff…",
+      "empty": "No accounts.",
+      "active": "Active",
+      "disabled": "Disabled",
+      "roles": {
+        "courier": "Courier",
+        "admin": "Admin"
+      },
+      "table": {
+        "role": "Role",
+        "nickname": "Nickname",
+        "contacts": "Contacts",
+        "actions": "Actions"
+      }
+    },
+    "staffModal": {
+      "addTitle": "Create account",
+      "editTitle": "Edit account",
+      "fields": {
+        "role": "Role",
+        "nickname": "Nickname",
+        "phone": "Phone",
+        "email": "Email (optional)",
+        "password": "Password"
+      },
+      "passwordEditHint": "(leave empty — don't change)",
+      "placeholders": {
+        "nickname": "For example, CourierMihail",
+        "phone": "+371...",
+        "email": "dispatcher@company.com",
+        "password": "Generate or enter"
+      },
+      "actions": {
+        "generate": "Generate"
+      }
+    },
+    "confirm": {
+      "deleteMenuItem": "Delete menu item?",
+      "deleteAccount": "Delete account?"
+    },
+    "alerts": {
+      "enterNameAndPrice": "Enter name and price",
+      "staffRequiredFields": "Specify role, nickname and phone",
+      "todoSaveCompany": "Here will be PATCH /api/company/:id"
+    },
+    "errors": {
+      "unauthorized": "Not authorized",
+      "generic": "Something went wrong",
+      "companyFetchFailed": "Failed to fetch company data",
+      "profileFetchFailed": "Failed to fetch profile",
+      "menuLoadFailed": "Failed to load menu",
+      "menuCreateFailed": "Failed to create item",
+      "menuUpdateFailed": "Failed to update item",
+      "menuDeleteFailed": "Failed to delete item",
+      "staffLoadFailed": "Failed to load staff",
+      "staffCreateFailed": "Failed to create account",
+      "staffUpdateFailed": "Failed to update account",
+      "staffDeleteFailed": "Failed to delete account"
+    }
+  },
+  "orderPanel": {
+    "actions": {
+      "createOrder": "Create order"
+    },
+    "tabs": {
+      "active": "ACTIVE",
+      "preorders": "PREORDERS",
+      "completed": "COMPLETED"
+    },
+    "search": {
+      "placeholder": "Search orders..."
+    },
+    "filter": {
+      "all": "All orders",
+      "byCourier": "By courier",
+      "byAmount": "By amount"
+    },
+    "table": {
+      "status": "Status",
+      "time": "Time",
+      "address": "Delivery address",
+      "customer": "Name/phone",
+      "amount": "Total",
+      "restaurant": "Restaurant",
+      "courier": "Courier",
+      "dispatcher": "Dispatcher"
+    },
+    "status": {
+      "new": "New",
+      "ready": "Ready",
+      "enroute": "On the way",
+      "paused": "Paused",
+      "cancelled": "Completed"
+    },
+    "payment": {
+      "cash": "Cash",
+      "card": "Card",
+      "wire": "Bank transfer"
+    },
+    "empty": "No orders in this tab.",
+    "footer": {
+      "demo": "Demo version"
+    },
+    "errors": {
+      "loadOrdersFailed": "Failed to load orders"
+    }
+  },
+  "map": {
+    "activeCouriers": "Active couriers",
+    "noActiveCouriers": "No active couriers",
+    "actions": {
+      "focus": "Center map on courier",
+      "info": "Information"
+    },
+    "speedValue": "{{value}} km/h",
+    "speedUnknown": "speed —",
+    "speedDash": "—",
+    "markerTitle": "#{{id}}",
+    "markerTitleWithNickname": "{{nickname}} (ID {{id}})",
+    "status": {
+      "unknown": "unknown",
+      "online": "online",
+      "offline": "offline",
+      "busy": "busy"
+    }
+  },
+  "modalSettings": {
+    "title": "Settings",
+    "appearance": {
+      "title": "Appearance",
+      "selectAria": "Select theme",
+      "themes": {
+        "light": "Light theme",
+        "dark": "Dark theme"
+      }
+    },
+    "sound": {
+      "title": "Notification sound",
+      "aria": "Notification sound"
+    },
+    "actions": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "close": "Close"
+    },
+    "notifications": {
+      "savedTitle": "Settings saved",
+      "savedMessage": "You have successfully saved settings",
+      "cancelledTitle": "Settings cancelled",
+      "cancelledMessage": "Settings were not saved",
+      "soundBlockedTitle": "Sound is blocked",
+      "soundBlockedMessage": "Your browser blocks sound. Click the toggle again to allow playback."
+    }
   }
 }

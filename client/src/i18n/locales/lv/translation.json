@@ -1,7 +1,14 @@
 {
   "header": {
-    "settings": "Iestatijumi",
-    "logout": "Iziet"
+    "appName": "DeliveryApp",
+    "personalization": "Personalizācija",
+    "ownerSettings": "Iestatījumi",
+    "map": "Karte",
+    "profile": "Profils",
+    "orders": "Pasūtījumi",
+    "menu": "Izvēlne",
+    "logout": "Izrakstīties"
+
   },
   "login": {
     "title": "Pieslēgties",
@@ -71,5 +78,342 @@
     "loginTitle": "Divfaktoru verifikācija",
     "loginSubtitle": "Ievadiet 6 ciparu kodu no autentifikatora lietotnes",
     "backToLogin": "Atpakaļ uz pieslēgšanos"
+  },
+  "createOrder": {
+    "back": "Atpakaļ",
+    "title": "Jauna pasūtījuma izveide",
+    "subtitle": "Aizpildiet visus obligātos laukus, lai izveidotu pasūtījumu",
+    "sections": {
+      "customerInfo": "Klienta informācija",
+      "delivery": "Piegāde",
+      "items": "Preces",
+      "notes": "Papildu piezīmes"
+    },
+    "fields": {
+      "phone": "Telefons",
+      "customer": "Klienta vārds",
+      "street": "Iela",
+      "house": "Māja",
+      "building": "Korpuss",
+      "apart": "Dzīvoklis",
+      "floor": "Stāvs",
+      "code": "Kods",
+      "courier": "Kurjers",
+      "orderType": "Pasūtījuma veids",
+      "scheduledDate": "Piegādes datums",
+      "scheduledTime": "Piegādes laiks",
+      "searchItems": "Preču meklēšana",
+      "payment": "Maksājuma veids",
+      "pickup": "Komplektēšanas punkts",
+      "notes": "Piezīmes (nav obligāti)"
+    },
+    "placeholders": {
+      "phone": "+371XXXXXXXX",
+      "customer": "Ievadiet klienta vārdu",
+      "street": "Ievadiet ielu",
+      "house": "Ievadiet mājas numuru",
+      "building": "Ievadiet korpusu",
+      "apart": "Ievadiet dzīvokli",
+      "floor": "Ievadiet stāvu",
+      "code": "Ievadiet kodu",
+      "courier": "Izvēlieties kurjeru",
+      "search": "Sāciet rakstīt ēdiena nosaukumu...",
+      "payment": "Izvēlieties maksājuma veidu",
+      "pickup": "Izvēlieties komplektēšanas punktu",
+      "notes": "Papildu informācija par pasūtījumu"
+    },
+    "orderType": {
+      "active": "Aktīvs pasūtījums",
+      "preorder": "Priekšpasūtījums"
+    },
+    "preorderHint": "Minimālais priekšpasūtījuma laiks — pēc {{min}} minūtēm no pašreizējā brīža.",
+    "selectedItemsTitle": "Izvēlētās preces:",
+    "totalToPay": "Summa apmaksai: €{{total}}",
+    "payment": {
+      "cash": "Skaidrā naudā",
+      "card": "Ar karti",
+      "wire": "Ar pārskaitījumu"
+    },
+    "buttons": {
+      "cancel": "Atcelt",
+      "create": "Izveidot pasūtījumu",
+      "creating": "Veido..."
+    },
+    "validation": {
+      "customerRequired": "Klienta vārds ir obligāts",
+      "phoneRequired": "Telefons ir obligāts",
+      "phoneInvalid": "Ievadiet korektu tālruni (+371XXXXXXXX)",
+      "itemsRequired": "Pievienojiet vismaz vienu preci",
+      "courierRequired": "Izvēlieties kurjeru",
+      "pickupRequired": "Izvēlieties komplektēšanas punktu",
+      "paymentRequired": "Izvēlieties maksājuma veidu",
+      "scheduledDateRequired": "Norādiet piegādes datumu",
+      "scheduledTimeRequired": "Norādiet piegādes laiku",
+      "scheduledTooEarly": "Laiks nevar būt agrāks kā pēc {{min}} min"
+    },
+    "notifications": {
+      "loadErrorTitle": "Datu ielādes kļūda",
+      "loadErrorMessage": "Neizdevās ielādēt datus",
+      "validationErrorTitle": "Kļūda",
+      "validationErrorMessage": "Lūdzu aizpildiet obligātos laukus",
+      "createdTitle": "Pasūtījums izveidots",
+      "createdMessage": "Pasūtījums veiksmīgi pievienots",
+      "createErrorTitle": "Kļūda",
+      "createErrorMessage": "Neizdevās izveidot pasūtījumu"
+    },
+    "errors": {
+      "couriersLoadFailed": "Neizdevās ielādēt kurjerus",
+      "pickupPointsLoadFailed": "Neizdevās ielādēt komplektēšanas punktus",
+      "menuLoadFailed": "Neizdevās ielādēt ēdienkarti",
+      "createOrderFailed": "Neizdevās izveidot pasūtījumu"
+    }
+  },
+  "userProfile": {
+    "loading": "Ielādē…",
+    "errorTitle": "Kļūda",
+    "actions": {
+      "loginAgain": "Pieteikties vēlreiz"
+    },
+    "errors": {
+      "profileFetchFailed": "Neizdevās ielādēt profilu"
+    },
+    "fields": {
+      "email": "E-pasts",
+      "phone": "Telefons",
+      "role": "Loma",
+      "companyId": "Uzņēmums (ID)",
+      "userId": "Lietotāja ID",
+      "createdAt": "Izveidots"
+    },
+    "company": {
+      "id": "ID: {{id}}",
+      "noCompany": "Jums nav uzņēmuma",
+      "phone": "Telefons",
+      "ownerEmail": "Īpašnieka e-pasts",
+      "ownerUserId": "Īpašnieka ID",
+      "menuId": "Ēdienkarte (ID)",
+      "createdAt": "Izveidots"
+    }
+  },
+  "ownerSettings": {
+    "loading": "Ielādē…",
+    "errorWithMessage": "Kļūda: {{message}}",
+    "title": "Restorāna iestatījumi",
+    "sections": {
+      "general": "Vispārīga informācija",
+      "menu": "Restorāna ēdienkarte",
+      "accounts": "Konti (administratori un kurjeri)"
+    },
+    "stats": {
+      "items": "Pozīcijas: {{total}}",
+      "active": "Aktīvs: {{active}}",
+      "avgPrice": "Vidējā cena: {{price}}"
+    },
+    "actions": {
+      "save": "Saglabāt",
+      "cancel": "Atcelt",
+      "upload": "Augšupielādēt",
+      "delete": "Dzēst",
+      "edit": "Rediģēt"
+    },
+    "general": {
+      "restaurantName": "Restorāna nosaukums",
+      "restaurantNamePlaceholder": "Piemēram, Briana Sushi",
+      "logo": "Logo",
+      "noLogo": "Nav logo"
+    },
+    "menu": {
+      "searchPlaceholder": "Meklēt pēc nosaukuma/kategorijas…",
+      "addItem": "Pievienot pozīciju",
+      "inSale": "Pārdošanā",
+      "hidden": "Paslēpts",
+      "empty": "Nav pozīciju. Pievienojiet pirmo.",
+      "sort": {
+        "nameAsc": "Nosaukums ↑",
+        "nameDesc": "Nosaukums ↓",
+        "priceAsc": "Cena ↑",
+        "priceDesc": "Cena ↓",
+        "discountDesc": "Atlaide ↓",
+        "discountAsc": "Atlaide ↑"
+      },
+      "table": {
+        "name": "Nosaukums",
+        "category": "Kategorija",
+        "price": "Cena",
+        "discount": "Atlaide",
+        "actions": "Darbības"
+      }
+    },
+    "menuModal": {
+      "addTitle": "Pievienot pozīciju",
+      "editTitle": "Rediģēt pozīciju",
+      "fields": {
+        "name": "Nosaukums",
+        "category": "Kategorija",
+        "price": "Cena",
+        "discount": "Atlaide, %",
+        "available": "Pārdošanā"
+      },
+      "placeholders": {
+        "name": "Piemēram, California roll",
+        "category": "Suši / Ruļļi / Karstie ēdieni…"
+      }
+    },
+    "staff": {
+      "searchPlaceholder": "Meklēt pēc lomas/segvārda/tālruņa…",
+      "createAccount": "Izveidot kontu",
+      "loading": "Ielādē darbiniekus…",
+      "empty": "Nav kontu.",
+      "active": "Aktīvs",
+      "disabled": "Atspējots",
+      "roles": {
+        "courier": "Kurjers",
+        "admin": "Administrators"
+      },
+      "table": {
+        "role": "Loma",
+        "nickname": "Segvārds",
+        "contacts": "Kontakti",
+        "actions": "Darbības"
+      }
+    },
+    "staffModal": {
+      "addTitle": "Izveidot kontu",
+      "editTitle": "Rediģēt kontu",
+      "fields": {
+        "role": "Loma",
+        "nickname": "Segvārds",
+        "phone": "Tālrunis",
+        "email": "E-pasts (nav obligāti)",
+        "password": "Parole"
+      },
+      "passwordEditHint": "(atstāj tukšu — nemainīt)",
+      "placeholders": {
+        "nickname": "Piemēram, CourierMihail",
+        "phone": "+371...",
+        "email": "dispatcher@company.com",
+        "password": "Ģenerēt vai ievadīt"
+      },
+      "actions": {
+        "generate": "Ģenerēt"
+      }
+    },
+    "confirm": {
+      "deleteMenuItem": "Dzēst ēdienkartes pozīciju?",
+      "deleteAccount": "Dzēst kontu?"
+    },
+    "alerts": {
+      "enterNameAndPrice": "Ievadiet nosaukumu un cenu",
+      "staffRequiredFields": "Norādiet lomu, segvārdu un tālruni",
+      "todoSaveCompany": "Šeit būs PATCH /api/company/:id"
+    },
+    "errors": {
+      "unauthorized": "Nav autorizēts",
+      "generic": "Kaut kas nogāja greizi",
+      "companyFetchFailed": "Neizdevās iegūt uzņēmuma datus",
+      "profileFetchFailed": "Neizdevās iegūt profilu",
+      "menuLoadFailed": "Neizdevās ielādēt ēdienkarti",
+      "menuCreateFailed": "Neizdevās izveidot pozīciju",
+      "menuUpdateFailed": "Neizdevās atjaunināt pozīciju",
+      "menuDeleteFailed": "Neizdevās dzēst pozīciju",
+      "staffLoadFailed": "Neizdevās ielādēt darbiniekus",
+      "staffCreateFailed": "Neizdevās izveidot kontu",
+      "staffUpdateFailed": "Neizdevās atjaunināt kontu",
+      "staffDeleteFailed": "Neizdevās dzēst kontu"
+    }
+  },
+  "orderPanel": {
+    "actions": {
+      "createOrder": "Izveidot pasūtījumu"
+    },
+    "tabs": {
+      "active": "AKTĪVIE",
+      "preorders": "PRIEKŠPASŪTĪJUMI",
+      "completed": "PABEIGTIE"
+    },
+    "search": {
+      "placeholder": "Meklēt pasūtījumus..."
+    },
+    "filter": {
+      "all": "Visi pasūtījumi",
+      "byCourier": "Pēc kurjera",
+      "byAmount": "Pēc summas"
+    },
+    "table": {
+      "status": "Statuss",
+      "time": "Laiks",
+      "address": "Piegādes adrese",
+      "customer": "Vārds/tālrunis",
+      "amount": "Summa",
+      "restaurant": "Restorāns",
+      "courier": "Kurjers",
+      "dispatcher": "Dispečers"
+    },
+    "status": {
+      "new": "Jauns",
+      "ready": "Gatavs",
+      "enroute": "Ceļā",
+      "paused": "Pauzēts",
+      "cancelled": "Pabeigts"
+    },
+    "payment": {
+      "cash": "Skaidrā naudā",
+      "card": "Ar karti",
+      "wire": "Ar pārskaitījumu"
+    },
+    "empty": "Šajā cilnē nav pasūtījumu.",
+    "footer": {
+      "demo": "Demo versija"
+    },
+    "errors": {
+      "loadOrdersFailed": "Neizdevās ielādēt pasūtījumus"
+    }
+  },
+  "map": {
+    "activeCouriers": "Aktīvie kurjeri",
+    "noActiveCouriers": "Nav aktīvu kurjeru",
+    "actions": {
+      "focus": "Centrēt karti uz kurjeru",
+      "info": "Informācija"
+    },
+    "speedValue": "{{value}} km/h",
+    "speedUnknown": "ātrums —",
+    "speedDash": "—",
+    "markerTitle": "#{{id}}",
+    "markerTitleWithNickname": "{{nickname}} (ID {{id}})",
+    "status": {
+      "unknown": "unknown",
+      "online": "online",
+      "offline": "online",
+      "busy": "busy"
+    }
+  },
+  "modalSettings": {
+    "title": "Iestatījumi",
+    "appearance": {
+      "title": "Izskats",
+      "selectAria": "Izvēlēties tēmu",
+      "themes": {
+        "light": "Gaišā tēma",
+        "dark": "Tumšā tēma"
+      }
+    },
+    "sound": {
+      "title": "Paziņojumu skaņa",
+      "aria": "Paziņojumu skaņa"
+    },
+    "actions": {
+      "save": "Saglabāt",
+      "cancel": "Atcelt",
+      "close": "Aizvērt"
+    },
+    "notifications": {
+      "savedTitle": "Iestatījumi saglabāti",
+      "savedMessage": "Jūs veiksmīgi saglabājāt iestatījumus",
+      "cancelledTitle": "Iestatījumi atcelti",
+      "cancelledMessage": "Iestatījumi netika saglabāti",
+      "soundBlockedTitle": "Skaņa ir bloķēta",
+      "soundBlockedMessage": "Pārlūkprogramma bloķē skaņu. Nospiediet slēdzi vēlreiz, lai atļautu atskaņošanu."
+    }
   }
 }

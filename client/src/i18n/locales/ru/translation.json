@@ -1,6 +1,12 @@
 {
   "header": {
-    "settings": "Настройки",
+    "appName": "DeliveryApp",
+    "personalization": "Персонализация",
+    "ownerSettings": "Настройки",
+    "map": "Карта",
+    "profile": "Профиль",
+    "orders": "Заказы",
+    "menu": "Меню",
     "logout": "Выход"
   },
   "login": {
@@ -71,5 +77,342 @@
     "loginTitle": "Двухфакторная проверка",
     "loginSubtitle": "Введите 6-значный код из приложения-аутентификатора",
     "backToLogin": "Назад к входу"
+  },
+  "createOrder": {
+    "back": "Назад",
+    "title": "Создание нового заказа",
+    "subtitle": "Заполните все необходимые поля для создания заказа",
+    "sections": {
+      "customerInfo": "Информация о клиенте",
+      "delivery": "Доставка",
+      "items": "Товары",
+      "notes": "Дополнительные заметки"
+    },
+    "fields": {
+      "phone": "Телефон",
+      "customer": "Имя клиента",
+      "street": "Улица",
+      "house": "Дом",
+      "building": "Корпус",
+      "apart": "Квартира",
+      "floor": "Этаж",
+      "code": "Код",
+      "courier": "Курьер",
+      "orderType": "Тип заказа",
+      "scheduledDate": "Дата доставки",
+      "scheduledTime": "Время доставки",
+      "searchItems": "Поиск товаров",
+      "payment": "Вид оплаты",
+      "pickup": "Точка комплектации",
+      "notes": "Заметки (необязательно)"
+    },
+    "placeholders": {
+      "phone": "+371XXXXXXXX",
+      "customer": "Введите имя клиента",
+      "street": "Введите улицу",
+      "house": "Введите дом",
+      "building": "Введите корпус",
+      "apart": "Введите квартиру",
+      "floor": "Введите этаж",
+      "code": "Введите код",
+      "courier": "Выберите курьера",
+      "search": "Начните печатать название блюда...",
+      "payment": "Выберите вид оплаты",
+      "pickup": "Выберите точку",
+      "notes": "Дополнительная информация о заказе"
+    },
+    "orderType": {
+      "active": "Активный заказ",
+      "preorder": "Предзаказ"
+    },
+    "preorderHint": "Минимальное время предзаказа — через {{min}} минут от текущего момента.",
+    "selectedItemsTitle": "Выбранные товары:",
+    "totalToPay": "Сумма к оплате: €{{total}}",
+    "payment": {
+      "cash": "Наличные",
+      "card": "Карта",
+      "wire": "Перечислением"
+    },
+    "buttons": {
+      "cancel": "Отменить",
+      "create": "Создать заказ",
+      "creating": "Создание..."
+    },
+    "validation": {
+      "customerRequired": "Имя клиента обязательно",
+      "phoneRequired": "Телефон обязателен",
+      "phoneInvalid": "Введите корректный телефон (+371XXXXXXXX)",
+      "itemsRequired": "Добавьте хотя бы один товар",
+      "courierRequired": "Выберите курьера",
+      "pickupRequired": "Выберите точку комплектации",
+      "paymentRequired": "Выберите способ оплаты",
+      "scheduledDateRequired": "Укажите дату доставки",
+      "scheduledTimeRequired": "Укажите время доставки",
+      "scheduledTooEarly": "Время не может быть раньше чем через {{min}} мин"
+    },
+    "notifications": {
+      "loadErrorTitle": "Ошибка загрузки",
+      "loadErrorMessage": "Не удалось загрузить данные",
+      "validationErrorTitle": "Ошибка",
+      "validationErrorMessage": "Пожалуйста заполните обязательные поля",
+      "createdTitle": "Заказ создан",
+      "createdMessage": "Заказ успешно добавлен",
+      "createErrorTitle": "Ошибка",
+      "createErrorMessage": "Ошибка создания заказа"
+    },
+    "errors": {
+      "couriersLoadFailed": "Не удалось загрузить курьеров",
+      "pickupPointsLoadFailed": "Не удалось загрузить точки комплектации",
+      "menuLoadFailed": "Не удалось загрузить меню",
+      "createOrderFailed": "Ошибка создания заказа"
+    }
+  },
+  "userProfile": {
+    "loading": "Загрузка…",
+    "errorTitle": "Ошибка",
+    "actions": {
+      "loginAgain": "Войти заново"
+    },
+    "errors": {
+      "profileFetchFailed": "Не удалось получить профиль"
+    },
+    "fields": {
+      "email": "Email",
+      "phone": "Телефон",
+      "role": "Роль",
+      "companyId": "Компания (ID)",
+      "userId": "ID пользователя",
+      "createdAt": "Создан"
+    },
+    "company": {
+      "id": "ID: {{id}}",
+      "noCompany": "У вас нет компании",
+      "phone": "Телефон",
+      "ownerEmail": "E-mail владельца",
+      "ownerUserId": "ID владельца",
+      "menuId": "Меню (ID)",
+      "createdAt": "Создана"
+    }
+  },
+  "ownerSettings": {
+    "loading": "Загрузка…",
+    "errorWithMessage": "Ошибка: {{message}}",
+    "title": "Настройки ресторана",
+    "sections": {
+      "general": "Общие сведения",
+      "menu": "Меню ресторана",
+      "accounts": "Аккаунты (админы и курьеры)"
+    },
+    "stats": {
+      "items": "Позиции: {{total}}",
+      "active": "Активно: {{active}}",
+      "avgPrice": "Средняя цена: {{price}}"
+    },
+    "actions": {
+      "save": "Сохранить",
+      "cancel": "Отмена",
+      "upload": "Загрузить",
+      "delete": "Удалить",
+      "edit": "Редактировать"
+    },
+    "general": {
+      "restaurantName": "Название ресторана",
+      "restaurantNamePlaceholder": "Например, Briana Sushi",
+      "logo": "Логотип",
+      "noLogo": "Нет логотипа"
+    },
+    "menu": {
+      "searchPlaceholder": "Поиск по названию/категории…",
+      "addItem": "Добавить позицию",
+      "inSale": "В продаже",
+      "hidden": "Скрыто",
+      "empty": "Нет позиций. Добавьте первую.",
+      "sort": {
+        "nameAsc": "Название ↑",
+        "nameDesc": "Название ↓",
+        "priceAsc": "Цена ↑",
+        "priceDesc": "Цена ↓",
+        "discountDesc": "Скидка ↓",
+        "discountAsc": "Скидка ↑"
+      },
+      "table": {
+        "name": "Название",
+        "category": "Категория",
+        "price": "Цена",
+        "discount": "Скидка",
+        "actions": "Действия"
+      }
+    },
+    "menuModal": {
+      "addTitle": "Добавить позицию",
+      "editTitle": "Редактировать позицию",
+      "fields": {
+        "name": "Название",
+        "category": "Категория",
+        "price": "Цена",
+        "discount": "Скидка, %",
+        "available": "В продаже"
+      },
+      "placeholders": {
+        "name": "Например, Ролл Калифорния",
+        "category": "Суши / Роллы / Горячее…"
+      }
+    },
+    "staff": {
+      "searchPlaceholder": "Поиск по роли/нику/телефону…",
+      "createAccount": "Создать аккаунт",
+      "loading": "Загрузка сотрудников…",
+      "empty": "Нет аккаунтов.",
+      "active": "Активен",
+      "disabled": "Отключен",
+      "roles": {
+        "courier": "Курьер",
+        "admin": "Админ"
+      },
+      "table": {
+        "role": "Роль",
+        "nickname": "Никнейм",
+        "contacts": "Контакты",
+        "actions": "Действия"
+      }
+    },
+    "staffModal": {
+      "addTitle": "Создать аккаунт",
+      "editTitle": "Редактировать аккаунт",
+      "fields": {
+        "role": "Роль",
+        "nickname": "Никнейм",
+        "phone": "Телефон",
+        "email": "Email (необязательно)",
+        "password": "Пароль"
+      },
+      "passwordEditHint": "(оставь пустым — не менять)",
+      "placeholders": {
+        "nickname": "Например, CourierMihail",
+        "phone": "+371...",
+        "email": "dispatcher@company.com",
+        "password": "Сгенерировать или ввести"
+      },
+      "actions": {
+        "generate": "Сгенерировать"
+      }
+    },
+    "confirm": {
+      "deleteMenuItem": "Удалить позицию меню?",
+      "deleteAccount": "Удалить аккаунт?"
+    },
+    "alerts": {
+      "enterNameAndPrice": "Введите название и цену",
+      "staffRequiredFields": "Укажите роль, никнейм и телефон",
+      "todoSaveCompany": "Здесь будет PATCH /api/company/:id"
+    },
+    "errors": {
+      "unauthorized": "Не авторизован",
+      "generic": "Что-то пошло не так",
+      "companyFetchFailed": "Не удалось получить данные компании",
+      "profileFetchFailed": "Не удалось получить профиль",
+      "menuLoadFailed": "Не удалось загрузить меню",
+      "menuCreateFailed": "Не удалось создать позицию",
+      "menuUpdateFailed": "Не удалось обновить позицию",
+      "menuDeleteFailed": "Не удалось удалить позицию",
+      "staffLoadFailed": "Не удалось загрузить сотрудников",
+      "staffCreateFailed": "Не удалось создать аккаунт",
+      "staffUpdateFailed": "Не удалось обновить аккаунт",
+      "staffDeleteFailed": "Не удалось удалить аккаунт"
+    }
+  },
+  "orderPanel": {
+    "actions": {
+      "createOrder": "Создать заказ"
+    },
+    "tabs": {
+      "active": "АКТИВНЫЕ",
+      "preorders": "ПРЕДЗАКАЗЫ",
+      "completed": "ЗАВЕРШЕННЫЕ"
+    },
+    "search": {
+      "placeholder": "Поиск заказов..."
+    },
+    "filter": {
+      "all": "Все заказы",
+      "byCourier": "По курьеру",
+      "byAmount": "По сумме"
+    },
+    "table": {
+      "status": "Состояние",
+      "time": "Время",
+      "address": "Адрес доставки",
+      "customer": "Имя/телефон",
+      "amount": "Сумма",
+      "restaurant": "Ресторан",
+      "courier": "Курьер",
+      "dispatcher": "Диспетчер"
+    },
+    "status": {
+      "new": "Новый",
+      "ready": "Готов",
+      "enroute": "В пути",
+      "paused": "Остановлен",
+      "cancelled": "Завершен"
+    },
+    "payment": {
+      "cash": "Наличные",
+      "card": "Карта",
+      "wire": "Перечислением"
+    },
+    "empty": "Нет заказов в этой вкладке.",
+    "footer": {
+      "demo": "Demo version"
+    },
+    "errors": {
+      "loadOrdersFailed": "Ошибка загрузки заказов"
+    }
+  },
+  "map": {
+    "activeCouriers": "Активные курьеры",
+    "noActiveCouriers": "Нет активных курьеров",
+    "actions": {
+      "focus": "Навести карту на курьера",
+      "info": "Информация"
+    },
+    "speedValue": "{{value}} км/ч",
+    "speedUnknown": "скорость —",
+    "speedDash": "—",
+    "markerTitle": "#{{id}}",
+    "markerTitleWithNickname": "{{nickname}} (ID {{id}})",
+    "status": {
+      "unknown": "unknown",
+      "online": "online",
+      "offline": "offline",
+      "busy": "busy"
+    }
+  },
+  "modalSettings": {
+    "title": "Настройки",
+    "appearance": {
+      "title": "Внешний вид",
+      "selectAria": "Выбор темы",
+      "themes": {
+        "light": "Светлая тема",
+        "dark": "Темная тема"
+      }
+    },
+    "sound": {
+      "title": "Звук оповещения",
+      "aria": "Звук оповещения"
+    },
+    "actions": {
+      "save": "Сохранить",
+      "cancel": "Отменить",
+      "close": "Закрыть"
+    },
+    "notifications": {
+      "savedTitle": "Настройки сохранены",
+      "savedMessage": "Вы успешно сохранили настройки",
+      "cancelledTitle": "Настройки отменены",
+      "cancelledMessage": "Настройки не были сохранены",
+      "soundBlockedTitle": "Звук заблокирован",
+      "soundBlockedMessage": "Браузер блокирует звук. Кликни ещё раз по переключателю, чтобы разрешить воспроизведение."
+    }
   }
 }

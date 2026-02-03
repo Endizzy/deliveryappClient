@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import i18n from "i18next";
 import { Globe, ChevronDown } from "lucide-react";
+import ReactCountryFlag from "react-country-flag";
 import styles from "./LanguageSelector.module.css";
 
 const LANGUAGES = [
-  { code: "en", label: "EN" },
-  { code: "lv", label: "LV" },
-  { code: "ru", label: "RU" },
+  { code: "en", label: "EN", country: "US" },
+  { code: "lv", label: "LV", country: "LV" },
+  { code: "ru", label: "RU", country: "RU" },
 ];
 
 const LanguageSelector = () => {
@@ -58,7 +59,12 @@ const LanguageSelector = () => {
               }`}
               onClick={() => changeLanguage(lang.code)}
             >
-              {lang.label}
+              <ReactCountryFlag
+                svg
+                countryCode={lang.country}
+                className={styles.flag}
+              />
+              <span>{lang.label}</span>
             </button>
           ))}
         </div>

@@ -1,337 +1,322 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Map as MapIcon, Settings, Sun, Moon, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "./orderPanel.css";
-import { useTheme } from "./provider/ThemeContext";
 import Header from "./components/Header/Header.jsx";
-import ModalSettings from './components/ModalSettings/ModalSettings.jsx';
-import { useSound } from "./provider/SoundContext.jsx"; // импортируем хук useSound
-import { useNow } from "./provider/TimeContext"; // time counter для колонки ВРЕМЯ
+import { useSound } from "./provider/SoundContext.jsx";
+import { useNow } from "./provider/TimeContext";
 import { formatDuration } from "./utils/time/time.js";
-
+import { useTranslation } from "react-i18next";
 
 const API = import.meta.env.VITE_API_URL;
 const WS_URL = (API || "").replace(/^http/, "ws");
 
-const PAYMENT_LABELS = {
-    cash: "Наличные",
-    card: "Карта",
-    wire: "Перечислением",
-};
-
-const STATUS_LABEL = {
-    new: "Новый",
-    ready: "Готов",
-    enroute: "В пути",
-    paused: "Остановлен",
-    cancelled: "Завершен",
-}
-
-function formatPaymentMethod(v) {
-    const key = String(v || "").toLowerCase();
-    return PAYMENT_LABELS[key] || v; // если прилетело что-то неизвестное — покажем как есть
-}
-
-function formatOrderStatus(v) {
-    const key = String (v || "").toLowerCase();
-    return STATUS_LABEL[key] || v;
-}
-
 // утилиты
 const byNewest = (a, b) => {
-    const ad = new Date(a.createdAt).getTime() || 0;
-    const bd = new Date(b.createdAt).getTime() || 0;
-    if (bd !== ad) return bd - ad;
-    return (b.id || 0) - (a.id || 0);
+  const ad = new Date(a.createdAt).getTime() || 0;
+  const bd = new Date(b.createdAt).getTime() || 0;
+  if (bd !== ad) return bd - ad;
+  return (b.id || 0) - (a.id || 0);
 };
+
 function mergeById(oldArr = [], newArr = []) {
-    const map = new Map(oldArr.map(o => [o.id, o]));
-    newArr.forEach(o => map.set(o.id, o));
-    return Array.from(map.values()).sort(byNewest);
+  const map = new Map(oldArr.map((o) => [o.id, o]));
+  newArr.forEach((o) => map.set(o.id, o));
+  return Array.from(map.values()).sort(byNewest);
 }
-const safeTime = (iso) => {
-    const d = new Date(iso);
-    return Number.isNaN(d.getTime()) ? "" : d.toLocaleTimeString("ru", { hour: "2-digit", minute: "2-digit" });
-};
+
 const isValidCurrentOrder = (o) =>
-    o && typeof o === "object" &&
-    typeof o.id !== "undefined" &&
-    !!o.createdAt &&
-    (o.orderType === "active" || o.orderType === "preorder");
+  o && typeof o === "object" &&
+  typeof o.id !== "undefined" &&
+  !!o.createdAt &&
+  (o.orderType === "active" || o.orderType === "preorder");
 
 const OrderPanel = () => {
-    const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState("active");
-    const [companyId, setCompanyId] = useState(null);
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
 
-    const now = useNow();
-    const getOrderDuration = (order, now) => {
+  const [activeTab, setActiveTab] = useState("active");
+  const [companyId, setCompanyId] = useState(null);
+
+  const now = useNow();
+  const getOrderDuration = (order, nowMs) => {
     if (!order?.createdAt) return "";
-
     const start = new Date(order.createdAt).getTime();
     if (Number.isNaN(start)) return "";
 
-    // если заказ завершён — фиксируем время
-    const end = order.completedAt
-        ? new Date(order.completedAt).getTime()
-        : now;
-
+    const end = order.completedAt ? new Date(order.completedAt).getTime() : nowMs;
     return formatDuration(end - start);
-};
+  };
 
+  const { notifier } = useSound();
 
-    const { notifier } = useSound();
+  const token = useMemo(
+    () => localStorage.getItem("token") || sessionStorage.getItem("token"),
+    []
+  );
+  const authHeaders = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
 
-    const token = useMemo(
-        () => localStorage.getItem("token") || sessionStorage.getItem("token"),
-        []
-    );
-    const authHeaders = useMemo(
-        () => ({ Authorization: `Bearer ${token}` }),
-        [token]
-    );
+  const [ordersByTab, setOrdersByTab] = useState({
+    active: [],
+    preorders: [],
+    completed: [],
+  });
 
-    const [ordersByTab, setOrdersByTab] = useState({
-        active: [],
-        preorders: [],
-        completed: [],
+  const tabs = [
+    { key: "active", label: t("orderPanel.tabs.active"), count: ordersByTab.active.length },
+    { key: "preorders", label: t("orderPanel.tabs.preorders"), count: ordersByTab.preorders.length },
+    { key: "completed", label: t("orderPanel.tabs.completed"), count: ordersByTab.completed.length },
+  ];
+
+  const safeTime = (iso) => {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit" });
+  };
+
+  const formatPaymentMethod = (v) => {
+    const key = String(v || "").toLowerCase();
+    return t(`orderPanel.payment.${key}`, { defaultValue: v || "" });
+  };
+
+  const formatOrderStatus = (v) => {
+    const key = String(v || "").toLowerCase();
+    return t(`orderPanel.status.${key}`, { defaultValue: v || "" });
+  };
+
+  // companyId
+  useEffect(() => {
+    if (!token) { navigate("/login"); return; }
+    (async () => {
+      try {
+        const r = await fetch(`${API}/profile`, { headers: authHeaders });
+        if (r.status === 401) { navigate("/login"); return; }
+        const d = await r.json();
+        if (d.ok) {
+          const cid = d.user?.companyId ?? d.user?.company_id ?? null;
+          setCompanyId(typeof cid === "number" ? cid : Number(cid));
+        }
+      } catch (e) {
+        console.error("profile", e);
+      }
+    })();
+  }, [token, navigate]); // eslint-disable-line
+
+  async function loadTab(tab) {
+    const q = tab === "completed" ? "active" : tab;
+    const res = await fetch(`${API}/current-orders?tab=${q}`, { headers: authHeaders });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || t("orderPanel.errors.loadOrdersFailed"));
+    setOrdersByTab((prev) => ({ ...prev, [q]: data.items || [] }));
+  }
+
+  function upsertOrderToTabs(order) {
+    const tabKey = order.orderType === "preorder" ? "preorders" : "active";
+    const otherKey = tabKey === "active" ? "preorders" : "active";
+
+    setOrdersByTab((prev) => {
+      const next = { ...prev };
+      next[otherKey] = (next[otherKey] || []).filter((x) => x.id !== order.id);
+      next[tabKey] = mergeById(next[tabKey], [order]);
+      return next;
+    });
+  }
+
+  function removeOrderFromTabs(orderId) {
+    setOrdersByTab((prev) => ({
+      ...prev,
+      active: (prev.active || []).filter((x) => x.id !== orderId),
+      preorders: (prev.preorders || []).filter((x) => x.id !== orderId),
+      completed: (prev.completed || []).filter((x) => x.id !== orderId),
+    }));
+  }
+
+  // когда есть companyId — грузим данные и подключаем WS
+  useEffect(() => {
+    if (!token || !companyId) return;
+
+    loadTab("active").catch(console.error);
+    loadTab("preorders").catch(console.error);
+
+    const ws = new WebSocket(`${WS_URL.replace(/\/$/, "")}`);
+    ws.addEventListener("open", () => {
+      ws.send(JSON.stringify({ type: "hello", role: "admin", companyId }));
     });
 
-    const tabs = [
-        { key: "active", label: "АКТИВНЫЕ", count: ordersByTab.active.length },
-        { key: "preorders", label: "ПРЕДЗАКАЗЫ", count: ordersByTab.preorders.length },
-        { key: "completed", label: "ЗАВЕРШЕННЫЕ", count: ordersByTab.completed.length },
-    ];
+    ws.addEventListener("message", (ev) => {
+      let msg;
+      try { msg = JSON.parse(ev.data); } catch { return; }
 
-    // companyId
-    useEffect(() => {
-        if (!token) { navigate("/login"); return; }
-        (async () => {
-            try {
-                const r = await fetch(`${API}/profile`, { headers: authHeaders });
-                if (r.status === 401) { navigate("/login"); return; }
-                const d = await r.json();
-                if (d.ok) {
-                    const cid = d.user?.companyId ?? d.user?.company_id ?? null;
-                    setCompanyId(typeof cid === "number" ? cid : Number(cid));
-                }
-            } catch (e) {
-                console.error("profile", e);
-            }
-        })();
-    }, [token, navigate]); // eslint-disable-line
+      if (typeof msg.companyId === "number" && msg.companyId !== companyId) return;
 
-    async function loadTab(tab) {
-        const q = tab === "completed" ? "active" : tab;
-        const res = await fetch(`${API}/current-orders?tab=${q}`, { headers: authHeaders });
-        const data = await res.json();
-        if (!res.ok || !data.ok) throw new Error(data.error || "Ошибка загрузки заказов");
-        setOrdersByTab(prev => ({ ...prev, [q]: data.items || [] }));
-    }
+      if (
+        msg.type === "orders_snapshot" ||
+        msg.type === "demo_orders_snapshot" ||
+        msg.type === "demo_order_created" ||
+        msg.type === "demo_order_updated" ||
+        msg.type === "demo_order_deleted"
+      ) return;
 
-    function upsertOrderToTabs(order) {
-        const tabKey = order.orderType === "preorder" ? "preorders" : "active";
-        const otherKey = tabKey === "active" ? "preorders" : "active";
-        setOrdersByTab(prev => {
-            const next = { ...prev };
-            next[otherKey] = (next[otherKey] || []).filter(x => x.id !== order.id);
-            next[tabKey] = mergeById(next[tabKey], [order]);
-            return next;
-        });
-    }
+      if ((msg.type === "order_created" || msg.type === "order_updated") && msg.order) {
+        if (isValidCurrentOrder(msg.order)) {
+          upsertOrderToTabs(msg.order);
 
-    function removeOrderFromTabs(orderId) {
-        setOrdersByTab(prev => ({
-            ...prev,
-            active: (prev.active || []).filter(x => x.id !== orderId),
-            preorders: (prev.preorders || []).filter(x => x.id !== orderId),
-            completed: (prev.completed || []).filter(x => x.id !== orderId),
-        }));
-    }
-
-    // когда есть companyId — грузим данные и подключаем WS
-    useEffect(() => {
-        if (!token || !companyId) return;
-
-        loadTab("active").catch(console.error);
-        loadTab("preorders").catch(console.error);
-
-        const ws = new WebSocket(`${WS_URL.replace(/\/$/, "")}`);
-        ws.addEventListener("open", () => {
-            // отправляем hello с companyId
-            ws.send(JSON.stringify({ type: "hello", role: "admin", companyId }));
-        });
-
-        ws.addEventListener("message", (ev) => {
-            let msg;
-            try { msg = JSON.parse(ev.data); } catch { return; }
-
-            // фильтруем по companyId, если указан в payload
-            if (typeof msg.companyId === "number" && msg.companyId !== companyId) return;
-
-            // игнорируем старые демо-сообщения/снапшоты
-            if (
-                msg.type === "orders_snapshot" ||
-                msg.type === "demo_orders_snapshot" ||
-                msg.type === "demo_order_created" ||
-                msg.type === "demo_order_updated" ||
-                msg.type === "demo_order_deleted"
-            ) return;
-
-            if ((msg.type === "order_created" || msg.type === "order_updated") && msg.order) {
-                if (isValidCurrentOrder(msg.order)) {
-                    upsertOrderToTabs(msg.order);
-
-                    // звук только на новый заказ
-                    if (msg.type === "order_created") {
-                        // eventId приходит с сервера 
-                        // fallback: если вдруг нет eventId
-                        const eid = msg.eventId || `order:${msg.order.id}`;
-                        notifier.playOnce(eid);
-                    }
-                }
-                return;
-            }
-
-
-            if (msg.type === "order_deleted" && msg.orderId) {
-                removeOrderFromTabs(msg.orderId);
-                return;
-            }
-        });
-
-        return () => ws.close();
-    }, [token, companyId]); // eslint-disable-line
-
-    const getStatusColor = (status) => {
-        switch (status) {
-            case "new": return "status-new";
-            case "enroute": return "status-inprogress";
-            case "ready": return "status-ready";
-            default: return "status-default";
+          if (msg.type === "order_created") {
+            const eid = msg.eventId || `order:${msg.order.id}`;
+            notifier.playOnce(eid);
+          }
         }
-    };
+        return;
+      }
 
-    const orders = ordersByTab[activeTab] || [];
+      if (msg.type === "order_deleted" && msg.orderId) {
+        removeOrderFromTabs(msg.orderId);
+        return;
+      }
+    });
 
-    return (
-        <div className="order-panel">
-            <Header />
+    return () => ws.close();
+  }, [token, companyId]); // eslint-disable-line
 
-                <nav className="nav-tabs">
-                    <div>
-                        <button className="nav-tab" onClick={() => navigate("/createOrder")}>
-                            Создать заказ
-                        </button>
-                    </div>
-                    {tabs.map((tab) => (
-                        <button
-                            key={tab.key}
-                            className={`nav-tab ${activeTab === tab.key ? "active" : ""}`}
-                            onClick={() => setActiveTab(tab.key)}
-                        >
-                            {tab.label}
-                            {tab.count > 0 && <span className="tab-badge">{tab.count}</span>}
-                        </button>
-                    ))}
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "new": return "status-new";
+      case "enroute": return "status-inprogress";
+      case "ready": return "status-ready";
+      default: return "status-default";
+    }
+  };
 
-                    <div className="nav-actions">
-                        <div className="search-box">
-                            <svg className="search-icon" viewBox="0 0 24 24" width="16" height="16">
-                                <path
-                                    fill="currentColor"
-                                    d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"
-                                />
-                            </svg>
-                            <input type="text" placeholder="Поиск заказов..." />
-                        </div>
+  const orders = ordersByTab[activeTab] || [];
 
-                        <select className="filter-select">
-                            <option>Все заказы</option>
-                            <option>По курьеру</option>
-                            <option>По сумме</option>
-                        </select>
-                    </div>
-                </nav>
+  return (
+    <div className="order-panel">
+      <Header />
 
-                <div className="orders-container">
-                    <div className="orders-table">
-                        <div className="table-header">
-                            <div className="header-number">№ </div>
-                            <div className="header-cell">Состояние</div>
-                            <div className="header-cell">Время</div>
-                            <div className="header-cell">Адрес доставки</div>
-                            <div className="header-cell">Имя/телефон</div>
-                            <div className="header-cell">Сумма</div>
-                            <div className="header-cell">Ресторан</div>
-                            <div className="header-cell">Курьер</div>
-                            <div className="header-cell">Диспетчер</div>
-                        </div>
+      <nav className="nav-tabs">
+        <div>
+          <button className="nav-tab" onClick={() => navigate("/createOrder")}>
+            {t("orderPanel.actions.createOrder")}
+          </button>
+        </div>
 
-                        <div className="table-body">
-                            {orders.map((order) => (
-                                <div
-                                    key={order.id}
-                                    className="table-row row-clickable"
-                                    onClick={() => navigate(`/editOrder/${order.id}`)}
-                                    role="button"
-                                    tabIndex={0}
-                                    onKeyDown={(e) => (e.key === "Enter" ? navigate(`/editOrder/${order.id}`) : null)}
-                                >
-                                    <div className="cell order-number">
-                                        <span className="order-id">{order.orderSeq ?? order.orderNo ?? order.id}</span>
-                                    </div>
-                                    <div className="cell">
-                    <span className={`status-badge ${getStatusColor(order.status)}`}>
-                      {formatOrderStatus(order.status)}
-                    </span>
-                                    </div>
-                                    <div className="cell time-cell">
-                                        <div className="time-info">
-                                            <span className="time">
-                                                {safeTime(order.createdAt)}
-                                            </span>
-                                            <span className="time-duration">
-                                                {getOrderDuration(order, now)}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="cell address-cell">
-                                        <span className="address">{order.address}</span>
-                                    </div>
-                                    <div className="cell customer-cell">
-                                        <div className="customer-info">
-                                            <span className="name">{order.customer} / {order.phone}</span>
-                                            <span className="payment">{formatPaymentMethod(order.paymentMethod)}</span>
-                                        </div>
-                                    </div>
-                                    <div className="cell amount-cell">
-                                        <span className="amount">€{order.amountTotal?.toFixed?.(2) ?? order.amountTotal}</span>
-                                    </div>
-                                    <div className="cell items-cell">
-                                        <span className="items">{order.pickupName}</span>
-                                    </div>
-                                    <div className="cell courier-cell">
-                                        <span className="courier">{order.courierName}</span>
-                                    </div>
-                                    <div className="cell dispatcher-cell">
-                                        <span className="dispatcher">{order.dispatcherUnitId ?? ""}</span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            className={`nav-tab ${activeTab === tab.key ? "active" : ""}`}
+            onClick={() => setActiveTab(tab.key)}
+          >
+            {tab.label}
+            {tab.count > 0 && <span className="tab-badge">{tab.count}</span>}
+          </button>
+        ))}
+
+        <div className="nav-actions">
+          <div className="search-box">
+            <svg className="search-icon" viewBox="0 0 24 24" width="16" height="16">
+              <path
+                fill="currentColor"
+                d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"
+              />
+            </svg>
+            <input type="text" placeholder={t("orderPanel.search.placeholder")} />
+          </div>
+
+          <select className="filter-select">
+            <option>{t("orderPanel.filter.all")}</option>
+            <option>{t("orderPanel.filter.byCourier")}</option>
+            <option>{t("orderPanel.filter.byAmount")}</option>
+          </select>
+        </div>
+      </nav>
+
+      <div className="orders-container">
+        <div className="orders-table">
+          <div className="table-header">
+            <div className="header-number">№</div>
+            <div className="header-cell">{t("orderPanel.table.status")}</div>
+            <div className="header-cell">{t("orderPanel.table.time")}</div>
+            <div className="header-cell">{t("orderPanel.table.address")}</div>
+            <div className="header-cell">{t("orderPanel.table.customer")}</div>
+            <div className="header-cell">{t("orderPanel.table.amount")}</div>
+            <div className="header-cell">{t("orderPanel.table.restaurant")}</div>
+            <div className="header-cell">{t("orderPanel.table.courier")}</div>
+            <div className="header-cell">{t("orderPanel.table.dispatcher")}</div>
+          </div>
+
+          <div className="table-body">
+            {orders.map((order) => (
+              <div
+                key={order.id}
+                className="table-row row-clickable"
+                onClick={() => navigate(`/editOrder/${order.id}`)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => (e.key === "Enter" ? navigate(`/editOrder/${order.id}`) : null)}
+              >
+                <div className="cell order-number">
+                  <span className="order-id">{order.orderSeq ?? order.orderNo ?? order.id}</span>
                 </div>
 
-                <footer className="footer-section">
-                    <div className="footer-section__text">
-                        <h1>Demo version </h1>
-                    </div>
-                </footer>
-                {/* ModalSettings is provided globally by ThemeProvider in main.jsx */}
-            </div>
-        
-    );
+                <div className="cell">
+                  <span className={`status-badge ${getStatusColor(order.status)}`}>
+                    {formatOrderStatus(order.status)}
+                  </span>
+                </div>
+
+                <div className="cell time-cell">
+                  <div className="time-info">
+                    <span className="time">{safeTime(order.createdAt)}</span>
+                    <span className="time-duration">{getOrderDuration(order, now)}</span>
+                  </div>
+                </div>
+
+                <div className="cell address-cell">
+                  <span className="address">{order.address}</span>
+                </div>
+
+                <div className="cell customer-cell">
+                  <div className="customer-info">
+                    <span className="name">{order.customer} / {order.phone}</span>
+                    <span className="payment">
+                      {formatPaymentMethod(order.paymentMethod ?? order.payment)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="cell amount-cell">
+                  <span className="amount">
+                    €{order.amountTotal?.toFixed?.(2) ?? order.amountTotal}
+                  </span>
+                </div>
+
+                <div className="cell items-cell">
+                  <span className="items">{order.pickupName}</span>
+                </div>
+
+                <div className="cell courier-cell">
+                  <span className="courier">{order.courierName}</span>
+                </div>
+
+                <div className="cell dispatcher-cell">
+                  <span className="dispatcher">{order.dispatcherUnitId ?? ""}</span>
+                </div>
+              </div>
+            ))}
+
+            {orders.length === 0 && (
+              <div className="owner-empty">{t("orderPanel.empty")}</div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <footer className="footer-section">
+        <div className="footer-section__text">
+          <h1>{t("orderPanel.footer.demo")}</h1>
+        </div>
+      </footer>
+    </div>
+  );
 };
 
 export default OrderPanel;

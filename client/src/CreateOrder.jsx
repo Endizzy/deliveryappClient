@@ -1,18 +1,19 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
-    ArrowLeft, Save, User, Phone, Package, Truck, Clock,
-    Search, Plus, Minus, X
+  ArrowLeft, Save, User, Phone, Package, Truck, Clock,
+  Search, Plus, Minus, X
 } from "lucide-react";
 import "./CreateOrder.css";
 import { useNavigate } from "react-router-dom";
 import useNotification from "./hooks/useNotification.jsx";
+import { useTranslation } from "react-i18next";
 
 // формат номера LV
 const formatPhoneNumber = (value) => {
-    let cleaned = value.replace(/\D/g, "");
-    if (cleaned.startsWith("371")) cleaned = "+" + cleaned;
-    else if (!cleaned.startsWith("+371") && cleaned.length > 0) cleaned = "+371" + cleaned;
-    return cleaned;
+  let cleaned = value.replace(/\D/g, "");
+  if (cleaned.startsWith("371")) cleaned = "+" + cleaned;
+  else if (!cleaned.startsWith("+371") && cleaned.length > 0) cleaned = "+371" + cleaned;
+  return cleaned;
 };
 
 // хелперы для дат/времени
@@ -22,477 +23,640 @@ const toLocalTimeInput = (d) => `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 const PREORDER_MIN_OFFSET_MIN = 15;
 
 const CreateOrder = ({ onBack }) => {
-    const navigate = useNavigate();
-    const API = import.meta.env.VITE_API_URL;
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const API = import.meta.env.VITE_API_URL;
 
-    // ---- auth ----
-    const token = useMemo(
-        () => localStorage.getItem("token") || sessionStorage.getItem("token"),
-        []
-    );
-    const authHeaders = useMemo(
-        () => ({ "Content-Type": "application/json", Authorization: `Bearer ${token}` }),
-        [token]
-    );
+  // ---- auth ----
+  const token = useMemo(
+    () => localStorage.getItem("token") || sessionStorage.getItem("token"),
+    []
+  );
+  const authHeaders = useMemo(
+    () => ({ "Content-Type": "application/json", Authorization: `Bearer ${token}` }),
+    [token]
+  );
 
-    const notify = useNotification();
+  const notify = useNotification();
 
-    // ---- форма ----
-    const [formData, setFormData] = useState({
-        phone: "",
-        customer: "",
-        street: "",
-        house: "",
-        apart: "",
-        building: "",
-        floor: "",
-        code: "",
-        courierId: "",
-        payment: "",
-        pickupId: "",
-        orderType: "active",
-        notes: "",
-        scheduledDate: "",
-        scheduledTime: ""
-    });
+  // ---- форма ----
+  const [formData, setFormData] = useState({
+    phone: "",
+    customer: "",
+    street: "",
+    house: "",
+    apart: "",
+    building: "",
+    floor: "",
+    code: "",
+    courierId: "",
+    payment: "",      // теперь это internal value: 'cash' | 'card' | 'wire'
+    pickupId: "",
+    orderType: "active",
+    notes: "",
+    scheduledDate: "",
+    scheduledTime: ""
+  });
 
-    const [errors, setErrors] = useState({});
-    const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // ---- курьеры/точки/меню ----
-    const [couriers, setCouriers] = useState([]);
-    const [pickupPoints, setPickupPoints] = useState([]);
-    const [allMenu, setAllMenu] = useState([]);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [showSearchResults, setShowSearchResults] = useState(false);
+  // ---- курьеры/точки/меню ----
+  const [couriers, setCouriers] = useState([]);
+  const [pickupPoints, setPickupPoints] = useState([]);
+  const [allMenu, setAllMenu] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showSearchResults, setShowSearchResults] = useState(false);
 
-    const fetchCouriers = async () => {
-        const res = await fetch(`${API}/order-support/couriers`, { headers: authHeaders });
-        if (res.status === 401) { navigate("/login"); return; }
-        const data = await res.json();
-        if (!res.ok || !data.ok) throw new Error(data.error || "Не удалось загрузить курьеров");
-        setCouriers(data.items || []);
-    };
+  const fetchCouriers = async () => {
+    const res = await fetch(`${API}/order-support/couriers`, { headers: authHeaders });
+    if (res.status === 401) { navigate("/login"); return; }
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || t("createOrder.errors.couriersLoadFailed"));
+    setCouriers(data.items || []);
+  };
 
-    const fetchPickupPoints = async () => {
-        const res = await fetch(`${API}/order-support/pickup-points`, { headers: authHeaders });
-        if (res.status === 401) { navigate("/login"); return; }
-        const data = await res.json();
-        if (!res.ok || !data.ok) throw new Error(data.error || "Не удалось загрузить точки комплектации");
-        setPickupPoints(data.items || []);
-    };
+  const fetchPickupPoints = async () => {
+    const res = await fetch(`${API}/order-support/pickup-points`, { headers: authHeaders });
+    if (res.status === 401) { navigate("/login"); return; }
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || t("createOrder.errors.pickupPointsLoadFailed"));
+    setPickupPoints(data.items || []);
+  };
 
-    const fetchAllMenu = async () => {
-        const res = await fetch(`${API}/order-support/menu?all=1`, { headers: authHeaders });
-        if (res.status === 401) { navigate("/login"); return; }
-        const data = await res.json();
-        if (!res.ok || !data.ok) throw new Error(data.error || "Не удалось загрузить меню");
-        setAllMenu(data.items || []);
-    };
+  const fetchAllMenu = async () => {
+    const res = await fetch(`${API}/order-support/menu?all=1`, { headers: authHeaders });
+    if (res.status === 401) { navigate("/login"); return; }
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || t("createOrder.errors.menuLoadFailed"));
+    setAllMenu(data.items || []);
+  };
 
-    useEffect(() => {
-        if (!token) { navigate("/login"); return; }
-        (async () => {
-            try {
-                await Promise.all([fetchCouriers(), fetchPickupPoints(), fetchAllMenu()]);
-            } catch (e) {
-                notify({ type: 'error', title: 'Ошибка загрузки', message: e.message || 'Не удалось загрузить данные', duration: 5000 });
-            }
-        })();
-    }, [token, navigate]); // eslint-disable-line
-
-    // локальный поиск
-    const searchResults = React.useMemo(() => {
-        const q = searchTerm.trim().toLowerCase();
-        if (!q) return [];
-        const filtered = allMenu.filter(it =>
-            (it.name || "").toLowerCase().includes(q) ||
-            (it.category || "").toLowerCase().includes(q)
-        );
-        return filtered.sort((a, b) => a.name.localeCompare(b.name)).slice(0, 8);
-    }, [searchTerm, allMenu]);
-
-    // ---- выбранные товары ----
-    const [selectedItems, setSelectedItems] = useState([]);
-    const addItemToOrder = (menuItem) => {
-        const existing = selectedItems.find(i => i.id === menuItem.id);
-        if (existing) {
-            setSelectedItems(prev => prev.map(i => i.id === menuItem.id ? { ...i, quantity: i.quantity + 1 } : i));
-        } else {
-            setSelectedItems(prev => [...prev, { ...menuItem, quantity: 1 }]);
-        }
-        setSearchTerm("");
-        setShowSearchResults(false);
-    };
-    const updateItemQuantity = (id, qty) => {
-        if (qty <= 0) return removeItem(id);
-        setSelectedItems(prev => prev.map(i => i.id === id ? { ...i, quantity: qty } : i));
-    };
-    const removeItem = (id) => setSelectedItems(prev => prev.filter(i => i.id !== id));
-
-    const calculateTotal = () =>
-        selectedItems.reduce((sum, it) => {
-            const p = it.discount > 0 ? it.price * (1 - it.discount / 100) : it.price;
-            return sum + p * it.quantity;
-        }, 0);
-
-    const handleInputChange = (field, value) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
-        if (errors[field]) setErrors(prev => ({ ...prev, [field]: "" }));
-        if (field === "orderType" && value === "active") {
-            setFormData(prev => ({ ...prev, scheduledDate: "", scheduledTime: "" }));
-            setErrors(prev => ({ ...prev, scheduledDate: "", scheduledTime: "" }));
-        }
-    };
-
-    // минимум для предзаказа
-    const now = new Date();
-    const minDate = toLocalDateInput(now);
-    const minTimeToday = (() => {
-        const t = new Date(now);
-        t.setMinutes(t.getMinutes() + PREORDER_MIN_OFFSET_MIN);
-        return toLocalTimeInput(t);
+  useEffect(() => {
+    if (!token) { navigate("/login"); return; }
+    (async () => {
+      try {
+        await Promise.all([fetchCouriers(), fetchPickupPoints(), fetchAllMenu()]);
+      } catch (e) {
+        notify({
+          type: "error",
+          title: t("createOrder.notifications.loadErrorTitle"),
+          message: e.message || t("createOrder.notifications.loadErrorMessage"),
+          duration: 5000
+        });
+      }
     })();
+  }, [token, navigate]); // eslint-disable-line
 
-    const validateForm = () => {
-        const e = {};
-        if (!formData.customer.trim()) e.customer = "Имя клиента обязательно";
-        if (!formData.phone.trim()) e.phone = "Телефон обязателен";
-        else if (!/^\+371\d{8}$/.test(formData.phone.replace(/\s/g, ""))) e.phone = "Введите корректный телефон (+371XXXXXXXX)";
-        if (selectedItems.length === 0) e.items = "Добавьте хотя бы один товар";
-        if (!formData.courierId) e.courier = "Выберите курьера";
-        if (!formData.pickupId) e.restaurant = "Выберите точку комплектации";
-        if (!formData.payment) e.payment = "Выберите способ оплаты";
-
-        if (formData.orderType === "preorder") {
-            if (!formData.scheduledDate) e.scheduledDate = "Укажите дату доставки";
-            if (!formData.scheduledTime) e.scheduledTime = "Укажите время доставки";
-            if (formData.scheduledDate && formData.scheduledTime) {
-                const scheduled = new Date(`${formData.scheduledDate}T${formData.scheduledTime}`);
-                const minAllowed = new Date();
-                minAllowed.setMinutes(minAllowed.getMinutes() + PREORDER_MIN_OFFSET_MIN);
-                if (scheduled < minAllowed) {
-                    e.scheduledTime = `Время не может быть раньше чем через ${PREORDER_MIN_OFFSET_MIN} мин`;
-                }
-            }
-        }
-
-        setErrors(e);
-        return Object.keys(e).length === 0;
-    };
-
-    // submit -> API
-    const handleSubmit = async () => {
-        if (!validateForm()) {
-            notify({ type: 'error', title: 'Ошибка', message: 'Пожалуйста заполните обязательные поля', duration: 4500 });
-            return;
-        }
-        setIsSubmitting(true);
-        try {
-            const scheduledAt =
-                formData.orderType === "preorder" && formData.scheduledDate && formData.scheduledTime
-                    ? `${formData.scheduledDate}T${formData.scheduledTime}`
-                    : null;
-
-            const payload = {
-                orderType: formData.orderType,
-                status: "new",
-                scheduledAt,
-                courierId: Number(formData.courierId) || null,
-                pickupId: Number(formData.pickupId) || null,
-                payment: formData.payment === "Наличные" ? "cash" : formData.payment === "Карта" ? "card" : "wire",
-                customer: formData.customer,
-                phone: formData.phone,
-                street: formData.street,
-                house: formData.house,
-                apart: formData.apart,
-                building: formData.building,
-                floor: formData.floor,
-                code: formData.code,
-                notes: formData.notes,
-                selectedItems: selectedItems.map((i) => ({
-                    id: i.id,
-                    name: i.name,
-                    price: i.price,
-                    discount: i.discount || 0,
-                    quantity: i.quantity,
-                })),
-            };
-
-            const res = await fetch(`${API}/current-orders`, {
-                method: "POST",
-                headers: authHeaders,
-                body: JSON.stringify(payload),
-            });
-            const data = await res.json();
-            if (!res.ok || !data.ok) throw new Error(data.error || "Ошибка создания заказа");
-            notify({ type: 'success', title: 'Заказ создан', message: 'Заказ успешно добавлен', duration: 4500 });
-
-            // редирект на панель — там список подтянется через GET/WS
-            navigate("/orderPanel");
-        } catch (e) {
-            notify({ type: 'error', title: 'Ошибка', message: e.message || 'Ошибка создания заказа', duration: 5000 });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    return (
-        <div className="create-order-page">
-            <header className="header">
-                <div className="header-left">
-                    <button className="back-btn" onClick={() => navigate('/orderPanel')}>
-                        <ArrowLeft size={20} /> Назад
-                    </button>
-                    <div className="page-title">
-                        <h1>Создание нового заказа</h1>
-                        <p>Заполните все необходимые поля для создания заказа</p>
-                    </div>
-                </div>
-            </header>
-
-            <div className="form-container">
-                <div className="order-form">
-                    <div className="form-grid">
-                        {/* Клиент */}
-                        <div className="form-section">
-                            <div className="section-header"><User size={20}/><h3>Информация о клиенте</h3></div>
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label htmlFor="phone">Телефон *</label>
-                                    <div className="input-with-icon">
-                                        <Phone size={16}/>
-                                        <input
-                                            id="phone" type="tel" value={formData.phone}
-                                            onChange={(e) => handleInputChange("phone", formatPhoneNumber(e.target.value))}
-                                            className={errors.phone ? "error" : ""} placeholder="+371XXXXXXXX"
-                                        />
-                                    </div>
-                                    {errors.phone && <span className="error-text">{errors.phone}</span>}
-                                </div>
-                                <div className="form-group">
-                                    <label htmlFor="customer">Имя клиента *</label>
-                                    <input
-                                        id="customer" type="text" value={formData.customer}
-                                        onChange={(e) => handleInputChange("customer", e.target.value)}
-                                        className={errors.customer ? "error" : ""} placeholder="Введите имя клиента"
-                                    />
-                                    {errors.customer && <span className="error-text">{errors.customer}</span>}
-                                </div>
-                            </div>
-
-                            <div className="form-row">
-                                <div className="form-group"><label htmlFor="street">Улица</label>
-                                    <input id="street" value={formData.street} onChange={(e)=>handleInputChange("street",e.target.value)} placeholder="Введите улицу" />
-                                </div>
-                                <div className="form-group"><label htmlFor="house">Дом</label>
-                                    <input id="house" value={formData.house} onChange={(e)=>handleInputChange("house",e.target.value)} placeholder="Введите дом" />
-                                </div>
-                            </div>
-
-                            <div className="form-row">
-                                <div className="form-group"><label htmlFor="building">Корпус</label>
-                                    <input id="building" value={formData.building} onChange={(e)=>handleInputChange("building",e.target.value)} placeholder="Введите корпус" />
-                                </div>
-                                <div className="form-group"><label htmlFor="apart">Квартира</label>
-                                    <input id="apart" value={formData.apart} onChange={(e)=>handleInputChange("apart",e.target.value)} placeholder="Введите квартиру" />
-                                </div>
-                            </div>
-
-                            <div className="form-row">
-                                <div className="form-group"><label htmlFor="floor">Этаж</label>
-                                    <input id="floor" value={formData.floor} onChange={(e)=>handleInputChange("floor",e.target.value)} placeholder="Введите этаж" />
-                                </div>
-                                <div className="form-group"><label htmlFor="code">Код</label>
-                                    <input id="code" value={formData.code} onChange={(e)=>handleInputChange("code",e.target.value)} placeholder="Введите код" />
-                                </div>
-                            </div>
-
-                            {/* Доставка */}
-                            <div className="section-header"><Truck size={20}/><h3>Доставка</h3></div>
-                            <div className="form-group">
-                                <label htmlFor="courier">Курьер *</label>
-                                <select
-                                    id="courier" value={formData.courierId}
-                                    onChange={(e)=>handleInputChange("courierId", e.target.value)}
-                                    className={errors.courier ? "error" : ""}>
-                                    <option value="">Выберите курьера</option>
-                                    {couriers.map(c => <option key={c.id} value={c.id}>{c.nickname}</option>)}
-                                </select>
-                                {errors.courier && <span className="error-text">{errors.courier}</span>}
-                            </div>
-
-                            <div className="form-group">
-                                <label>Тип заказа</label>
-                                <div className="radio-group">
-                                    <label className="radio-option">
-                                        <input type="radio" name="orderType" value="active"
-                                               checked={formData.orderType === "active"}
-                                               onChange={(e)=>handleInputChange("orderType", e.target.value)} />
-                                        <span>Активный заказ</span>
-                                    </label>
-                                    <label className="radio-option">
-                                        <input type="radio" name="orderType" value="preorder"
-                                               checked={formData.orderType === "preorder"}
-                                               onChange={(e)=>handleInputChange("orderType", e.target.value)} />
-                                        <span>Предзаказ</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            {/* Появляется только для предзаказа */}
-                            {formData.orderType === "preorder" && (
-                                <>
-                                    <div className="form-row">
-                                        <div className="form-group">
-                                            <label htmlFor="scheduledDate">Дата доставки *</label>
-                                            <input
-                                                id="scheduledDate"
-                                                type="date"
-                                                min={minDate}
-                                                value={formData.scheduledDate}
-                                                onChange={(e) => handleInputChange("scheduledDate", e.target.value)}
-                                                className={errors.scheduledDate ? "error" : ""}
-                                            />
-                                            {errors.scheduledDate && <span className="error-text">{errors.scheduledDate}</span>}
-                                        </div>
-                                        <div className="form-group">
-                                            <label htmlFor="scheduledTime">Время доставки *</label>
-                                            <input
-                                                id="scheduledTime"
-                                                type="time"
-                                                value={formData.scheduledTime}
-                                                onChange={(e) => handleInputChange("scheduledTime", e.target.value)}
-                                                className={errors.scheduledTime ? "error" : ""}
-                                                min={formData.scheduledDate === minDate ? minTimeToday : undefined}
-                                            />
-                                            {errors.scheduledTime && <span className="error-text">{errors.scheduledTime}</span>}
-                                        </div>
-                                    </div>
-                                    <div className="hint muted" style={{ marginTop: 4 }}>
-                                        Минимальное время предзаказа — через {PREORDER_MIN_OFFSET_MIN} минут от текущего момента.
-                                    </div>
-                                </>
-                            )}
-                        </div>
-
-                        {/* Товары */}
-                        <div className="form-section">
-                            <div className="section-header"><Package size={20}/><h3>Товары</h3></div>
-
-                            <div className="form-group">
-                                <label htmlFor="search">Поиск товаров *</label>
-                                <div className="search-container">
-                                    <div className="input-with-icon">
-                                        <Search size={16}/>
-                                        <input
-                                            id="search" type="text" value={searchTerm}
-                                            onChange={(e)=>{ setSearchTerm(e.target.value); setShowSearchResults(e.target.value.length>0); }}
-                                            onFocus={()=>setShowSearchResults(searchTerm.length>0)}
-                                            className={errors.items ? "error" : ""} placeholder="Начните печатать название блюда..."
-                                        />
-                                    </div>
-
-                                    {showSearchResults && searchResults.length > 0 && (
-                                        <div className="search-results">
-                                            {searchResults.map(item => (
-                                                <div key={item.id} className="search-result-item" onClick={() => addItemToOrder(item)}>
-                                                    <div className="item-info">
-                                                        <span className="item-name">{item.name}</span>
-                                                        <span className="item-price">
-                              {item.discount > 0 ? (
-                                  <>
-                                      <span className="original-price">€{item.price.toFixed(2)}</span>
-                                      <span className="discounted-price">€{(item.price*(1-item.discount/100)).toFixed(2)}</span>
-                                      <span className="discount-badge">-{item.discount}%</span>
-                                  </>
-                              ) : <span>€{item.price.toFixed(2)}</span>}
-                            </span>
-                                                    </div>
-                                                    <Plus size={16} className="add-icon" />
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                                {errors.items && <span className="error-text">{errors.items}</span>}
-                            </div>
-
-                            {selectedItems.length > 0 && (
-                                <div className="selected-items">
-                                    <h4>Выбранные товары:</h4>
-                                    {selectedItems.map(item => {
-                                        const finalPrice = item.discount > 0 ? item.price * (1 - item.discount / 100) : item.price;
-                                        const totalPrice = finalPrice * item.quantity;
-                                        return (
-                                            <div key={item.id} className="selected-item">
-                                                <div className="item-details">
-                                                    <span className="item-name">{item.name}</span>
-                                                    <div className="item-price-info">
-                                                        {item.discount > 0 && <span className="discount-info">-{item.discount}%</span>}
-                                                        <span className="unit-price">€{finalPrice.toFixed(2)}</span>
-                                                    </div>
-                                                </div>
-                                                <div className="quantity-controls">
-                                                    <button type="button" onClick={() => updateItemQuantity(item.id, item.quantity-1)} className="quantity-btn"><Minus size={14}/></button>
-                                                    <span className="quantity">{item.quantity}</span>
-                                                    <button type="button" onClick={() => updateItemQuantity(item.id, item.quantity+1)} className="quantity-btn"><Plus size={14}/></button>
-                                                </div>
-                                                <div className="item-total"><span>€{totalPrice.toFixed(2)}</span></div>
-                                                <button type="button" onClick={() => removeItem(item.id)} className="remove-btn"><X size={16}/></button>
-                                            </div>
-                                        );
-                                    })}
-                                    <div className="order-total"><strong>Сумма к оплате: €{calculateTotal().toFixed(2)}</strong></div>
-                                </div>
-                            )}
-
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label htmlFor="payment">Вид оплаты *</label>
-                                    <select id="payment" value={formData.payment}
-                                            onChange={(e)=>handleInputChange("payment", e.target.value)}
-                                            className={errors.payment ? "error" : ""}>
-                                        <option value="">Вид оплаты</option>
-                                        {["Наличные", "Карта", "Перечислением"].map(m => <option key={m} value={m}>{m}</option>)}
-                                    </select>
-                                    {errors.payment && <span className="error-text">{errors.payment}</span>}
-                                </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="pickup">Точка комплектации *</label>
-                                    <select id="pickup" value={formData.pickupId}
-                                            onChange={(e)=>handleInputChange("pickupId", e.target.value)}
-                                            className={errors.restaurant ? "error" : ""}>
-                                        <option value="">Выберите точку</option>
-                                        {pickupPoints.map(p => <option key={p.id} value={p.id}>{p.nickname}</option>)}
-                                    </select>
-                                    {errors.restaurant && <span className="error-text">{errors.restaurant}</span>}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="form-section full-width">
-                            <div className="section-header"><Clock size={20}/><h3>Дополнительные заметки</h3></div>
-                            <div className="form-group">
-                                <label htmlFor="notes">Заметки (необязательно)</label>
-                                <textarea id="notes" rows="3" value={formData.notes}
-                                          onChange={(e)=>handleInputChange("notes", e.target.value)}
-                                          placeholder="Дополнительная информация о заказе" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="form-footer">
-                        <button type="button" className="btn-secondary" onClick={() => navigate('/orderPanel')}>Отменить</button>
-                        <button type="button" className="btn-primary" disabled={isSubmitting} onClick={handleSubmit}>
-                            <Save size={16}/> {isSubmitting ? "Создание..." : "Создать заказ"}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+  // локальный поиск
+  const searchResults = React.useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return [];
+    const filtered = allMenu.filter(it =>
+      (it.name || "").toLowerCase().includes(q) ||
+      (it.category || "").toLowerCase().includes(q)
     );
+    return filtered.sort((a, b) => a.name.localeCompare(b.name)).slice(0, 8);
+  }, [searchTerm, allMenu]);
+
+  // ---- выбранные товары ----
+  const [selectedItems, setSelectedItems] = useState([]);
+  const addItemToOrder = (menuItem) => {
+    const existing = selectedItems.find(i => i.id === menuItem.id);
+    if (existing) {
+      setSelectedItems(prev => prev.map(i => i.id === menuItem.id ? { ...i, quantity: i.quantity + 1 } : i));
+    } else {
+      setSelectedItems(prev => [...prev, { ...menuItem, quantity: 1 }]);
+    }
+    setSearchTerm("");
+    setShowSearchResults(false);
+  };
+  const updateItemQuantity = (id, qty) => {
+    if (qty <= 0) return removeItem(id);
+    setSelectedItems(prev => prev.map(i => i.id === id ? { ...i, quantity: qty } : i));
+  };
+  const removeItem = (id) => setSelectedItems(prev => prev.filter(i => i.id !== id));
+
+  const calculateTotal = () =>
+    selectedItems.reduce((sum, it) => {
+      const p = it.discount > 0 ? it.price * (1 - it.discount / 100) : it.price;
+      return sum + p * it.quantity;
+    }, 0);
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) setErrors(prev => ({ ...prev, [field]: "" }));
+    if (field === "orderType" && value === "active") {
+      setFormData(prev => ({ ...prev, scheduledDate: "", scheduledTime: "" }));
+      setErrors(prev => ({ ...prev, scheduledDate: "", scheduledTime: "" }));
+    }
+  };
+
+  // минимум для предзаказа
+  const now = new Date();
+  const minDate = toLocalDateInput(now);
+  const minTimeToday = (() => {
+    const t0 = new Date(now);
+    t0.setMinutes(t0.getMinutes() + PREORDER_MIN_OFFSET_MIN);
+    return toLocalTimeInput(t0);
+  })();
+
+  const validateForm = () => {
+    const e = {};
+
+    if (!formData.customer.trim()) e.customer = t("createOrder.validation.customerRequired");
+
+    if (!formData.phone.trim()) e.phone = t("createOrder.validation.phoneRequired");
+    else if (!/^\+371\d{8}$/.test(formData.phone.replace(/\s/g, ""))) {
+      e.phone = t("createOrder.validation.phoneInvalid");
+    }
+
+    if (selectedItems.length === 0) e.items = t("createOrder.validation.itemsRequired");
+    if (!formData.courierId) e.courier = t("createOrder.validation.courierRequired");
+    if (!formData.pickupId) e.restaurant = t("createOrder.validation.pickupRequired");
+    if (!formData.payment) e.payment = t("createOrder.validation.paymentRequired");
+
+    if (formData.orderType === "preorder") {
+      if (!formData.scheduledDate) e.scheduledDate = t("createOrder.validation.scheduledDateRequired");
+      if (!formData.scheduledTime) e.scheduledTime = t("createOrder.validation.scheduledTimeRequired");
+
+      if (formData.scheduledDate && formData.scheduledTime) {
+        const scheduled = new Date(`${formData.scheduledDate}T${formData.scheduledTime}`);
+        const minAllowed = new Date();
+        minAllowed.setMinutes(minAllowed.getMinutes() + PREORDER_MIN_OFFSET_MIN);
+        if (scheduled < minAllowed) {
+          e.scheduledTime = t("createOrder.validation.scheduledTooEarly", { min: PREORDER_MIN_OFFSET_MIN });
+        }
+      }
+    }
+
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  // submit -> API
+  const handleSubmit = async () => {
+    if (!validateForm()) {
+      notify({
+        type: "error",
+        title: t("createOrder.notifications.validationErrorTitle"),
+        message: t("createOrder.notifications.validationErrorMessage"),
+        duration: 4500
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const scheduledAt =
+        formData.orderType === "preorder" && formData.scheduledDate && formData.scheduledTime
+          ? `${formData.scheduledDate}T${formData.scheduledTime}`
+          : null;
+
+      const payload = {
+        orderType: formData.orderType,
+        status: "new",
+        scheduledAt,
+        courierId: Number(formData.courierId) || null,
+        pickupId: Number(formData.pickupId) || null,
+        payment: formData.payment, // 'cash' | 'card' | 'wire'
+        customer: formData.customer,
+        phone: formData.phone,
+        street: formData.street,
+        house: formData.house,
+        apart: formData.apart,
+        building: formData.building,
+        floor: formData.floor,
+        code: formData.code,
+        notes: formData.notes,
+        selectedItems: selectedItems.map((i) => ({
+          id: i.id,
+          name: i.name,
+          price: i.price,
+          discount: i.discount || 0,
+          quantity: i.quantity,
+        })),
+      };
+
+      const res = await fetch(`${API}/current-orders`, {
+        method: "POST",
+        headers: authHeaders,
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || t("createOrder.errors.createOrderFailed"));
+
+      notify({
+        type: "success",
+        title: t("createOrder.notifications.createdTitle"),
+        message: t("createOrder.notifications.createdMessage"),
+        duration: 4500
+      });
+
+      navigate("/orderPanel");
+    } catch (e) {
+      notify({
+        type: "error",
+        title: t("createOrder.notifications.createErrorTitle"),
+        message: e.message || t("createOrder.notifications.createErrorMessage"),
+        duration: 5000
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="create-order-page">
+      <header className="header">
+        <div className="header-left">
+          <button className="back-btn" onClick={() => navigate("/orderPanel")}>
+            <ArrowLeft size={20} /> {t("createOrder.back")}
+          </button>
+
+          <div className="page-title">
+            <h1>{t("createOrder.title")}</h1>
+            <p>{t("createOrder.subtitle")}</p>
+          </div>
+        </div>
+      </header>
+
+      <div className="form-container">
+        <div className="order-form">
+          <div className="form-grid">
+            {/* Клиент */}
+            <div className="form-section">
+              <div className="section-header">
+                <User size={20} />
+                <h3>{t("createOrder.sections.customerInfo")}</h3>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="phone">{t("createOrder.fields.phone")} *</label>
+                  <div className="input-with-icon">
+                    <Phone size={16} />
+                    <input
+                      id="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => handleInputChange("phone", formatPhoneNumber(e.target.value))}
+                      className={errors.phone ? "error" : ""}
+                      placeholder={t("createOrder.placeholders.phone")}
+                    />
+                  </div>
+                  {errors.phone && <span className="error-text">{errors.phone}</span>}
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="customer">{t("createOrder.fields.customer")} *</label>
+                  <input
+                    id="customer"
+                    type="text"
+                    value={formData.customer}
+                    onChange={(e) => handleInputChange("customer", e.target.value)}
+                    className={errors.customer ? "error" : ""}
+                    placeholder={t("createOrder.placeholders.customer")}
+                  />
+                  {errors.customer && <span className="error-text">{errors.customer}</span>}
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="street">{t("createOrder.fields.street")}</label>
+                  <input
+                    id="street"
+                    value={formData.street}
+                    onChange={(e) => handleInputChange("street", e.target.value)}
+                    placeholder={t("createOrder.placeholders.street")}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="house">{t("createOrder.fields.house")}</label>
+                  <input
+                    id="house"
+                    value={formData.house}
+                    onChange={(e) => handleInputChange("house", e.target.value)}
+                    placeholder={t("createOrder.placeholders.house")}
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="building">{t("createOrder.fields.building")}</label>
+                  <input
+                    id="building"
+                    value={formData.building}
+                    onChange={(e) => handleInputChange("building", e.target.value)}
+                    placeholder={t("createOrder.placeholders.building")}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="apart">{t("createOrder.fields.apart")}</label>
+                  <input
+                    id="apart"
+                    value={formData.apart}
+                    onChange={(e) => handleInputChange("apart", e.target.value)}
+                    placeholder={t("createOrder.placeholders.apart")}
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="floor">{t("createOrder.fields.floor")}</label>
+                  <input
+                    id="floor"
+                    value={formData.floor}
+                    onChange={(e) => handleInputChange("floor", e.target.value)}
+                    placeholder={t("createOrder.placeholders.floor")}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="code">{t("createOrder.fields.code")}</label>
+                  <input
+                    id="code"
+                    value={formData.code}
+                    onChange={(e) => handleInputChange("code", e.target.value)}
+                    placeholder={t("createOrder.placeholders.code")}
+                  />
+                </div>
+              </div>
+
+              {/* Доставка */}
+              <div className="section-header">
+                <Truck size={20} />
+                <h3>{t("createOrder.sections.delivery")}</h3>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="courier">{t("createOrder.fields.courier")} *</label>
+                <select
+                  id="courier"
+                  value={formData.courierId}
+                  onChange={(e) => handleInputChange("courierId", e.target.value)}
+                  className={errors.courier ? "error" : ""}
+                >
+                  <option value="">{t("createOrder.placeholders.courier")}</option>
+                  {couriers.map((c) => (
+                    <option key={c.id} value={c.id}>{c.nickname}</option>
+                  ))}
+                </select>
+                {errors.courier && <span className="error-text">{errors.courier}</span>}
+              </div>
+
+              <div className="form-group">
+                <label>{t("createOrder.fields.orderType")}</label>
+                <div className="radio-group">
+                  <label className="radio-option">
+                    <input
+                      type="radio"
+                      name="orderType"
+                      value="active"
+                      checked={formData.orderType === "active"}
+                      onChange={(e) => handleInputChange("orderType", e.target.value)}
+                    />
+                    <span>{t("createOrder.orderType.active")}</span>
+                  </label>
+
+                  <label className="radio-option">
+                    <input
+                      type="radio"
+                      name="orderType"
+                      value="preorder"
+                      checked={formData.orderType === "preorder"}
+                      onChange={(e) => handleInputChange("orderType", e.target.value)}
+                    />
+                    <span>{t("createOrder.orderType.preorder")}</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Появляется только для предзаказа */}
+              {formData.orderType === "preorder" && (
+                <>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="scheduledDate">{t("createOrder.fields.scheduledDate")} *</label>
+                      <input
+                        id="scheduledDate"
+                        type="date"
+                        min={minDate}
+                        value={formData.scheduledDate}
+                        onChange={(e) => handleInputChange("scheduledDate", e.target.value)}
+                        className={errors.scheduledDate ? "error" : ""}
+                      />
+                      {errors.scheduledDate && <span className="error-text">{errors.scheduledDate}</span>}
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="scheduledTime">{t("createOrder.fields.scheduledTime")} *</label>
+                      <input
+                        id="scheduledTime"
+                        type="time"
+                        value={formData.scheduledTime}
+                        onChange={(e) => handleInputChange("scheduledTime", e.target.value)}
+                        className={errors.scheduledTime ? "error" : ""}
+                        min={formData.scheduledDate === minDate ? minTimeToday : undefined}
+                      />
+                      {errors.scheduledTime && <span className="error-text">{errors.scheduledTime}</span>}
+                    </div>
+                  </div>
+
+                  <div className="hint muted" style={{ marginTop: 4 }}>
+                    {t("createOrder.preorderHint", { min: PREORDER_MIN_OFFSET_MIN })}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Товары */}
+            <div className="form-section">
+              <div className="section-header">
+                <Package size={20} />
+                <h3>{t("createOrder.sections.items")}</h3>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="search">{t("createOrder.fields.searchItems")} *</label>
+                <div className="search-container">
+                  <div className="input-with-icon">
+                    <Search size={16} />
+                    <input
+                      id="search"
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        setShowSearchResults(e.target.value.length > 0);
+                      }}
+                      onFocus={() => setShowSearchResults(searchTerm.length > 0)}
+                      className={errors.items ? "error" : ""}
+                      placeholder={t("createOrder.placeholders.search")}
+                    />
+                  </div>
+
+                  {showSearchResults && searchResults.length > 0 && (
+                    <div className="search-results">
+                      {searchResults.map(item => (
+                        <div
+                          key={item.id}
+                          className="search-result-item"
+                          onClick={() => addItemToOrder(item)}
+                        >
+                          <div className="item-info">
+                            <span className="item-name">{item.name}</span>
+                            <span className="item-price">
+                              {item.discount > 0 ? (
+                                <>
+                                  <span className="original-price">€{item.price.toFixed(2)}</span>
+                                  <span className="discounted-price">€{(item.price * (1 - item.discount / 100)).toFixed(2)}</span>
+                                  <span className="discount-badge">-{item.discount}%</span>
+                                </>
+                              ) : (
+                                <span>€{item.price.toFixed(2)}</span>
+                              )}
+                            </span>
+                          </div>
+                          <Plus size={16} className="add-icon" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {errors.items && <span className="error-text">{errors.items}</span>}
+              </div>
+
+              {selectedItems.length > 0 && (
+                <div className="selected-items">
+                  <h4>{t("createOrder.selectedItemsTitle")}</h4>
+
+                  {selectedItems.map(item => {
+                    const finalPrice = item.discount > 0 ? item.price * (1 - item.discount / 100) : item.price;
+                    const totalPrice = finalPrice * item.quantity;
+
+                    return (
+                      <div key={item.id} className="selected-item">
+                        <div className="item-details">
+                          <span className="item-name">{item.name}</span>
+                          <div className="item-price-info">
+                            {item.discount > 0 && <span className="discount-info">-{item.discount}%</span>}
+                            <span className="unit-price">€{finalPrice.toFixed(2)}</span>
+                          </div>
+                        </div>
+
+                        <div className="quantity-controls">
+                          <button
+                            type="button"
+                            onClick={() => updateItemQuantity(item.id, item.quantity - 1)}
+                            className="quantity-btn"
+                          >
+                            <Minus size={14} />
+                          </button>
+
+                          <span className="quantity">{item.quantity}</span>
+
+                          <button
+                            type="button"
+                            onClick={() => updateItemQuantity(item.id, item.quantity + 1)}
+                            className="quantity-btn"
+                          >
+                            <Plus size={14} />
+                          </button>
+                        </div>
+
+                        <div className="item-total"><span>€{totalPrice.toFixed(2)}</span></div>
+
+                        <button
+                          type="button"
+                          onClick={() => removeItem(item.id)}
+                          className="remove-btn"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    );
+                  })}
+
+                  <div className="order-total">
+                    <strong>{t("createOrder.totalToPay", { total: calculateTotal().toFixed(2) })}</strong>
+                  </div>
+                </div>
+              )}
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="payment">{t("createOrder.fields.payment")} *</label>
+                  <select
+                    id="payment"
+                    value={formData.payment}
+                    onChange={(e) => handleInputChange("payment", e.target.value)}
+                    className={errors.payment ? "error" : ""}
+                  >
+                    <option value="">{t("createOrder.placeholders.payment")}</option>
+                    <option value="cash">{t("createOrder.payment.cash")}</option>
+                    <option value="card">{t("createOrder.payment.card")}</option>
+                    <option value="wire">{t("createOrder.payment.wire")}</option>
+                  </select>
+                  {errors.payment && <span className="error-text">{errors.payment}</span>}
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="pickup">{t("createOrder.fields.pickup")} *</label>
+                  <select
+                    id="pickup"
+                    value={formData.pickupId}
+                    onChange={(e) => handleInputChange("pickupId", e.target.value)}
+                    className={errors.restaurant ? "error" : ""}
+                  >
+                    <option value="">{t("createOrder.placeholders.pickup")}</option>
+                    {pickupPoints.map(p => (
+                      <option key={p.id} value={p.id}>{p.nickname}</option>
+                    ))}
+                  </select>
+                  {errors.restaurant && <span className="error-text">{errors.restaurant}</span>}
+                </div>
+              </div>
+            </div>
+
+            <div className="form-section full-width">
+              <div className="section-header">
+                <Clock size={20} />
+                <h3>{t("createOrder.sections.notes")}</h3>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="notes">{t("createOrder.fields.notes")}</label>
+                <textarea
+                  id="notes"
+                  rows="3"
+                  value={formData.notes}
+                  onChange={(e) => handleInputChange("notes", e.target.value)}
+                  placeholder={t("createOrder.placeholders.notes")}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="form-footer">
+            <button type="button" className="btn-secondary" onClick={() => navigate("/orderPanel")}>
+              {t("createOrder.buttons.cancel")}
+            </button>
+
+            <button type="button" className="btn-primary" disabled={isSubmitting} onClick={handleSubmit}>
+              <Save size={16} /> {isSubmitting ? t("createOrder.buttons.creating") : t("createOrder.buttons.create")}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default CreateOrder;

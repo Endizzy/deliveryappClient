@@ -4,10 +4,13 @@ import { createAdminSocket } from "../../ws.js";
 import { Info, Navigation2 } from "lucide-react";
 import styles from "./map.module.css";
 import Header from "../../components/Header/Header.jsx";
+import { useTranslation } from "react-i18next";
 
 const defaultCenter = [56.94937, 24.10525]; // Riga
 
 export default function DeliveryMap() {
+  const { t, i18n } = useTranslation();
+
   const mapRef = useRef(null);
   const markersRef = useRef(new Map()); // courierId -> marker
   const animRef = useRef(new Map()); // courierId -> { rafId, start, duration, from, to }
@@ -45,19 +48,14 @@ export default function DeliveryMap() {
     });
 
     return () => {
-      try {
-        ws.close();
-      } catch (e) {}
+      try { ws.close(); } catch (e) {}
 
-      // Отменяем анимации
       for (const { rafId } of animRef.current.values()) {
         if (rafId) cancelAnimationFrame(rafId);
       }
       animRef.current.clear();
 
-      try {
-        map.remove();
-      } catch (e) {}
+      try { map.remove(); } catch (e) {}
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -72,9 +70,20 @@ export default function DeliveryMap() {
     map.setView(marker.getLatLng(), 16, { animate: true });
   }
 
+  function formatSpeed(speedKmh) {
+    if (typeof speedKmh !== "number") return t("map.speedUnknown");
+    return t("map.speedValue", { value: speedKmh.toFixed(0) });
+  }
+
   function createIconHTML(key, speedKmh, nickname) {
-    const speedText = typeof speedKmh === "number" ? `${speedKmh.toFixed(0)} км/ч` : "—";
-    const title = nickname ? `${nickname} (ID ${key})` : `#${key}`;
+    const speedText = typeof speedKmh === "number"
+      ? t("map.speedValue", { value: speedKmh.toFixed(0) })
+      : t("map.speedDash"); // "—"
+
+    const title = nickname
+      ? t("map.markerTitleWithNickname", { nickname, id: key })
+      : t("map.markerTitle", { id: key });
+
     return `
       <div style="display:flex;flex-direction:column;align-items:center;">
         <img src="/car.png" style="width:41px;height:41px;transform:translateY(-2px)"/>
@@ -118,15 +127,15 @@ export default function DeliveryMap() {
     const start = performance.now();
 
     function step(now) {
-      const t = Math.min(1, (now - start) / duration);
-      const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+      const tt = Math.min(1, (now - start) / duration);
+      const ease = tt < 0.5 ? 2 * tt * tt : -1 + (4 - 2 * tt) * tt;
 
       marker.setLatLng([
         from.lat + (to.lat - from.lat) * ease,
         from.lng + (to.lng - from.lng) * ease,
       ]);
 
-      if (t < 1) {
+      if (tt < 1) {
         const rafId = requestAnimationFrame(step);
         animRef.current.set(key, { rafId, start, duration, from, to });
       } else {
@@ -199,6 +208,9 @@ export default function DeliveryMap() {
 
   const couriersList = Array.from(couriers.values());
 
+  const statusLabel = (status) =>
+    t(`map.status.${String(status || "unknown").toLowerCase()}`, { defaultValue: status || "unknown" });
+
   return (
     <div className={styles.container}>
       <Header />
@@ -207,12 +219,14 @@ export default function DeliveryMap() {
         <div className={styles.courierPanelHeader}>
           <div className={styles.courierPanelTitle}>
             <Navigation2 className={styles.titleIcon} />
-            <span>Активные курьеры</span>
+            <span>{t("map.activeCouriers")}</span>
           </div>
           <span className={styles.courierBadge}>{couriersList.length}</span>
         </div>
 
-        {couriersList.length === 0 && <div className={styles.emptyText}>Нет активных курьеров</div>}
+        {couriersList.length === 0 && (
+          <div className={styles.emptyText}>{t("map.noActiveCouriers")}</div>
+        )}
 
         <div className={styles.courierList}>
           {couriersList.map((c) => (
@@ -230,10 +244,11 @@ export default function DeliveryMap() {
               }}
             >
               <div className={styles.courierMain}>
-                <span className={styles.courierId}>{c.courierNickname ?? `#${c.courierId}`}</span>
+                <span className={styles.courierId}>
+                  {c.courierNickname ?? `#${c.courierId}`}
+                </span>
                 <span className={styles.courierMeta}>
-                  {c.status ?? "unknown"} ·{" "}
-                  {typeof c.speedKmh === "number" ? `${c.speedKmh.toFixed(0)} км/ч` : "скорость —"}
+                  {statusLabel(c.status)} · {formatSpeed(c.speedKmh)}
                 </span>
               </div>
 
@@ -241,7 +256,7 @@ export default function DeliveryMap() {
                 <button
                   type="button"
                   className={styles.iconButton}
-                  title="Навести карту на курьера"
+                  title={t("map.actions.focus")}
                   onClick={(e) => {
                     e.stopPropagation();
                     focusCourier(c.courierId);
@@ -253,11 +268,10 @@ export default function DeliveryMap() {
                 <button
                   type="button"
                   className={styles.iconButton}
-                  title="Информация"
+                  title={t("map.actions.info")}
                   onClick={(e) => {
                     e.stopPropagation();
-                    // сюда можно добавить модалку/детали
-                    // console.log("Info", c);
+                    // можно добавить модалку/детали
                   }}
                 >
                   <Info className={styles.icon} />

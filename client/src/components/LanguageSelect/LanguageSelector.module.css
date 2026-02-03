@@ -7,6 +7,7 @@
     height: 40px;
     padding: 0 12px;
     background: rgba(255, 255, 255, 0.1);
+    /* background: var(--app-gradient); */
     border: none;
     border-radius: 10px;
     color: white;
@@ -44,17 +45,18 @@
     top: calc(100% + 8px);
     right: 0;
 
-    background: rgba(255, 255, 255, 0.12);
+    /* background: rgba(255, 255, 255, 0.12); */
+    background: var(--app-gradient);
     backdrop-filter: blur(12px);
     border-radius: 12px;
     padding: 6px;
 
     display: flex;
-    flex-direction: column;
+    flex-direction: column; 
     gap: 4px;
 
-    min-width: 64px;
-    z-index: 200;
+    min-width: 85px;
+    z-index: 2000;
 
     box-shadow: 0 8px 24px rgba(0,0,0,0.2);
 }
@@ -64,6 +66,10 @@
     background: transparent;
     border: none;
     color: white;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
 
     padding: 8px;
     border-radius: 8px;
@@ -81,6 +87,13 @@
 
 .item.active {
     background: rgba(255, 255, 255, 0.25);
+}
+
+.flag {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    flex-shrink: 0;
 }
 
 /* mobile tweaks */
