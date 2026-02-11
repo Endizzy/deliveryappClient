@@ -50,7 +50,6 @@ const CreateOrder = ({ onBack }) => {
     floor: "",
     code: "",
     courierId: "",
-    deliveryFee: "",   // новое поле для платы за доставку
     payment: "",      // теперь это internal value: 'cash' | 'card' | 'wire'
     pickupId: "",
     orderType: "active",
@@ -58,10 +57,6 @@ const CreateOrder = ({ onBack }) => {
     scheduledDate: "",
     scheduledTime: ""
   });
-
-  // формат числа и защита
-  const deliveryFeeNum = Number(String(formData.deliveryFee).replace(",", "."));
-  const safeDeliveryFee = Number.isFinite(deliveryFeeNum) ? deliveryFeeNum : 0;
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -142,18 +137,11 @@ const CreateOrder = ({ onBack }) => {
   };
   const removeItem = (id) => setSelectedItems(prev => prev.filter(i => i.id !== id));
 
-  const calculateItemsTotal = () =>
+  const calculateTotal = () =>
     selectedItems.reduce((sum, it) => {
       const p = it.discount > 0 ? it.price * (1 - it.discount / 100) : it.price;
       return sum + p * it.quantity;
     }, 0);
-
-  const calculateGrandTotal = () => {
-    const deliveryFeeNum = Number(String(formData.deliveryFee).replace(",", "."));
-    const fee = Number.isFinite(deliveryFeeNum) ? deliveryFeeNum : 0;
-    return calculateItemsTotal() + fee;
-  };
-
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -230,7 +218,6 @@ const CreateOrder = ({ onBack }) => {
         status: "new",
         scheduledAt,
         courierId: Number(formData.courierId) || null,
-        deliveryFee: safeDeliveryFee,
         pickupId: Number(formData.pickupId) || null,
         payment: formData.payment, // 'cash' | 'card' | 'wire'
         customer: formData.customer,
@@ -406,19 +393,6 @@ const CreateOrder = ({ onBack }) => {
               <div className="section-header">
                 <Truck size={20} />
                 <h3>{t("createOrder.sections.delivery")}</h3>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="orderType">{t("createOrder.fields.deliveryFee")} €</label>
-                <input
-                  id="deliveryFee"
-                  type="number"
-                  step="0.01"
-                  inputMode="decimal"
-                  value={formData.deliveryFee}
-                  onChange={(e) => handleInputChange("deliveryFee", e.target.value)}
-                  placeholder={t("createOrder.placeholders.deliveryFee")}
-                />
               </div>
 
               <div className="form-group">
@@ -611,11 +585,8 @@ const CreateOrder = ({ onBack }) => {
                   })}
 
                   <div className="order-total">
-                    <div className="text-muted">{t("createOrder.fields.itemsPrice")}: {calculateItemsTotal().toFixed(2)}€</div>
-                    <div className="text-muted">{t("createOrder.fields.deliveryFee")}: {(Number(formData.deliveryFee || 0) || 0).toFixed(2)}€</div>
-                    <strong className="text-total">{t("createOrder.fields.totalPrice")}: {calculateGrandTotal().toFixed(2)}€</strong>
+                    <strong>{t("createOrder.totalToPay", { total: calculateTotal().toFixed(2) })}</strong>
                   </div>
-
                 </div>
               )}
 
