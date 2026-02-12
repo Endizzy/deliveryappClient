@@ -7,6 +7,7 @@ import "./CreateOrder.css";
 import { useNavigate } from "react-router-dom";
 import useNotification from "./hooks/useNotification.jsx";
 import { useTranslation } from "react-i18next";
+import { discountedUnitCents, formatCents, lineTotalCents, toCents } from "./utils/money.js";
 
 // формат номера LV
 const formatPhoneNumber = (value) => {
@@ -50,6 +51,7 @@ const CreateOrder = ({ onBack }) => {
     floor: "",
     code: "",
     courierId: "",
+    deliveryFee: "",
     payment: "",      // теперь это internal value: 'cash' | 'card' | 'wire'
     pickupId: "",
     orderType: "active",
@@ -57,6 +59,10 @@ const CreateOrder = ({ onBack }) => {
     scheduledDate: "",
     scheduledTime: ""
   });
+
+  // формат числа и защита (как в EditOrder)
+  const deliveryFeeNum = Number(String(formData.deliveryFee).replace(",", "."));
+  const safeDeliveryFee = Number.isFinite(deliveryFeeNum) ? deliveryFeeNum : 0;
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -137,11 +143,13 @@ const CreateOrder = ({ onBack }) => {
   };
   const removeItem = (id) => setSelectedItems(prev => prev.filter(i => i.id !== id));
 
-  const calculateTotal = () =>
-    selectedItems.reduce((sum, it) => {
-      const p = it.discount > 0 ? it.price * (1 - it.discount / 100) : it.price;
-      return sum + p * it.quantity;
-    }, 0);
+  const calculateItemsTotalCents = () =>
+    selectedItems.reduce(
+      (sumCents, it) => sumCents + lineTotalCents(it.price, it.discount, it.quantity),
+      0
+    );
+
+  const calculateGrandTotalCents = () => calculateItemsTotalCents() + toCents(safeDeliveryFee);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -220,6 +228,7 @@ const CreateOrder = ({ onBack }) => {
         courierId: Number(formData.courierId) || null,
         pickupId: Number(formData.pickupId) || null,
         payment: formData.payment, // 'cash' | 'card' | 'wire'
+        deliveryFee: safeDeliveryFee,
         customer: formData.customer,
         phone: formData.phone,
         street: formData.street,
@@ -396,6 +405,19 @@ const CreateOrder = ({ onBack }) => {
               </div>
 
               <div className="form-group">
+                <label htmlFor="deliveryFee">{t("createOrder.fields.deliveryFee")} €</label>
+                <input
+                  id="deliveryFee"
+                  type="number"
+                  step="0.01"
+                  inputMode="decimal"
+                  value={formData.deliveryFee}
+                  onChange={(e) => handleInputChange("deliveryFee", e.target.value)}
+                  placeholder={t("createOrder.placeholders.deliveryFee")}
+                />
+              </div>
+
+              <div className="form-group">
                 <label htmlFor="courier">{t("createOrder.fields.courier")} *</label>
                 <select
                   id="courier"
@@ -515,12 +537,12 @@ const CreateOrder = ({ onBack }) => {
                             <span className="item-price">
                               {item.discount > 0 ? (
                                 <>
-                                  <span className="original-price">€{item.price.toFixed(2)}</span>
-                                  <span className="discounted-price">€{(item.price * (1 - item.discount / 100)).toFixed(2)}</span>
+                                  <span className="original-price">€{formatCents(toCents(item.price))}</span>
+                                  <span className="discounted-price">€{formatCents(discountedUnitCents(item.price, item.discount))}</span>
                                   <span className="discount-badge">-{item.discount}%</span>
                                 </>
                               ) : (
-                                <span>€{item.price.toFixed(2)}</span>
+                                <span>€{formatCents(toCents(item.price))}</span>
                               )}
                             </span>
                           </div>
@@ -538,8 +560,8 @@ const CreateOrder = ({ onBack }) => {
                   <h4>{t("createOrder.selectedItemsTitle")}</h4>
 
                   {selectedItems.map(item => {
-                    const finalPrice = item.discount > 0 ? item.price * (1 - item.discount / 100) : item.price;
-                    const totalPrice = finalPrice * item.quantity;
+                    const unitCents = discountedUnitCents(item.price, item.discount);
+                    const totalCents = unitCents * item.quantity;
 
                     return (
                       <div key={item.id} className="selected-item">
@@ -547,7 +569,7 @@ const CreateOrder = ({ onBack }) => {
                           <span className="item-name">{item.name}</span>
                           <div className="item-price-info">
                             {item.discount > 0 && <span className="discount-info">-{item.discount}%</span>}
-                            <span className="unit-price">€{finalPrice.toFixed(2)}</span>
+                            <span className="unit-price">€{formatCents(unitCents)}</span>
                           </div>
                         </div>
 
@@ -571,7 +593,7 @@ const CreateOrder = ({ onBack }) => {
                           </button>
                         </div>
 
-                        <div className="item-total"><span>€{totalPrice.toFixed(2)}</span></div>
+                        <div className="item-total"><span>€{formatCents(totalCents)}</span></div>
 
                         <button
                           type="button"
@@ -585,7 +607,15 @@ const CreateOrder = ({ onBack }) => {
                   })}
 
                   <div className="order-total">
-                    <strong>{t("createOrder.totalToPay", { total: calculateTotal().toFixed(2) })}</strong>
+                    <div className="text-muted">
+                      {t("createOrder.fields.itemsPrice")}: {formatCents(calculateItemsTotalCents())}€
+                    </div>
+                    <div className="text-muted">
+                      {t("createOrder.fields.deliveryFee")}: {formatCents(toCents(safeDeliveryFee))}€
+                    </div>
+                    <strong className="text-total">
+                      {t("createOrder.fields.totalPrice")}: {formatCents(calculateGrandTotalCents())}€
+                    </strong>
                   </div>
                 </div>
               )}

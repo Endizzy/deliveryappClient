@@ -1,4 +1,4 @@
-// EditOrder.jsx
+
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
@@ -16,6 +16,7 @@ import {
 import "./CreateOrder.css";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { discountedUnitCents, formatCents, lineTotalCents, toCents } from "./utils/money.js";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -236,13 +237,13 @@ const EditOrder = () => {
   const removeItem = (id2) => setSelectedItems((prev) => prev.filter((i) => i.id !== id2));
 
   // Итоговая сумма оплаты
-  const calculateItemsTotal = () =>
-    selectedItems.reduce((sum, it) => {
-      const p = it.discount > 0 ? it.price * (1 - it.discount / 100) : it.price;
-      return sum + p * it.quantity;
-    }, 0);
+  const calculateItemsTotalCents = () =>
+    selectedItems.reduce(
+      (sumCents, it) => sumCents + lineTotalCents(it.price, it.discount, it.quantity),
+      0
+    );
 
-  const calculateGrandTotal = () => calculateItemsTotal() + safeDeliveryFee;
+  const calculateGrandTotalCents = () => calculateItemsTotalCents() + toCents(safeDeliveryFee);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -608,14 +609,14 @@ const EditOrder = () => {
                             <span className="item-price">
                               {item.discount > 0 ? (
                                 <>
-                                  <span className="original-price">€{item.price.toFixed(2)}</span>
+                                  <span className="original-price">€{formatCents(toCents(item.price))}</span>
                                   <span className="discounted-price">
-                                    €{(item.price * (1 - item.discount / 100)).toFixed(2)}
+                                    €{formatCents(discountedUnitCents(item.price, item.discount))}
                                   </span>
                                   <span className="discount-badge">-{item.discount}%</span>
                                 </>
                               ) : (
-                                <span>€{item.price.toFixed(2)}</span>
+                                <span>€{formatCents(toCents(item.price))}</span>
                               )}
                             </span>
                           </div>
@@ -633,9 +634,8 @@ const EditOrder = () => {
                   <h4>{t("createOrder.selectedItemsTitle")}</h4>
 
                   {selectedItems.map((item) => {
-                    const finalPrice =
-                      item.discount > 0 ? item.price * (1 - item.discount / 100) : item.price;
-                    const totalPrice = finalPrice * item.quantity;
+                    const unitCents = discountedUnitCents(item.price, item.discount);
+                    const totalCents = unitCents * item.quantity;
 
                     return (
                       <div key={item.id} className="selected-item">
@@ -643,7 +643,7 @@ const EditOrder = () => {
                           <span className="item-name">{item.name}</span>
                           <div className="item-price-info">
                             {item.discount > 0 && <span className="discount-info">-{item.discount}%</span>}
-                            <span className="unit-price">€{finalPrice.toFixed(2)}</span>
+                            <span className="unit-price">€{formatCents(unitCents)}</span>
                           </div>
                         </div>
 
@@ -668,7 +668,7 @@ const EditOrder = () => {
                         </div>
 
                         <div className="item-total">
-                          <span>€{totalPrice.toFixed(2)}</span>
+                          <span>€{formatCents(totalCents)}</span>
                         </div>
 
                         <button type="button" onClick={() => removeItem(item.id)} className="remove-btn">
@@ -680,13 +680,13 @@ const EditOrder = () => {
 
                   <div className="order-total">
                     <div className="text-muted">
-                      {t("createOrder.fields.itemsPrice")}: {calculateItemsTotal().toFixed(2)}€
+                      {t("createOrder.fields.itemsPrice")}: {formatCents(calculateItemsTotalCents())}€
                     </div>
                     <div className="text-muted">
-                      {t("createOrder.fields.deliveryFee")}: {(Number(formData.deliveryFee || 0) || 0).toFixed(2)}€
+                      {t("createOrder.fields.deliveryFee")}: {formatCents(toCents(safeDeliveryFee))}€
                     </div>
                     <strong className="text-total">
-                      {t("createOrder.fields.totalPrice")}: {calculateGrandTotal().toFixed(2)}€
+                      {t("createOrder.fields.totalPrice")}: {formatCents(calculateGrandTotalCents())}€
                     </strong>
                   </div>
                 </div>

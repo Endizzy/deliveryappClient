@@ -1,4 +1,3 @@
-// OwnerSettings.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -9,8 +8,9 @@ import {
 import "./ownerSettings.css";
 import Header from "../../components/Header/Header.jsx";
 import { useTranslation } from "react-i18next";
+import { formatCents, toCents } from "../../utils/money.js";
 
-const toEUR = (n) => `€${Number(n || 0).toFixed(2)}`;
+const toEUR = (n) => `€${formatCents(toCents(n))}`;
 
 export default function OwnerSettings() {
   const { t } = useTranslation();
@@ -226,12 +226,28 @@ export default function OwnerSettings() {
         alert(t("ownerSettings.alerts.enterNameAndPrice"));
         return;
       }
+
+      const priceRaw = String(f.price ?? "").trim().replace(",", ".");
+      const priceNum = Number(priceRaw);
+      if (!Number.isFinite(priceNum) || priceNum < 0) {
+        alert(t("ownerSettings.alerts.invalidPrice", { defaultValue: "Некорректная цена" }));
+        return;
+      }
+      const priceCents = toCents(priceNum);
+
+      const discountRaw = String(f.discount ?? "").trim().replace(",", ".");
+      const discountNum = discountRaw === "" ? 0 : Number(discountRaw);
+      if (!Number.isFinite(discountNum) || discountNum < 0 || discountNum > 100) {
+        alert(t("ownerSettings.alerts.invalidDiscount", { defaultValue: "Скидка 0..100" }));
+        return;
+      }
+
       if (menuModal.editId) {
         const updated = await updateMenuItem(menuModal.editId, {
           name: f.name,
           category: f.category,
-          price: Number(f.price),
-          discount: Number(f.discount || 0),
+          price: formatCents(priceCents),
+          discount: discountNum,
           available: !!f.available,
         });
         setMenu(list => list.map(it => (it.id === updated.id ? updated : it)));
@@ -239,8 +255,8 @@ export default function OwnerSettings() {
         const created = await createMenuItem({
           name: f.name,
           category: f.category,
-          price: Number(f.price),
-          discount: Number(f.discount || 0),
+          price: formatCents(priceCents),
+          discount: discountNum,
           available: !!f.available,
         });
         setMenu(list => [...list, created]);
@@ -687,7 +703,7 @@ export default function OwnerSettings() {
               <div className="owner-field">
                 <label>{t("ownerSettings.menuModal.fields.discount")}</label>
                 <input
-                  type="number" min="0" max="90"
+                  type="number" min="0" max="100"
                   value={menuModal.form.discount}
                   onChange={(e) => setMenuModal(m => ({ ...m, form: { ...m.form, discount: e.target.value } }))}
                   placeholder="0"
