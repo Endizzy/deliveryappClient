@@ -211,7 +211,7 @@ const OrderPanel = () => {
         ))}
 
         <div className="nav-actions">
-          <div className="search-box">
+          {/* <div className="search-box">
             <svg className="search-icon" viewBox="0 0 24 24" width="16" height="16">
               <path
                 fill="currentColor"
@@ -225,7 +225,13 @@ const OrderPanel = () => {
             <option>{t("orderPanel.filter.all")}</option>
             <option>{t("orderPanel.filter.byCourier")}</option>
             <option>{t("orderPanel.filter.byAmount")}</option>
-          </select>
+          </select> */}
+          {/* prediction */}
+          <div>
+            <button className="nav-tab" >
+              prediction
+            </button>
+          </div>
         </div>
       </nav>
 
