@@ -6,6 +6,8 @@ import { useSound } from "./provider/SoundContext.jsx";
 import { useNow } from "./provider/TimeContext";
 import { formatDuration } from "./utils/time/time.js";
 import { useTranslation } from "react-i18next";
+import FilterPanel from "./components/FilterPanel/FilterPanel.jsx";
+import { useFilterStore } from "./store/filterStore";
 
 const API = import.meta.env.VITE_API_URL;
 const WS_URL = (API || "").replace(/^http/, "ws");
@@ -36,6 +38,11 @@ const OrderPanel = () => {
 
   const [activeTab, setActiveTab] = useState("active");
   const [companyId, setCompanyId] = useState(null);
+  const [openFilterColumn, setOpenFilterColumn] = useState(null);
+
+  // Получить фильтры из Zustand store
+  const filters = useFilterStore((state) => state.filters);
+  const hasActiveFilters = useFilterStore((state) => state.hasActiveFilters);
 
   const now = useNow();
   const getOrderDuration = (order, nowMs) => {
@@ -186,7 +193,61 @@ const OrderPanel = () => {
     }
   };
 
-  const orders = ordersByTab[activeTab] || [];
+  const applyFilters = (ordersToFilter) => {
+    return ordersToFilter.filter((order) => {
+      // Фильтр по статусу
+      if (filters.status.length > 0 && !filters.status.includes(order.status)) {
+        return false;
+      }
+
+      // Фильтр по времени создания
+      if (filters.timeRange.from || filters.timeRange.to) {
+        const orderTime = new Date(order.createdAt).getTime();
+        if (filters.timeRange.from && orderTime < filters.timeRange.from) {
+          return false;
+        }
+        if (filters.timeRange.to && orderTime > filters.timeRange.to) {
+          return false;
+        }
+      }
+
+      // Фильтр по сумме заказа
+      if (filters.amountRange.from !== null || filters.amountRange.to !== null) {
+        const amount = order.amountTotal || 0;
+        if (
+          filters.amountRange.from !== null &&
+          amount < filters.amountRange.from
+        ) {
+          return false;
+        }
+        if (
+          filters.amountRange.to !== null &&
+          amount > filters.amountRange.to
+        ) {
+          return false;
+        }
+      }
+
+      // Фильтр по ресторану
+      if (filters.restaurant.length > 0) {
+        if (!filters.restaurant.includes(order.pickupName)) {
+          return false;
+        }
+      }
+
+      // Фильтр по курьеру
+      if (filters.courier.length > 0) {
+        if (!filters.courier.includes(order.courierName)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  };
+
+  const unfilteredOrders = ordersByTab[activeTab] || [];
+  const orders = applyFilters(unfilteredOrders);
 
   return (
     <div className="order-panel">
@@ -239,13 +300,88 @@ const OrderPanel = () => {
         <div className="orders-table">
           <div className="table-header">
             <div className="header-number">№</div>
-            <div className="header-cell">{t("orderPanel.table.status")}</div>
-            <div className="header-cell">{t("orderPanel.table.time")}</div>
+            <div
+              className={`header-cell filter-header ${
+                filters.status.length > 0 ? "active" : ""
+              }`}
+              onClick={() => setOpenFilterColumn("status")}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) =>
+                e.key === "Enter" && setOpenFilterColumn("status")
+              }
+            >
+              {t("orderPanel.table.status")}
+              {filters.status.length > 0 && <span className="filter-badge"> •</span>}
+            </div>
+            <div
+              className={`header-cell filter-header ${
+                filters.timeRange.from || filters.timeRange.to ? "active" : ""
+              }`}
+              onClick={() => setOpenFilterColumn("time")}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) =>
+                e.key === "Enter" && setOpenFilterColumn("time")
+              }
+            >
+              {t("orderPanel.table.time")}
+              {(filters.timeRange.from || filters.timeRange.to) && (
+                <span className="filter-badge"> •</span>
+              )}
+            </div>
             <div className="header-cell">{t("orderPanel.table.address")}</div>
             <div className="header-cell">{t("orderPanel.table.customer")}</div>
-            <div className="header-cell">{t("orderPanel.table.amount")}</div>
-            <div className="header-cell">{t("orderPanel.table.restaurant")}</div>
-            <div className="header-cell">{t("orderPanel.table.courier")}</div>
+            <div
+              className={`header-cell filter-header ${
+                filters.amountRange.from !== null ||
+                filters.amountRange.to !== null
+                  ? "active"
+                  : ""
+              }`}
+              onClick={() => setOpenFilterColumn("amount")}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) =>
+                e.key === "Enter" && setOpenFilterColumn("amount")
+              }
+            >
+              {t("orderPanel.table.amount")}
+              {(filters.amountRange.from !== null ||
+                filters.amountRange.to !== null) && (
+                <span className="filter-badge"> •</span>
+              )}
+            </div>
+            <div
+              className={`header-cell filter-header ${
+                filters.restaurant.length > 0 ? "active" : ""
+              }`}
+              onClick={() => setOpenFilterColumn("restaurant")}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) =>
+                e.key === "Enter" && setOpenFilterColumn("restaurant")
+              }
+            >
+              {t("orderPanel.table.restaurant")}
+              {filters.restaurant.length > 0 && (
+                <span className="filter-badge"> •</span>
+              )}
+            </div>
+            <div
+              className={`header-cell filter-header ${
+                filters.courier.length > 0 ? "active" : ""
+              }`}
+              onClick={() => setOpenFilterColumn("courier")}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) =>
+                e.key === "Enter" && setOpenFilterColumn("courier")
+              }
+            >
+              {t("orderPanel.table.courier")}
+              {filters.courier.length > 0 && <span className="filter-badge"> •</span>}
+            </div>
             <div className="header-cell">{t("orderPanel.table.dispatcher")}</div>
           </div>
 
@@ -321,6 +457,14 @@ const OrderPanel = () => {
           <h1>{t("orderPanel.footer.demo")}</h1>
         </div>
       </footer>
+
+      {openFilterColumn && (
+        <FilterPanel
+          orders={unfilteredOrders}
+          columnName={openFilterColumn}
+          onClose={() => setOpenFilterColumn(null)}
+        />
+      )}
     </div>
   );
 };

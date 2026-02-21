@@ -341,7 +341,21 @@
     "filter": {
       "all": "Visi pasūtījumi",
       "byCourier": "Pēc kurjera",
-      "byAmount": "Pēc summas"
+      "byAmount": "Pēc summas",
+      "status": "Filtrs pēc statusa",
+      "time": "Filtrs pēc laika",
+      "amount": "Filtrs pēc summas",
+      "restaurant": "Filtrs pēc restorāna",
+      "courier": "Filtrs pēc kurjera",
+      "selectStatus": "Izvēlieties statusus",
+      "selectTime": "Izvēlieties laika diapazonu",
+      "selectAmount": "Izvēlieties summas diapazonu",
+      "selectRestaurant": "Izvēlieties restorānus",
+      "selectCourier": "Izvēlieties kurjerus",
+      "from": "No",
+      "to": "Līdz",
+      "reset": "Notīrīt visus filtrus",
+      "apply": "Pielietot filtrus"
     },
     "table": {
       "status": "Statuss",
@@ -419,5 +433,9 @@
       "soundBlockedTitle": "Skaņa ir bloķēta",
       "soundBlockedMessage": "Pārlūkprogramma bloķē skaņu. Nospiediet slēdzi vēlreiz, lai atļautu atskaņošanu."
     }
+  },
+  "loadingSpin": {
+    "title": "Ielādē…",
+    "desc": "Lūdzu, uzgaidiet"
   }
 }

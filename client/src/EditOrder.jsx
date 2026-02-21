@@ -17,6 +17,7 @@ import "./CreateOrder.css";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { discountedUnitCents, formatCents, lineTotalCents, toCents } from "./utils/money.js";
+import Loader from "./components/Loader/Loader.jsx";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -28,6 +29,7 @@ const formatPhoneNumber = (value) => {
   return cleaned;
 };
 
+
 // хелперы для дат/времени
 const pad2 = (n) => String(n).padStart(2, "0");
 const toLocalDateInput = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
@@ -35,6 +37,7 @@ const toLocalTimeInput = (d) => `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 const PREORDER_MIN_OFFSET_MIN = 15;
 
 const EditOrder = () => {
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { id } = useParams();
@@ -196,8 +199,11 @@ const EditOrder = () => {
       try {
         await Promise.all([fetchCouriers(), fetchPickupPoints(), fetchAllMenu()]);
         await loadOrder();
+        // await Promise.all([loadOrder(), fetchCouriers(), fetchPickupPoints(), fetchAllMenu()]);
       } catch (e) {
         alert(e.message);
+      } finally {
+        setIsLoading(false);
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -346,6 +352,7 @@ const EditOrder = () => {
     }
   };
 
+
   return (
     <div className="create-order-page">
       <header className="header">
@@ -364,6 +371,9 @@ const EditOrder = () => {
       </header>
 
       <div className="form-container">
+        {isLoading ? (
+          <Loader />
+        ) : (
         <div className="order-form">
           <div className="form-grid">
             {/* Клиент */}
@@ -758,6 +768,7 @@ const EditOrder = () => {
             </button>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

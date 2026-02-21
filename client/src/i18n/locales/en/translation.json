@@ -340,7 +340,21 @@
     "filter": {
       "all": "All orders",
       "byCourier": "By courier",
-      "byAmount": "By amount"
+      "byAmount": "By amount",
+      "status": "Filter by Status",
+      "time": "Filter by Time",
+      "amount": "Filter by Amount",
+      "restaurant": "Filter by Restaurant",
+      "courier": "Filter by Courier",
+      "selectStatus": "Select statuses",
+      "selectTime": "Select time range",
+      "selectAmount": "Select amount range",
+      "selectRestaurant": "Select restaurants",
+      "selectCourier": "Select couriers",
+      "from": "From",
+      "to": "To",
+      "reset": "Reset all filters",
+      "apply": "Apply filters"
     },
     "table": {
       "status": "Status",
@@ -418,5 +432,9 @@
       "soundBlockedTitle": "Sound is blocked",
       "soundBlockedMessage": "Your browser blocks sound. Click the toggle again to allow playback."
     }
+  },
+  "loadingSpin": {
+    "title": "Loading…",
+    "desc": "Please wait"
   }
 }

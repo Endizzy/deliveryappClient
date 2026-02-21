@@ -1,0 +1,95 @@
+/* components/Loader/Loader.module.css */
+
+.container {
+  width: 100%;
+  min-height: 320px; /* чтобы не "прыгало" */
+  display: grid;
+  place-items: center;
+
+  /* мягкий фон внутри контейнера */
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 12px;
+}
+
+.card {
+  width: min(420px, 100%);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    0 12px 30px rgba(0, 0, 0, 0.08);
+
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  padding: 22px 20px;
+
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.spinnerWrap {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
+}
+
+.glow {
+  position: absolute;
+  inset: -10px;
+  border-radius: 999px;
+  background: var(--app-gradient);
+  opacity: 0.25;
+  filter: blur(10px);
+  animation: glowPulse 1.6s ease-in-out infinite;
+}
+
+.spinner {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+
+  /* градиентное кольцо */
+  -webkit-mask: radial-gradient(circle 21px, transparent 20px, #000 21px);
+  mask: radial-gradient(circle 21px, transparent 20px, #000 21px);
+
+  background-image:
+    conic-gradient(from 0deg, transparent 0 25%, rgba(255,255,255,0.25) 30%, transparent 60%),
+    var(--app-gradient);
+  background-blend-mode: overlay;
+
+  box-shadow: inset 0 0 0 2px rgba(226, 232, 240, 0.9);
+
+  animation: spin 0.9s linear infinite;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #334155;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sub {
+  font-size: 12px;
+  color: #64748b;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes glowPulse {
+  0%, 100% { transform: scale(0.98); opacity: 0.22; }
+  50% { transform: scale(1.05); opacity: 0.32; }
+}
