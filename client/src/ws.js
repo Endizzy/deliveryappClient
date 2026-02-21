@@ -1,4 +1,4 @@
-export const WS_URL = 'wss://deliveryappserver-1.onrender.com';
+export const WS_URL = 'wss://deliveryappserver-eu.onrender.com';
 
 
 export function createAdminSocket(onMessage) {

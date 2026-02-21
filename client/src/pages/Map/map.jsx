@@ -42,6 +42,27 @@ export default function DeliveryMap() {
           await upsertMarker(msg);
           setInfo((p) => ({ ...p, last: msg }));
         }
+        
+        // можно обрабатывать другие типы сообщений, например "status" для обновления статуса курьера без изменения позиции
+        if (msg.type === 'remove') {
+          try {
+            const key = String(msg.courierId);
+            const marker = markersRef.current.get(key);
+            const mapLocal = mapRef.current;
+            if (marker && mapLocal) {
+              try { mapLocal.removeLayer(marker); } catch (e) {}
+            }
+            markersRef.current.delete(key);
+            animRef.current.delete(key);
+            setCouriers((prev) => {
+              const next = new Map(prev);
+              next.delete(key);
+              return next;
+            });
+          } catch (e) {
+            // ignore
+          }
+        }
       } catch (e) {
         console.warn("WS message handler error", e);
       }
