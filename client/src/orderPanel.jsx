@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { ChevronDown } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import "./orderPanel.css";
 import Header from "./components/Header/Header.jsx";
@@ -200,33 +201,10 @@ const OrderPanel = () => {
         return false;
       }
 
-      // Фильтр по времени создания
-      if (filters.timeRange.from || filters.timeRange.to) {
-        const orderTime = new Date(order.createdAt).getTime();
-        if (filters.timeRange.from && orderTime < filters.timeRange.from) {
-          return false;
-        }
-        if (filters.timeRange.to && orderTime > filters.timeRange.to) {
-          return false;
-        }
-      }
-
-      // Фильтр по сумме заказа
-      if (filters.amountRange.from !== null || filters.amountRange.to !== null) {
-        const amount = order.amountTotal || 0;
-        if (
-          filters.amountRange.from !== null &&
-          amount < filters.amountRange.from
-        ) {
-          return false;
-        }
-        if (
-          filters.amountRange.to !== null &&
-          amount > filters.amountRange.to
-        ) {
-          return false;
-        }
-      }
+      // Сортировка по времени
+      // (фильтрация по диапазону времени больше не используется)
+      // Сортировка по сумме
+      // (фильтрация по диапазону суммы больше не используется)
 
       // Фильтр по ресторану
       if (filters.restaurant.length > 0) {
@@ -247,7 +225,25 @@ const OrderPanel = () => {
   };
 
   const unfilteredOrders = ordersByTab[activeTab] || [];
-  const orders = applyFilters(unfilteredOrders);
+  let orders = applyFilters(unfilteredOrders);
+
+  // Сортировка по времени
+  if (filters.timeSort) {
+    orders = [...orders].sort((a, b) => {
+      const at = new Date(a.createdAt).getTime();
+      const bt = new Date(b.createdAt).getTime();
+      return filters.timeSort === "asc" ? at - bt : bt - at;
+    });
+  }
+
+  // Сортировка по сумме
+  if (filters.amountSort) {
+    orders = [...orders].sort((a, b) => {
+      const aa = a.amountTotal || 0;
+      const ba = b.amountTotal || 0;
+      return filters.amountSort === "asc" ? aa - ba : ba - aa;
+    });
+  }
 
   return (
     <div className="order-panel">
@@ -312,11 +308,12 @@ const OrderPanel = () => {
               }
             >
               {t("orderPanel.table.status")}
+              <ChevronDown size={18}/>
               {filters.status.length > 0 && <span className="filter-badge"> •</span>}
             </div>
             <div
               className={`header-cell filter-header ${
-                filters.timeRange.from || filters.timeRange.to ? "active" : ""
+                filters.timeSort ? "active" : ""
               }`}
               onClick={() => setOpenFilterColumn("time")}
               role="button"
@@ -326,7 +323,8 @@ const OrderPanel = () => {
               }
             >
               {t("orderPanel.table.time")}
-              {(filters.timeRange.from || filters.timeRange.to) && (
+              <ChevronDown size={18}/>
+              {filters.timeSort && (
                 <span className="filter-badge"> •</span>
               )}
             </div>
@@ -334,10 +332,7 @@ const OrderPanel = () => {
             <div className="header-cell">{t("orderPanel.table.customer")}</div>
             <div
               className={`header-cell filter-header ${
-                filters.amountRange.from !== null ||
-                filters.amountRange.to !== null
-                  ? "active"
-                  : ""
+                filters.amountSort ? "active" : ""
               }`}
               onClick={() => setOpenFilterColumn("amount")}
               role="button"
@@ -347,8 +342,8 @@ const OrderPanel = () => {
               }
             >
               {t("orderPanel.table.amount")}
-              {(filters.amountRange.from !== null ||
-                filters.amountRange.to !== null) && (
+              <ChevronDown size={18} />
+              {filters.amountSort && (
                 <span className="filter-badge"> •</span>
               )}
             </div>
@@ -364,6 +359,7 @@ const OrderPanel = () => {
               }
             >
               {t("orderPanel.table.restaurant")}
+              <ChevronDown size={18}/>
               {filters.restaurant.length > 0 && (
                 <span className="filter-badge"> •</span>
               )}
@@ -379,7 +375,7 @@ const OrderPanel = () => {
                 e.key === "Enter" && setOpenFilterColumn("courier")
               }
             >
-              {t("orderPanel.table.courier")}
+              {t("orderPanel.table.courier")}<ChevronDown size={18}/>
               {filters.courier.length > 0 && <span className="filter-badge"> •</span>}
             </div>
             <div className="header-cell">{t("orderPanel.table.dispatcher")}</div>

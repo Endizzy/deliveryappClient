@@ -5,20 +5,25 @@ import "./FilterPanel.css";
 
 const FilterPanel = ({ orders = [], columnName, onClose }) => {
   const { t } = useTranslation();
+
   const {
     filters,
     setStatusFilter,
-    setTimeRangeFilter,
-    setAmountRangeFilter,
+    setTimeSort,
+    setAmountSort,
     setRestaurantFilter,
     setCourierFilter,
     resetFilters,
   } = useFilterStore();
 
   const [localFilters, setLocalFilters] = useState(filters);
+  const [timeSort, setLocalTimeSort] = useState(filters.timeSort || null);
+  const [amountSort, setLocalAmountSort] = useState(filters.amountSort || null);
 
   useEffect(() => {
     setLocalFilters(filters);
+    setLocalTimeSort(filters.timeSort || null);
+    setLocalAmountSort(filters.amountSort || null);
   }, [filters]);
 
   // Получить уникальные значения для чекбоксов
@@ -40,23 +45,14 @@ const FilterPanel = ({ orders = [], columnName, onClose }) => {
     setStatusFilter(newStatuses);
   };
 
-  const handleTimeChange = (type, value) => {
-    const newRange = {
-      ...localFilters.timeRange,
-      [type]: value ? new Date(value).getTime() : null,
-    };
-    setLocalFilters({ ...localFilters, timeRange: newRange });
-    setTimeRangeFilter(newRange.from, newRange.to);
+  const handleTimeSort = (sort) => {
+    setLocalTimeSort(sort);
+    setTimeSort(sort);
   };
 
-  const handleAmountChange = (type, value) => {
-    const numValue = value ? parseFloat(value) : null;
-    const newRange = {
-      ...localFilters.amountRange,
-      [type]: numValue,
-    };
-    setLocalFilters({ ...localFilters, amountRange: newRange });
-    setAmountRangeFilter(newRange.from, newRange.to);
+  const handleAmountSort = (sort) => {
+    setLocalAmountSort(sort);
+    setAmountSort(sort);
   };
 
   const handleRestaurantChange = (restaurant, checked) => {
@@ -83,6 +79,8 @@ const FilterPanel = ({ orders = [], columnName, onClose }) => {
       restaurant: [],
       courier: [],
     });
+    setLocalTimeSort(null);
+    setLocalAmountSort(null);
     resetFilters();
   };
 
@@ -117,64 +115,40 @@ const FilterPanel = ({ orders = [], columnName, onClose }) => {
 
           {columnName === "time" && (
             <div className="filter-group">
-              <h4>{t("orderPanel.filter.selectTime")}</h4>
-              <div className="date-inputs">
-                <label>
-                  {t("orderPanel.filter.from")}:
-                  <input
-                    type="datetime-local"
-                    value={
-                      localFilters.timeRange.from
-                        ? new Date(localFilters.timeRange.from)
-                            .toISOString()
-                            .slice(0, 16)
-                        : ""
-                    }
-                    onChange={(e) => handleTimeChange("from", e.target.value)}
-                  />
-                </label>
-                <label>
-                  {t("orderPanel.filter.to")}:
-                  <input
-                    type="datetime-local"
-                    value={
-                      localFilters.timeRange.to
-                        ? new Date(localFilters.timeRange.to)
-                            .toISOString()
-                            .slice(0, 16)
-                        : ""
-                    }
-                    onChange={(e) => handleTimeChange("to", e.target.value)}
-                  />
-                </label>
+              <h4>{t("orderPanel.filter.selectTimeSort")}</h4>
+              <div className="sort-buttons">
+                <button
+                  className={timeSort === "asc" ? "sort-btn active" : "sort-btn"}
+                  onClick={() => handleTimeSort("asc")}
+                >
+                  {t("orderPanel.filter.sortAsc")}
+                </button>
+                <button
+                  className={timeSort === "desc" ? "sort-btn active" : "sort-btn"}
+                  onClick={() => handleTimeSort("desc")}
+                >
+                  {t("orderPanel.filter.sortDesc")}
+                </button>
               </div>
             </div>
           )}
 
           {columnName === "amount" && (
             <div className="filter-group">
-              <h4>{t("orderPanel.filter.selectAmount")}</h4>
-              <div className="range-inputs">
-                <label>
-                  {t("orderPanel.filter.from")}:
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={localFilters.amountRange.from ?? ""}
-                    onChange={(e) => handleAmountChange("from", e.target.value)}
-                    placeholder="0.00"
-                  />
-                </label>
-                <label>
-                  {t("orderPanel.filter.to")}:
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={localFilters.amountRange.to ?? ""}
-                    onChange={(e) => handleAmountChange("to", e.target.value)}
-                    placeholder="999.99"
-                  />
-                </label>
+              <h4>{t("orderPanel.filter.selectAmountSort")}</h4>
+              <div className="sort-buttons">
+                <button
+                  className={amountSort === "asc" ? "sort-btn active" : "sort-btn"}
+                  onClick={() => handleAmountSort("asc")}
+                >
+                  {t("orderPanel.filter.sortAsc")}
+                </button>
+                <button
+                  className={amountSort === "desc" ? "sort-btn active" : "sort-btn"}
+                  onClick={() => handleAmountSort("desc")}
+                >
+                  {t("orderPanel.filter.sortDesc")}
+                </button>
               </div>
             </div>
           )}

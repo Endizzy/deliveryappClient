@@ -8,6 +8,8 @@ export const useFilterStore = create((set) => ({
     amountRange: { from: null, to: null },
     restaurant: [],
     courier: [],
+    timeSort: null, // 'asc' | 'desc' | null
+    amountSort: null, // 'asc' | 'desc' | null
   },
 
   // Открытая колонка
@@ -18,12 +20,13 @@ export const useFilterStore = create((set) => ({
     filters: { ...state.filters, status: statuses },
   })),
 
-  setTimeRangeFilter: (from, to) => set((state) => ({
-    filters: { ...state.filters, timeRange: { from, to } },
+
+  setTimeSort: (sort) => set((state) => ({
+    filters: { ...state.filters, timeSort: sort },
   })),
 
-  setAmountRangeFilter: (from, to) => set((state) => ({
-    filters: { ...state.filters, amountRange: { from, to } },
+  setAmountSort: (sort) => set((state) => ({
+    filters: { ...state.filters, amountSort: sort },
   })),
 
   setRestaurantFilter: (restaurants) => set((state) => ({
@@ -45,6 +48,8 @@ export const useFilterStore = create((set) => ({
       amountRange: { from: null, to: null },
       restaurant: [],
       courier: [],
+      timeSort: null,
+      amountSort: null,
     },
   }),
 
@@ -53,10 +58,8 @@ export const useFilterStore = create((set) => ({
     const { filters } = state;
     return (
       filters.status.length > 0 ||
-      filters.timeRange.from !== null ||
-      filters.timeRange.to !== null ||
-      filters.amountRange.from !== null ||
-      filters.amountRange.to !== null ||
+      filters.timeSort !== null ||
+      filters.amountSort !== null ||
       filters.restaurant.length > 0 ||
       filters.courier.length > 0
     );
