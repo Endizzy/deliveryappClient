@@ -1,0 +1,56 @@
+/* =========================================
+   Prediction Dashboard Specific Styles
+   ========================================= */
+
+/* Override the 9-column order grid to a 3-column grid for predictions */
+.prediction-grid {
+    grid-template-columns: 120px 150px 1fr;
+}
+
+.forecast-header-panel {
+    background: white;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.forecast-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 4px;
+}
+
+.forecast-subtitle {
+    font-size: 13px;
+    color: #64748b;
+}
+
+/* Temperature Badges */
+.temp-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.temp-cold { background: #e0f2fe; color: #0284c7; } /* < 10°C */
+.temp-mild { background: #f1f5f9; color: #475569; } /* 10-20°C */
+.temp-warm { background: #ffedd5; color: #c2410c; } /* > 20°C */
+
+/* Demand Indicators */
+.demand-indicator {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    min-width: 40px;
+    text-align: center;
+}
+.demand-low { background: #f1f5f9; color: #64748b; }
+.demand-med { background: #dbeafe; color: #2563eb; }
+.demand-high { background: #fef3c7; color: #d97706; }
+.demand-peak { background: #fee2e2; color: #dc2626; }

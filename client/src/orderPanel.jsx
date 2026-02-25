@@ -3,6 +3,7 @@ import { ChevronDown } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import "./orderPanel.css";
 import Header from "./components/Header/Header.jsx";
+import OrderPrediction from "./components/OrderPrediction/OrderPrediction.jsx"
 import { useSound } from "./provider/SoundContext.jsx";
 import { useNow } from "./provider/TimeContext";
 import { formatDuration } from "./utils/time/time.js";
@@ -201,10 +202,8 @@ const OrderPanel = () => {
         return false;
       }
 
-      // Сортировка по времени
-      // (фильтрация по диапазону времени больше не используется)
-      // Сортировка по сумме
-      // (фильтрация по диапазону суммы больше не используется)
+      // Сортировка по времени (фильтрация по диапазону времени больше не используется)
+      // Сортировка по сумме (фильтрация по диапазону суммы больше не используется)
 
       // Фильтр по ресторану
       if (filters.restaurant.length > 0) {
@@ -268,184 +267,182 @@ const OrderPanel = () => {
         ))}
 
         <div className="nav-actions">
-          {/* <div className="search-box">
-            <svg className="search-icon" viewBox="0 0 24 24" width="16" height="16">
-              <path
-                fill="currentColor"
-                d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"
-              />
-            </svg>
-            <input type="text" placeholder={t("orderPanel.search.placeholder")} />
-          </div>
-
-          <select className="filter-select">
-            <option>{t("orderPanel.filter.all")}</option>
-            <option>{t("orderPanel.filter.byCourier")}</option>
-            <option>{t("orderPanel.filter.byAmount")}</option>
-          </select> */}
-          {/* prediction */}
+          {/* prediction tab button */}
           <div>
-            <button className="nav-tab" >
-              prediction
+            <button 
+              className={`nav-tab ${activeTab === "prediction" ? "active" : ""}`}
+              onClick={() => setActiveTab("prediction")}
+            >
+              Prediction
             </button>
           </div>
         </div>
       </nav>
 
       <div className="orders-container">
-        <div className="orders-table">
-          <div className="table-header">
-            <div className="header-number">№</div>
-            <div
-              className={`header-cell filter-header ${
-                filters.status.length > 0 ? "active" : ""
-              }`}
-              onClick={() => setOpenFilterColumn("status")}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) =>
-                e.key === "Enter" && setOpenFilterColumn("status")
-              }
-            >
-              {t("orderPanel.table.status")}
-              <ChevronDown size={18}/>
-              {filters.status.length > 0 && <span className="filter-badge"> •</span>}
-            </div>
-            <div
-              className={`header-cell filter-header ${
-                filters.timeSort ? "active" : ""
-              }`}
-              onClick={() => setOpenFilterColumn("time")}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) =>
-                e.key === "Enter" && setOpenFilterColumn("time")
-              }
-            >
-              {t("orderPanel.table.time")}
-              <ChevronDown size={18}/>
-              {filters.timeSort && (
-                <span className="filter-badge"> •</span>
-              )}
-            </div>
-            <div className="header-cell">{t("orderPanel.table.address")}</div>
-            <div className="header-cell">{t("orderPanel.table.customer")}</div>
-            <div
-              className={`header-cell filter-header ${
-                filters.amountSort ? "active" : ""
-              }`}
-              onClick={() => setOpenFilterColumn("amount")}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) =>
-                e.key === "Enter" && setOpenFilterColumn("amount")
-              }
-            >
-              {t("orderPanel.table.amount")}
-              <ChevronDown size={18} />
-              {filters.amountSort && (
-                <span className="filter-badge"> •</span>
-              )}
-            </div>
-            <div
-              className={`header-cell filter-header ${
-                filters.restaurant.length > 0 ? "active" : ""
-              }`}
-              onClick={() => setOpenFilterColumn("restaurant")}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) =>
-                e.key === "Enter" && setOpenFilterColumn("restaurant")
-              }
-            >
-              {t("orderPanel.table.restaurant")}
-              <ChevronDown size={18}/>
-              {filters.restaurant.length > 0 && (
-                <span className="filter-badge"> •</span>
-              )}
-            </div>
-            <div
-              className={`header-cell filter-header ${
-                filters.courier.length > 0 ? "active" : ""
-              }`}
-              onClick={() => setOpenFilterColumn("courier")}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) =>
-                e.key === "Enter" && setOpenFilterColumn("courier")
-              }
-            >
-              {t("orderPanel.table.courier")}<ChevronDown size={18}/>
-              {filters.courier.length > 0 && <span className="filter-badge"> •</span>}
-            </div>
-            <div className="header-cell">{t("orderPanel.table.dispatcher")}</div>
-          </div>
-
-          <div className="table-body">
-            {orders.map((order) => (
+        
+        {/* Conditional Rendering: Show prediction OR live orders based on active tab */}
+        {activeTab === "prediction" ? (
+          
+          <OrderPrediction />
+          
+        ) : (
+          
+          <div className="orders-table">
+            <div className="table-header">
+              <div className="header-number">№</div>
               <div
-                key={order.id}
-                className="table-row row-clickable"
-                onClick={() => navigate(`/editOrder/${order.id}`)}
+                className={`header-cell filter-header ${
+                  filters.status.length > 0 ? "active" : ""
+                }`}
+                onClick={() => setOpenFilterColumn("status")}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => (e.key === "Enter" ? navigate(`/editOrder/${order.id}`) : null)}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && setOpenFilterColumn("status")
+                }
               >
-                <div className="cell order-number">
-                  <span className="order-id">{order.orderSeq ?? order.orderNo ?? order.id}</span>
-                </div>
+                {t("orderPanel.table.status")}
+                <ChevronDown size={18}/>
+                {filters.status.length > 0 && <span className="filter-badge"> •</span>}
+              </div>
+              <div
+                className={`header-cell filter-header ${
+                  filters.timeSort ? "active" : ""
+                }`}
+                onClick={() => setOpenFilterColumn("time")}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && setOpenFilterColumn("time")
+                }
+              >
+                {t("orderPanel.table.time")}
+                <ChevronDown size={18}/>
+                {filters.timeSort && (
+                  <span className="filter-badge"> •</span>
+                )}
+              </div>
+              <div className="header-cell">{t("orderPanel.table.address")}</div>
+              <div className="header-cell">{t("orderPanel.table.customer")}</div>
+              <div
+                className={`header-cell filter-header ${
+                  filters.amountSort ? "active" : ""
+                }`}
+                onClick={() => setOpenFilterColumn("amount")}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && setOpenFilterColumn("amount")
+                }
+              >
+                {t("orderPanel.table.amount")}
+                <ChevronDown size={18} />
+                {filters.amountSort && (
+                  <span className="filter-badge"> •</span>
+                )}
+              </div>
+              <div
+                className={`header-cell filter-header ${
+                  filters.restaurant.length > 0 ? "active" : ""
+                }`}
+                onClick={() => setOpenFilterColumn("restaurant")}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && setOpenFilterColumn("restaurant")
+                }
+              >
+                {t("orderPanel.table.restaurant")}
+                <ChevronDown size={18}/>
+                {filters.restaurant.length > 0 && (
+                  <span className="filter-badge"> •</span>
+                )}
+              </div>
+              <div
+                className={`header-cell filter-header ${
+                  filters.courier.length > 0 ? "active" : ""
+                }`}
+                onClick={() => setOpenFilterColumn("courier")}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && setOpenFilterColumn("courier")
+                }
+              >
+                {t("orderPanel.table.courier")}<ChevronDown size={18}/>
+                {filters.courier.length > 0 && <span className="filter-badge"> •</span>}
+              </div>
+              <div className="header-cell">{t("orderPanel.table.dispatcher")}</div>
+            </div>
 
-                <div className="cell">
-                  <span className={`status-badge ${getStatusColor(order.status)}`}>
-                    {formatOrderStatus(order.status)}
-                  </span>
-                </div>
-
-                <div className="cell time-cell">
-                  <div className="time-info">
-                    <span className="time">{safeTime(order.createdAt)}</span>
-                    <span className="time-duration">{getOrderDuration(order, now)}</span>
+            <div className="table-body">
+              {orders.map((order) => (
+                <div
+                  key={order.id}
+                  className="table-row row-clickable"
+                  onClick={() => navigate(`/editOrder/${order.id}`)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => (e.key === "Enter" ? navigate(`/editOrder/${order.id}`) : null)}
+                >
+                  <div className="cell order-number">
+                    <span className="order-id">{order.orderSeq ?? order.orderNo ?? order.id}</span>
                   </div>
-                </div>
 
-                <div className="cell address-cell">
-                  <span className="address">{order.address}</span>
-                </div>
-
-                <div className="cell customer-cell">
-                  <div className="customer-info">
-                    <span className="name">{order.customer} / {order.phone}</span>
-                    <span className="payment">
-                      {formatPaymentMethod(order.paymentMethod ?? order.payment)}
+                  <div className="cell">
+                    <span className={`status-badge ${getStatusColor(order.status)}`}>
+                      {formatOrderStatus(order.status)}
                     </span>
                   </div>
-                </div>
 
-                <div className="cell amount-cell">
-                  <span className="amount">
-                    €{order.amountTotal?.toFixed?.(2) ?? order.amountTotal}
-                  </span>
-                </div>
+                  <div className="cell time-cell">
+                    <div className="time-info">
+                      <span className="time">{safeTime(order.createdAt)}</span>
+                      <span className="time-duration">{getOrderDuration(order, now)}</span>
+                    </div>
+                  </div>
 
-                <div className="cell items-cell">
-                  <span className="items">{order.pickupName}</span>
-                </div>
+                  <div className="cell address-cell">
+                    <span className="address">{order.address}</span>
+                  </div>
 
-                <div className="cell courier-cell">
-                  <span className="courier">{order.courierName}</span>
-                </div>
+                  <div className="cell customer-cell">
+                    <div className="customer-info">
+                      <span className="name">{order.customer} / {order.phone}</span>
+                      <span className="payment">
+                        {formatPaymentMethod(order.paymentMethod ?? order.payment)}
+                      </span>
+                    </div>
+                  </div>
 
-                <div className="cell dispatcher-cell">
-                  <span className="dispatcher">{order.dispatcherUnitId ?? ""}</span>
-                </div>
-              </div>
-            ))}
+                  <div className="cell amount-cell">
+                    <span className="amount">
+                      €{order.amountTotal?.toFixed?.(2) ?? order.amountTotal}
+                    </span>
+                  </div>
 
-            {orders.length === 0 && (
-              <div className="owner-empty">{t("orderPanel.empty")}</div>
-            )}
+                  <div className="cell items-cell">
+                    <span className="items">{order.pickupName}</span>
+                  </div>
+
+                  <div className="cell courier-cell">
+                    <span className="courier">{order.courierName}</span>
+                  </div>
+
+                  <div className="cell dispatcher-cell">
+                    <span className="dispatcher">{order.dispatcherUnitId ?? ""}</span>
+                  </div>
+                </div>
+              ))}
+
+              {orders.length === 0 && (
+                <div className="owner-empty">{t("orderPanel.empty")}</div>
+              )}
+            </div>
           </div>
-        </div>
+          
+        )}
       </div>
 
       <footer className="footer-section">
