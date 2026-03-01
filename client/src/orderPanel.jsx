@@ -73,12 +73,31 @@ const OrderPanel = () => {
     { key: "active", label: t("orderPanel.tabs.active"), count: ordersByTab.active.length },
     { key: "preorders", label: t("orderPanel.tabs.preorders"), count: ordersByTab.preorders.length },
     { key: "completed", label: t("orderPanel.tabs.completed"), count: ordersByTab.completed.length },
+    
   ];
 
   const safeTime = (iso) => {
+    if (!iso) return "";
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return "";
     return d.toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit" });
+  };
+
+  // localized month/day only
+  const safeDate = (iso) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "";
+    let str = d.toLocaleDateString(i18n.language, { month: "2-digit", day: "2-digit" });
+    return str.replace(/\.$/, "");
+  };
+
+  // combining date and time when needed (fallback)
+  const safeDateTime = (iso) => {
+    if (!iso) return "";
+    const date = safeDate(iso);
+    const time = safeTime(iso);
+    return date && time ? `${date} ${time}` : date || time;
   };
 
   const formatPaymentMethod = (v) => {
@@ -200,11 +219,6 @@ const OrderPanel = () => {
       if (filters.status.length > 0 && !filters.status.includes(order.status)) {
         return false;
       }
-
-      // Сортировка по времени
-      // (фильтрация по диапазону времени больше не используется)
-      // Сортировка по сумме
-      // (фильтрация по диапазону суммы больше не используется)
 
       // Фильтр по ресторану
       if (filters.restaurant.length > 0) {
@@ -403,8 +417,14 @@ const OrderPanel = () => {
 
                 <div className="cell time-cell">
                   <div className="time-info">
-                    <span className="time">{safeTime(order.createdAt)}</span>
-                    <span className="time-duration">{getOrderDuration(order, now)}</span>
+                    <div className="time-created-row">
+                      <span className="time">{safeTime(order.createdAt)}</span>
+                      <span className="time-duration">{getOrderDuration(order, now)}</span>
+                    </div>
+                    <div className="time-shedule-row">
+                      <span className="scheduled-date">{safeDate(order.scheduledAt)}</span>
+                      <span className="scheduled-time">{safeTime(order.scheduledAt)}</span>
+                    </div>
                   </div>
                 </div>
 

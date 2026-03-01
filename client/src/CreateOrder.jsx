@@ -72,6 +72,7 @@ const CreateOrder = () => {
     building: "",
     floor: "",
     code: "",
+    numOfPeople: "",
     courierId: "",
     deliveryFee: "",
     payment: "", // 'cash' | 'card' | 'wire'
@@ -89,6 +90,14 @@ const CreateOrder = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // iframe для карты доставки
+  const [isMapOpen, setIsMapOpen] = useState(false);
+  const MAP_MID = "1HWH688Qze6v_yyq6CpIzY87597ZF2YQM";
+  const mapEmbedSrc = `https://www.google.com/maps/d/u/0/embed?mid=${MAP_MID}&ehbc=2E312F`;
+
+  // Если вдруг у кого-то не откроется, можно быстро переключить на:
+  // const mapEmbedSrc = `https://www.google.com/maps/d/u/0/viewer?mid=1HWH688Qze6v_yyq6CpIzY87597ZF2YQM&ll=56.94018698553399%2C24.21356397349821&z=11`;
+
   // ---- курьеры/точки/меню ----
   const [couriers, setCouriers] = useState([]);
   const [pickupPoints, setPickupPoints] = useState([]);
@@ -100,7 +109,7 @@ const CreateOrder = () => {
     try {
       localStorage.removeItem("token");
       sessionStorage.removeItem("token");
-    } catch (e) {}
+    } catch (e) { }
     navigate("/login");
   }, [navigate]);
 
@@ -305,8 +314,8 @@ const CreateOrder = () => {
     try {
       const scheduledAt =
         formData.orderType === "preorder" &&
-        formData.scheduledDate &&
-        formData.scheduledTime
+          formData.scheduledDate &&
+          formData.scheduledTime
           ? `${formData.scheduledDate}T${formData.scheduledTime}`
           : null;
 
@@ -328,6 +337,7 @@ const CreateOrder = () => {
         building: formData.building.trim(),
         floor: formData.floor.trim(),
         code: formData.code.trim(),
+        numOfPeople: formData.numOfPeople.trim(),
 
         notes: formData.notes,
 
@@ -498,6 +508,17 @@ const CreateOrder = () => {
                     value={formData.code}
                     onChange={(e) => handleInputChange("code", e.target.value)}
                     placeholder={t("createOrder.placeholders.code")}
+                  />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="numOfPeople">{t("createOrder.fields.numOfPeople")}</label>
+                  <input
+                    id="numOfPeople"
+                    value={formData.numOfPeople}
+                    onChange={(e) => handleInputChange("numOfPeople", e.target.value)}
+                    placeholder={t("createOrder.placeholders.numOfPeople")}
                   />
                 </div>
               </div>
@@ -791,6 +812,28 @@ const CreateOrder = () => {
                   )}
                 </div>
               </div>
+              {/* Карта зон доставки / проверка адреса */}
+              <label>{t("createOrder.fields.mapCheck") || "Проверка адреса по карте"}</label>
+
+              <div
+                className="map-preview"
+                role="button"
+                tabIndex={0}
+                onClick={() => setIsMapOpen(true)}
+                onKeyDown={(e) => e.key === "Enter" && setIsMapOpen(true)}
+                title="Открыть карту"
+              >
+                <iframe
+                  src={mapEmbedSrc}
+                  className="map-iframe"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  allowFullScreen
+                />
+                <div className="map-preview-overlay">
+                  <span>Нажми, чтобы увеличить</span>
+                </div>
+              </div>
             </div>
 
             <div className="form-section full-width">
@@ -834,6 +877,31 @@ const CreateOrder = () => {
                 : t("createOrder.buttons.create")}
             </button>
           </div>
+          {isMapOpen && (
+            <div className="map-modal" onClick={() => setIsMapOpen(false)}>
+              <div className="map-modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="map-modal-header">
+                  <div className="map-modal-title">Карта зон доставки</div>
+                  <button
+                    type="button"
+                    className="map-modal-close"
+                    onClick={() => setIsMapOpen(false)}
+                    aria-label="Закрыть"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <iframe
+                  src={mapEmbedSrc}
+                  className="map-iframe map-iframe--large"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

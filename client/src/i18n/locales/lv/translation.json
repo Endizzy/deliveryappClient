@@ -108,7 +108,8 @@
       "searchItems": "Preču meklēšana",
       "payment": "Maksājuma veids",
       "pickup": "Komplektēšanas punkts",
-      "notes": "Piezīmes (nav obligāti)"
+      "notes": "Piezīmes (nav obligāti)",
+      "numOfPeople": "Cilvēku skaits"
     },
     "placeholders": {
       "phone": "+371XXXXXXXX",
@@ -124,7 +125,8 @@
       "search": "Sāciet rakstīt ēdiena nosaukumu...",
       "payment": "Izvēlieties maksājuma veidu",
       "pickup": "Izvēlieties komplektēšanas punktu",
-      "notes": "Papildu informācija par pasūtījumu"
+      "notes": "Papildu informācija par pasūtījumu",
+      "numOfPeople": "Ievadiet cilvēku skaitu"
     },
     "orderType": {
       "active": "Aktīvs pasūtījums",

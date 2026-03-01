@@ -335,15 +335,47 @@
 
 .time-info {
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    flex-direction: row;
+    justify-content: space-between;
+    /* gap: 5px; */
     font-size: 13px;
     font-weight: 500;
+    width: 100%;
 }
 
-.time {
+.time-created-row {
+    display: flex;
+    flex-direction: column;
+    /* gap: 2px; */
+    /* align-items: flex-start; */
+}
+
+.time-shedule-row {
+    display: flex;
+    flex-direction: column;
+    /* gap: 2px; */
+    /* align-items: flex-end; */
+}
+
+.time-created-row, .time-shedule-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.time  {
     font-size: 13px;
     font-weight: 700;
+}
+
+.scheduled-date {
+    font-size: 13px;
+    color: #d97706;
+    font-weight: 700;
+}
+
+.scheduled-time {
+    color: #d97706;
 }
 
 .address-cell {

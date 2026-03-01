@@ -72,6 +72,7 @@ const EditOrder = () => {
     building: "",
     floor: "",
     code: "",
+    numOfPeople: "",
     courierId: "",
     deliveryFee: "",
     payment: "", // internal value: 'cash' | 'card' | 'wire'
@@ -170,6 +171,7 @@ const EditOrder = () => {
       building: o.addressBuilding || "",
       floor: o.addressFloor || "",
       code: o.addressCode || "",
+      numOfPeople: o.numOfPeople || "",
       courierId: o.courierId || "",
       deliveryFee: o.deliveryFee ?? "",
       payment: o.paymentMethod || "", // 'cash' | 'card' | 'wire'
@@ -319,6 +321,7 @@ const EditOrder = () => {
         building: formData.building,
         floor: formData.floor,
         code: formData.code,
+        numOfPeople: formData.numOfPeople ? Number(formData.numOfPeople) : null,
         notes: formData.notes,
         selectedItems: selectedItems.map((i) => ({
           id: i.id,
@@ -467,6 +470,16 @@ const EditOrder = () => {
                     value={formData.code}
                     onChange={(e) => handleInputChange("code", e.target.value)}
                     placeholder={t("createOrder.placeholders.code")}
+                  />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>{t("createOrder.fields.numOfPeople")}</label>
+                  <input
+                    value={formData.numOfPeople}
+                    onChange={(e) => handleInputChange("numOfPeople", e.target.value)}
+                    placeholder={t("createOrder.placeholders.numOfPeople")}
                   />
                 </div>
               </div>

@@ -107,7 +107,8 @@
       "searchItems": "Search items",
       "payment": "Payment method",
       "pickup": "Pickup point",
-      "notes": "Notes (optional)"
+      "notes": "Notes (optional)",
+      "numOfPeople": "Number of people"
     },
     "placeholders": {
       "phone": "+371XXXXXXXX",
@@ -123,7 +124,8 @@
       "search": "Start typing dish name...",
       "payment": "Select payment method",
       "pickup": "Select pickup point",
-      "notes": "Additional order information"
+      "notes": "Additional order information",
+      "numOfPeople": "Enter number of people"
     },
     "orderType": {
       "active": "Active order",
