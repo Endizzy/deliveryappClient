@@ -298,11 +298,11 @@ const OrderPanel = () => {
             <option>{t("orderPanel.filter.byAmount")}</option>
           </select> */}
           {/* prediction */}
-          <div>
-            <button className="nav-tab" >
-              prediction
-            </button>
-          </div>
+        <div>
+          <button className="nav-tab" onClick={() => navigate("/orderPrediction")}>
+            Predictions
+          </button>
+        </div>
         </div>
       </nav>
 

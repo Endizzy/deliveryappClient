@@ -1,0 +1,207 @@
+/* =========================================
+   Prediction Dashboard Specific Styles
+   ========================================= */
+
+/* Override the 9-column order grid to a 3-column grid for predictions */
+.prediction-page {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    background: var(--app-gradient);
+    min-height: 100vh;
+    color: #334155;
+}
+
+.header {
+    background: var(--app-gradient);
+    backdrop-filter: blur(10px);
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+} 
+
+.table-container {
+    padding: 24px;
+}
+.prediction-grid {
+    grid-template-columns: 120px 150px 1fr;
+}
+
+.forecast-header-panel {
+    background: white;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.forecast-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 4px;
+}
+
+.forecast-subtitle {
+    font-size: 13px;
+    color: #64748b;
+}
+
+/* Temperature Badges */
+.temp-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.temp-cold { background: #e0f2fe; color: #0284c7; } /* < 10°C */
+.temp-mild { background: #f1f5f9; color: #475569; } /* 10-20°C */
+.temp-warm { background: #ffedd5; color: #c2410c; } /* > 20°C */
+
+/* Demand Indicators */
+.demand-indicator {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    min-width: 40px;
+    text-align: center;
+}
+.demand-low { background: #f1f5f9; color: #64748b; }
+.demand-med { background: #dbeafe; color: #2563eb; }
+.demand-high { background: #fef3c7; color: #d97706; }
+.demand-peak { background: #fee2e2; color: #dc2626; }
+
+* Orders Container */
+
+
+.orders-table {
+    flex: 1;
+    overflow-x: auto;
+    /*background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);*/
+    background: var(--app-gradient);
+}
+
+.table-header {
+    display: grid;
+    grid-template-columns: 80px 120px 120px 1fr 200px 100px 130px 120px 120px;
+    /*background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);*/
+    /*background: linear-gradient(135deg, rgba(242, 243, 246, 0.79) 0%, #edf2f8 100%);*/
+    /*background: linear-gradient(135deg, rgba(15, 32, 39, 0.70) 0%, rgba(32, 58, 67, 0.70) 50%, rgba(44, 83, 100, 0.70) 100%);*/
+    /*background: linear-gradient(135deg, rgba(102, 126, 234, 0.80) 0%, rgba(118, 75, 162, 0.80) 100%);*/
+    background: var(--app-headerGradient);
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.20), 0 10px 25px rgba(0, 0, 0, 0.20);
+    position: sticky;
+    /*color: white;*/
+    top: 0;
+    z-index: 10;
+}
+
+.header-cell {
+    padding: 16px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    /*color: #64748b;*/
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    border-right: 1px solid #e2e8f0;
+}
+
+.header-cell.filter-header {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    gap: 5px;
+}
+
+.header-cell.filter-header:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.header-cell.filter-header.active {
+    background-color: rgba(255, 255, 255, 0.15);
+    font-weight: 700;
+}
+
+.filter-badge {
+    margin-left: 4px;
+    display: inline-block;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+.header-number {
+    padding: 16px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    /*color: #64748b;*/
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid #e2e8f0;
+}
+
+.header-cell:last-child {
+    border-right: none;
+}
+
+.checkbox-cell {
+    justify-content: center;
+}
+
+.table-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.table-row {
+    display: grid;
+    grid-template-columns: 80px 120px 120px 1fr 200px 100px 130px 120px 120px;
+    border-bottom: 1px solid #f1f5f9;
+    transition: all 0.2s ease;
+    min-height: 72px;
+}
+
+.table-row:hover {
+    background: #f8fafc;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.table-row:last-child {
+    border-bottom: none;
+}
+
+.cell {
+    padding: 16px 12px;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: #374151;
+    border-right: 1px solid #f1f5f9;
+    overflow: hidden;
+}
+
+.cell:last-child {
+    border-right: none;
+}
+
+.checkbox-cell {
+    justify-content: center;
+}
