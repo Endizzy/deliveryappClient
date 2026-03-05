@@ -85,6 +85,7 @@ const Login = () => {
             } else {
                 // Normal login without 2FA
                 localStorage.setItem("token", data.token);
+                
 
                 if (!formData.remember) {
                     sessionStorage.setItem("token", data.token);

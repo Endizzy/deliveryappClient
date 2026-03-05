@@ -34,6 +34,7 @@ export default function UserProfile() {
 
         setUser(data.user);
         setCompany(data.company ?? null);
+        localStorage.setItem("companyId", data.user.companyId || ""); 
       } catch (e) {
         setErr(e.message);
       } finally {
