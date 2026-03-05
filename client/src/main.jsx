@@ -18,6 +18,7 @@ import EditOrder from "./EditOrder";
 import './i18n';
 import { SoundProvider } from "./provider/SoundContext.jsx";
 import { TimeCounterProvider } from "./provider/TimeContext.jsx";
+import OrderPrediction from "./OrderPrediction.jsx";
 
 createRoot(document.getElementById("root")).render(
     <BrowserRouter>
@@ -80,6 +81,14 @@ createRoot(document.getElementById("root")).render(
                             element={
                                 <ProtectedRoute allowedRoles={["owner", "admin"]}>
                                     <CreateOrder />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/orderPrediction"
+                            element={
+                                <ProtectedRoute allowedRoles={["owner", "admin"]}>
+                                    <OrderPrediction />
                                 </ProtectedRoute>
                             }
                         />

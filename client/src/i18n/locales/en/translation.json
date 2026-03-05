@@ -438,5 +438,13 @@
   "loadingSpin": {
     "title": "Loading…",
     "desc": "Please wait"
+  },
+  "orderPrediction" : {
+    "title" : "Order prediction",
+    "subtitle" : "Using our ML algorithm predict order count for today",
+    "timeslot" : "Time Slot",
+    "weather" :  "Weather (Hourly)",
+    "orders" : "Predicted Order Volume",
+    "orders_exp" : "orders expected"
   }
 }

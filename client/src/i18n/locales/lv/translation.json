@@ -439,5 +439,13 @@
   "loadingSpin": {
     "title": "Ielādē…",
     "desc": "Lūdzu, uzgaidiet"
+  },
+  "orderPrediction" : {
+    "title" : "Pasūtījumu prognozēšana",
+    "subtitle" : "Izmantojot mūsu mašīnmācīšanās algoritmus prognozēt pasūtījumu skaitu, kas būs šodien",
+    "timeslot" : "Laika intervals",
+    "weather" :  "Gaisa temperatūra",
+    "orders" : "Pasūtījumu skaits",
+    "orders_exp" : "pasūtījumu plānot saņemt"
   }
 }
