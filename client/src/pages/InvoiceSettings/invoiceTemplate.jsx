@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./invoiceTemplate.module.css";
+import styles from "./InvoiceTemplate.module.css";
 
 export default function InvoiceTemplate({ settings }) {
   // Примерные данные для превью (позже заменятся реальными данными заказа)

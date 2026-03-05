@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Save, FileText, Mail, MessageSquare, Building2, Globe, Phone } from "lucide-react";
 import styles from "./InvoiceSettings.module.css";
 import Header from "../../components/Header/Header.jsx";
-import InvoiceTemplate from "./invoiceTemplate.jsx";
+import InvoiceTemplate from "./InvoiceTemplate.jsx";
 import { useTranslation } from "react-i18next";
 
 export default function InvoiceSettings() {
