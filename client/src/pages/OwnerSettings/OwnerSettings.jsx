@@ -21,6 +21,8 @@ export default function OwnerSettings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [invoice, setInvoice] = useState(false);
+
   // визуальные поля
   const [restaurant, setRestaurant] = useState({ name: "", logo: "" });
 
@@ -413,6 +415,7 @@ export default function OwnerSettings() {
       {/* Content */}
       <div className="owner-content">
         {/* General info */}
+        {/* restaurant info */}
         <section className="owner-card">
           <div className="owner-card-header">
             <div className="owner-card-title">
@@ -427,40 +430,66 @@ export default function OwnerSettings() {
             </button>
           </div>
 
-          <div className="owner-grid-2">
-            <div className="owner-field">
-              <label>{t("ownerSettings.general.restaurantName")}</label>
-              <input
-                value={restaurant.name}
-                onChange={(e) => setRestaurant((r) => ({ ...r, name: e.target.value }))}
-                placeholder={t("ownerSettings.general.restaurantNamePlaceholder")}
-              />
+          <div className="new-grid-2">
+            <div className="owner-card-2">
+              <div className="owner-field">
+                <label>{t("ownerSettings.general.restaurantName")}</label>
+                <input
+                  value={restaurant.name}
+                  onChange={(e) => setRestaurant((r) => ({ ...r, name: e.target.value }))}
+                  placeholder={t("ownerSettings.general.restaurantNamePlaceholder")}
+                />
+              </div>
+
+              <div className="owner-field">
+                <label>{t("ownerSettings.general.logo")}</label>
+                <div className="owner-logo-uploader">
+                  {restaurant.logo ? (
+                    <img className="owner-logo-preview" src={restaurant.logo} alt="logo" />
+                  ) : (
+                    <div className="owner-logo-placeholder">
+                      <ImageIcon size={24} />
+                      <span>{t("ownerSettings.general.noLogo")}</span>
+                    </div>
+                  )}
+
+                  <label className="owner-upload-btn">
+                    <Upload size={16} /> {t("ownerSettings.actions.upload")}
+                    <input type="file" accept="image/*" onChange={onLogoChange} hidden />
+                  </label>
+
+                  {restaurant.logo && (
+                    <button
+                      className="owner-secondary-btn"
+                      onClick={() => setRestaurant((r) => ({ ...r, logo: "" }))}
+                    >
+                      <X size={16} /> {t("ownerSettings.actions.delete")}
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
 
-            <div className="owner-field">
-              <label>{t("ownerSettings.general.logo")}</label>
-              <div className="owner-logo-uploader">
-                {restaurant.logo ? (
-                  <img className="owner-logo-preview" src={restaurant.logo} alt="logo" />
+            {/* Invoice settings */}
+            <div className="owner-card-2">
+              <div className="owner-field">
+                <label>Настройка накладной</label>
+              </div>
+
+              <div className="owner-field">
+                <button className="owner-invoice-btn" onClick={() => navigate("/invoiceSettings")}>
+                  <Edit size={16} /> Редактировать шаблон
+                </button>
+
+
+                {!invoice ? (
+                  <span className="owner-invoice-status-disabled">
+                    Шаблон не настроен
+                  </span>
                 ) : (
-                  <div className="owner-logo-placeholder">
-                    <ImageIcon size={24} />
-                    <span>{t("ownerSettings.general.noLogo")}</span>
-                  </div>
-                )}
-
-                <label className="owner-upload-btn">
-                  <Upload size={16} /> {t("ownerSettings.actions.upload")}
-                  <input type="file" accept="image/*" onChange={onLogoChange} hidden />
-                </label>
-
-                {restaurant.logo && (
-                  <button
-                    className="owner-secondary-btn"
-                    onClick={() => setRestaurant((r) => ({ ...r, logo: "" }))}
-                  >
-                    <X size={16} /> {t("ownerSettings.actions.delete")}
-                  </button>
+                  <span className="owner-invoice-status-active">
+                    Шаблон активен
+                  </span>
                 )}
               </div>
             </div>

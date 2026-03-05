@@ -1,0 +1,83 @@
+/* Layout для страницы настроек накладной */
+.layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+}
+
+.settingsPanel {
+    height: fit-content;
+}
+
+.previewPanel {
+    position: sticky;
+    top: 24px;
+    height: fit-content;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.infoBox {
+    background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+    border: 1px solid #c7d2fe;
+    border-radius: 10px;
+    padding: 14px;
+    margin-top: 8px;
+}
+
+.infoBox p {
+    margin: 0;
+    font-size: 13px;
+    color: #4338ca;
+    line-height: 1.6;
+}
+
+/* Контейнер превью с масштабированием */
+.previewContainer {
+    margin-top: 16px;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overflow: auto;
+    max-height: 750px;
+    min-height: 750px;
+}
+
+/* Responsive для планшетов и мобильных */
+@media (max-width: 1400px) {
+    .layout {
+        grid-template-columns: 1fr;
+    }
+
+    .previewPanel {
+        position: relative;
+        top: 0;
+    }
+}
+
+@media (max-width: 900px) {
+    .previewContainer {
+        padding: 10px;
+    }
+}
+
+/* Стили для печати */
+@media print {
+    .settingsPanel {
+        display: none !important;
+    }
+
+    .previewContainer {
+        padding: 0;
+        background: white;
+    }
+}

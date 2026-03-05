@@ -80,7 +80,7 @@ const OrderPanel = () => {
     if (!iso) return "";
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return "";
-    return d.toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit" });
+    return d.toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit", hour12: false });
   };
 
   // localized month/day only

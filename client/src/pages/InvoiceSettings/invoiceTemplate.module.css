@@ -1,0 +1,138 @@
+/* Шаблон накладной A4 */
+.page {
+    width: 210mm;
+    min-height: 297mm;
+    background: white;
+    padding: 20mm;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    font-family: Arial, Helvetica, sans-serif;
+    color: #000;
+    position: relative;
+    transform: scale(0.7);
+    transform-origin: top center;
+    margin: 0 auto;
+}
+
+/* Водяной знак */
+.watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    font-size: 80pt;
+    font-weight: 900;
+    color: rgba(102, 126, 234, 0.08);
+    pointer-events: none;
+    z-index: 1;
+    letter-spacing: 10px;
+}
+
+/* Утилиты */
+.center {
+    text-align: center;
+}
+
+.right {
+    text-align: right;
+}
+
+.small {
+    font-size: 12px;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+.summaryLine {
+    width: 100%;
+    border-bottom: 2px solid #cfcfcf;
+    /* margin: 200px 0; */
+}
+
+/* Линия-разделитель */
+.line {
+    width: 100%;
+    border-bottom: 1px solid #cfcfcf;
+    margin: 10px 0;
+}
+
+/* Заголовок */
+.title {
+    font-size: 26px;
+    font-weight: 500;
+    margin: 10px 0;
+}
+
+/* Блоки текста */
+.block {
+    text-align: center;
+    line-height: 1.5;
+}
+
+/* Таблица товаров */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin: 10px 0;
+    color: black;
+}
+
+.table th,
+.table td {
+    padding: 6px 4px;
+}
+
+.table thead {
+    border-bottom: 1px solid #cfcfcf;
+}
+
+.table thead th {
+    font-weight: normal;
+    text-align: right;
+}
+
+.table tbody tr {
+    border-bottom: 1px solid #eee;
+}
+
+.table tbody tr:last-child {
+    border-bottom: none;
+}
+
+/* Сводка (итого) */
+.summary {
+    width: 300px;
+    margin-left: auto;
+    margin-top: 20px;
+    color: black;
+    /* border: 2px solid #cfcfcf; */
+}
+
+.summary table {
+    width: 100%;
+    font-size: 14px;
+    color: black;
+}
+
+.summary table td {
+    padding: 4px;
+}
+
+/* Футер */
+.footer {
+    margin-top: 40px;
+    text-align: center;
+    font-size: 14px;
+}
+
+/* Стили для печати */
+@media print {
+    .page {
+        transform: scale(1);
+        box-shadow: none;
+        margin: 0;
+        page-break-after: always;
+    }
+}

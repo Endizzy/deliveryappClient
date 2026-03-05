@@ -14,6 +14,7 @@ import { ThemeProvider } from "./provider/ThemeContext.jsx";
 import NotificationProvider from "./provider/NotificationProvider.jsx";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute.jsx";
 import Unauthorized from "./pages/UnAuthorized/Unauthorized.jsx";
+import InvoiceSettings from "./pages/InvoiceSettings/InvoiceSettings.jsx";
 import EditOrder from "./EditOrder";
 import './i18n';
 import { SoundProvider } from "./provider/SoundContext.jsx";
@@ -39,6 +40,15 @@ createRoot(document.getElementById("root")).render(
                             element={
                                 <ProtectedRoute allowedRoles={["owner"]}>
                                     <OwnerSettings />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/invoiceSettings"
+                            element={
+                                <ProtectedRoute allowedRoles={["owner"]}>
+                                    <InvoiceSettings />
                                 </ProtectedRoute>
                             }
                         />
