@@ -16,19 +16,9 @@ const OrderPrediction = () => {
   useEffect(() => {
     const fetchPredictions = async () => {
       try {
-        const today = new Date().toISOString().split('T')[0];
-        
-        // Example: working hours from 10 AM to 10 PM
-        const requestPayload = {
-          date: today,
-          start_hour: 10,
-          end_hour: 22
-        };
 
-        const response = await fetch('http://localhost:5000/predict_day', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestPayload)
+        const response = await fetch(`${import.meta.env.VITE_PREDICTIONS}?company_id=${parseInt(localStorage.getItem('companyId'))}`, {
+          method: 'GET'
         });
 
         const result = await response.json();
