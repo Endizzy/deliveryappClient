@@ -19,7 +19,7 @@ import EditOrder from "./EditOrder";
 import './i18n';
 import { SoundProvider } from "./provider/SoundContext.jsx";
 import { TimeCounterProvider } from "./provider/TimeContext.jsx";
-import OrderPrediction from "./OrderPrediction.jsx";
+import OrderPrediction from "./pages/OrderPrediction/OrderPrediction.jsx";
 
 createRoot(document.getElementById("root")).render(
     <BrowserRouter>

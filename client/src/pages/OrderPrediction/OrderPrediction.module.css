@@ -1,0 +1,297 @@
+.predictionPage {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+  background: var(--app-gradient);
+  min-height: 100vh;
+  color: #334155;
+}
+
+.header {
+  background: var(--app-gradient);
+  backdrop-filter: blur(10px);
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.headerLeft {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: rgba(255, 255, 255, 0.14);
+  color: white;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.backBtn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+.pageTitle h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: white;
+}
+
+.pageTitle p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.tableContainer {
+  padding: 24px;
+}
+
+.ordersTable {
+  flex: 1;
+  overflow-x: auto;
+  background: var(--app-gradient);
+  border-radius: 16px;
+}
+
+.tableHeader {
+  display: grid;
+  grid-template-columns: 200px 200px 1fr;
+  background: var(--app-headerGradient);
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 10px 25px rgba(0, 0, 0, 0.2);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.headerCell {
+  padding: 16px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  border-right: 1px solid #e2e8f0;
+}
+
+.headerCell:last-child {
+  border-right: none;
+}
+
+.tableBody {
+  display: flex;
+  flex-direction: column;
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: 200px 200px 1fr;
+  border-bottom: 1px solid #f1f5f9;
+  transition: all 0.2s ease;
+  min-height: 72px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.rowClickable {
+  cursor: default;
+}
+
+.tableRow:hover {
+  background: #f8fafc;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.tableRow:last-child {
+  border-bottom: none;
+}
+
+.cell {
+  padding: 16px 12px;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #374151;
+  border-right: 1px solid #f1f5f9;
+  overflow: hidden;
+}
+
+.cell:last-child {
+  border-right: none;
+}
+
+.timeCell {
+  display: flex;
+  align-items: center;
+}
+
+.timeInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.time {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.timeDuration {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.statusReady {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.statusInprogress {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.amountCell {
+  justify-content: flex-start;
+}
+
+.amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ordersExp {
+  margin-left: 8px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.ownerEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  padding: 24px;
+  font-size: 15px;
+  color: #64748b;
+  text-align: center;
+}
+
+.forecastHeaderPanel {
+  background: white;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.forecastTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 4px;
+}
+
+.forecastSubtitle {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.tempBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tempCold {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.tempMild {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.tempWarm {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.demandIndicator {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  min-width: 40px;
+  text-align: center;
+}
+
+.demandLow {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.demandMed {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.demandHigh {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.demandPeak {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 16px;
+  }
+
+  .tableContainer {
+    padding: 16px;
+  }
+
+  .tableHeader,
+  .tableRow {
+    min-width: 700px;
+  }
+
+  .pageTitle h1 {
+    font-size: 22px;
+  }
+}
