@@ -273,7 +273,7 @@ const EditOrder = () => {
     }
 
     if (selectedItems.length === 0) e.items = t("createOrder.validation.itemsRequired");
-    if (!formData.courierId) e.courier = t("createOrder.validation.courierRequired");
+    // if (!formData.courierId) e.courier = t("createOrder.validation.courierRequired");
     if (!formData.pickupId) e.restaurant = t("createOrder.validation.pickupRequired");
     if (!formData.payment) e.payment = t("createOrder.validation.paymentRequired");
 
