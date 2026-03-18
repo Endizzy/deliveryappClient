@@ -809,10 +809,10 @@ const EditOrder = () => {
                 className="btn-primary"
                 onClick={handlePrint}
                 disabled={isLoading}
-                title={t("createOrder.buttons.print", { defaultValue: "Drukāt" })}
+                title={t("createOrder.buttons.print")}
               >
                 <Printer size={16} />
-                {t("createOrder.buttons.print", { defaultValue: "Drukāt" })}
+                {t("createOrder.buttons.print")}
               </button>
 
               <button type="button" className="btn-primary" disabled={isSaving} onClick={handleSave}>

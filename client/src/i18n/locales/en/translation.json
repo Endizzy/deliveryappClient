@@ -142,7 +142,8 @@
     "buttons": {
       "cancel": "Cancel",
       "create": "Create order",
-      "creating": "Creating..."
+      "creating": "Creating...",
+      "print": "Print"
     },
     "validation": {
       "customerRequired": "Customer name is required",

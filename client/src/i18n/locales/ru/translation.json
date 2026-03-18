@@ -142,7 +142,8 @@
     "buttons": {
       "cancel": "Отменить",
       "create": "Создать заказ",
-      "creating": "Создание..."
+      "creating": "Создание...",
+      "print": "Печать"
     },
     "validation": {
       "customerRequired": "Имя клиента обязательно",

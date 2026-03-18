@@ -143,7 +143,8 @@
     "buttons": {
       "cancel": "Atcelt",
       "create": "Izveidot pasūtījumu",
-      "creating": "Veido..."
+      "creating": "Veido...",
+      "print": "Drukāt"
     },
     "validation": {
       "customerRequired": "Klienta vārds ir obligāts",
