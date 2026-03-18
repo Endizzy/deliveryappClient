@@ -1,59 +1,41 @@
 import React from "react";
 import styles from "./InvoiceTemplate.module.css";
 
-export default function InvoiceTemplate({ settings }) {
-  // Примерные данные для превью (позже заменятся реальными данными заказа)
-  const sampleOrder = {
-    number: "1",
-    createdAt: "2026-02-28 13:09:39",
-    deliveryDate: "28.02.16:00",
-    customerPhone: "+37126005990",
-    customerName: "diana, kreslina",
-    address: "Dzelzavas iela 76-149",
-    floor: "2",
-    doorCode: "240 #7469",
-    peopleCount: "5",
-    extraTime: "+20min",
-    notes: "",
-    paymentMethod: "Karte",
-    items: [
-      { name: "Iepakojums no 40-50 eiro", price: 1.20, quantity: 1 },
-      { name: "King Set (64gb) Akcija", price: 46.80, quantity: 1 }
-    ],
-    deliveryFee: 0.0,
-    discount: 0.00
-  };
-
-  const subtotal = sampleOrder.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const total = subtotal + sampleOrder.deliveryFee - sampleOrder.discount;
+const InvoiceTemplate = React.forwardRef(function InvoiceTemplate({ settings = {}, order = {} }, ref) {
+  const items = order.items || [];
+  const deliveryFee = Number(order.deliveryFee || 0);
+  const discount = Number(order.discount || 0);
+  const subtotal = items.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 1), 0);
+  const total = subtotal + deliveryFee - discount;
 
   return (
-    <div className={styles.page}>
+    <div ref={ref} className={styles.page}>
       <div className={`${styles.center} ${styles.small}`}>
         {settings.companyName || "BENTO SUSHI"}
       </div>
       <div className={styles.line}></div>
 
       <div className={`${styles.center} ${styles.title}`}>
-        Pasūtījums N {sampleOrder.number}
+        Pasūtījums N {order.number || "—"}
       </div>
 
       <div className={`${styles.block} ${styles.small}`}>
-        Izveidots {sampleOrder.createdAt}<br />
-        Piegādes datums un laiks {sampleOrder.deliveryDate}
-      </div>
-      <div className={styles.line}></div>
-
-      <div className={`${styles.block} ${styles.small}`}>
-        {sampleOrder.customerPhone} {sampleOrder.customerName}
+        Izveidots {order.createdAt || "—"}<br />
+        Piegādes datums un laiks {order.deliveryDate || "—"}
       </div>
       <div className={styles.line}></div>
 
       <div className={`${styles.block} ${styles.small}`}>
-        {sampleOrder.address}<br />
-        Stāvs {sampleOrder.floor}, Durvju kods {sampleOrder.doorCode}<br />
-        Personu skaits {sampleOrder.peopleCount}<br />
-        {sampleOrder.extraTime}
+        {order.customerPhone || "—"} {order.customerName || "—"}
+      </div>
+      <div className={styles.line}></div>
+
+      <div className={`${styles.block} ${styles.small}`}>
+        {order.address || "—"}<br />
+        {order.floor ? `Stāvs ${order.floor}, ` : ""}
+        {order.doorCode ? `Durvju kods ${order.doorCode}` : ""}<br />
+        {order.peopleCount ? `Personu skaits ${order.peopleCount}` : ""}
+        {order.extraTime ? <><br />{order.extraTime}</> : null}
       </div>
       <div className={styles.line}></div>
 
@@ -76,12 +58,12 @@ export default function InvoiceTemplate({ settings }) {
           </tr>
         </thead>
         <tbody>
-          {sampleOrder.items.map((item, index) => (
+          {items.map((item, index) => (
             <tr key={index}>
               <td>{item.name}</td>
-              <td className={styles.right}>{item.price.toFixed(2)}</td>
+              <td className={styles.right}>{Number(item.price).toFixed(2)}</td>
               <td className={styles.right}>{item.quantity}</td>
-              <td className={styles.right}>{(item.price * item.quantity).toFixed(2)}</td>
+              <td className={styles.right}>{(Number(item.price) * Number(item.quantity)).toFixed(2)}</td>
             </tr>
           ))}
         </tbody>
@@ -90,27 +72,25 @@ export default function InvoiceTemplate({ settings }) {
       <div className={styles.line}></div>
 
       <div className={styles.small}>
-        Piezīmes: {sampleOrder.notes || "-"}
+        Piezīmes: {order.notes || "-"}
       </div>
       <div className={styles.line}></div>
 
       <div className={styles.small}>
-        Apmaksas veids: {sampleOrder.paymentMethod}
+        Apmaksas veids: {order.paymentMethod || "—"}
       </div>
 
       <div className={styles.summary}>
         <table>
           <tbody>
-
             <tr>
               <td colSpan={2}>
                 <hr className={styles.summaryLine} />
               </td>
             </tr>
-
             <tr>
               <td>Maksa par piegādi</td>
-              <td className={styles.right}>{sampleOrder.deliveryFee.toFixed(2)}</td>
+              <td className={styles.right}>{deliveryFee.toFixed(2)}</td>
             </tr>
             <tr>
               <td>Kopējā summa</td>
@@ -118,13 +98,12 @@ export default function InvoiceTemplate({ settings }) {
             </tr>
             <tr>
               <td>Atlaide</td>
-              <td className={styles.right}>{sampleOrder.discount.toFixed(2)}</td>
+              <td className={styles.right}>{discount.toFixed(2)}</td>
             </tr>
             <tr className={styles.bold}>
               <td>Pavisam apmaksai</td>
               <td className={styles.right}>{total.toFixed(2)}</td>
             </tr>
-
             <tr>
               <td colSpan={2}>
                 <hr className={styles.summaryLine} />
@@ -139,4 +118,6 @@ export default function InvoiceTemplate({ settings }) {
       </div>
     </div>
   );
-}
+});
+
+export default InvoiceTemplate;

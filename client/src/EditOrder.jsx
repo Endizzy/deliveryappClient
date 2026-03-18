@@ -1,5 +1,4 @@
-
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   Save,
@@ -12,12 +11,15 @@ import {
   Plus,
   Minus,
   X,
+  Printer,
 } from "lucide-react";
 import "./CreateOrder.css";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useReactToPrint } from "react-to-print";
 import { discountedUnitCents, formatCents, lineTotalCents, toCents } from "./utils/money.js";
 import Loader from "./components/Loader/Loader.jsx";
+import InvoiceTemplate from "./pages/InvoiceSettings/InvoiceTemplate.jsx";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -29,6 +31,12 @@ const formatPhoneNumber = (value) => {
   return cleaned;
 };
 
+// Payment label mapping
+const PAYMENT_LABELS = {
+  cash: "Skaidra nauda",
+  card: "Karte",
+  wire: "Pārskaitījums",
+};
 
 // хелперы для дат/времени
 const pad2 = (n) => String(n).padStart(2, "0");
@@ -41,6 +49,10 @@ const EditOrder = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { id } = useParams();
+
+  // ref for printing
+  const printRef = useRef(null);
+  const [orderCreatedAt, setOrderCreatedAt] = useState("");
 
   const token = useMemo(
     () => localStorage.getItem("token") || sessionStorage.getItem("token"),
@@ -75,14 +87,13 @@ const EditOrder = () => {
     numOfPeople: "",
     courierId: "",
     deliveryFee: "",
-    payment: "", // internal value: 'cash' | 'card' | 'wire'
+    payment: "",
     pickupId: "",
     notes: "",
     scheduledDate: "",
     scheduledTime: "",
   });
 
-  // формат числа и защита (как в CreateOrder)
   const deliveryFeeNum = Number(String(formData.deliveryFee).replace(",", "."));
   const safeDeliveryFee = Number.isFinite(deliveryFeeNum) ? deliveryFeeNum : 0;
 
@@ -99,13 +110,54 @@ const EditOrder = () => {
     return toLocalTimeInput(d);
   })();
 
+  // Build the invoice order object from current form state
+  const invoiceOrder = useMemo(() => {
+    const addressParts = [formData.street, formData.house, formData.building]
+      .filter(Boolean)
+      .join(" ");
+    const apartPart = formData.apart ? `-${formData.apart}` : "";
+    const address = addressParts + apartPart;
+
+    const deliveryDate = formData.scheduledDate && formData.scheduledTime
+      ? `${formData.scheduledDate.split("-").reverse().join(".")} ${formData.scheduledTime}`
+      : formData.orderType === "active"
+        ? t("createOrder.orderType.active", { defaultValue: "Aktīvs" })
+        : "—";
+
+    return {
+      number: id,
+      createdAt: orderCreatedAt,
+      deliveryDate,
+      customerPhone: formData.phone,
+      customerName: formData.customer,
+      address,
+      floor: formData.floor,
+      doorCode: formData.code,
+      peopleCount: formData.numOfPeople,
+      notes: formData.notes,
+      paymentMethod: PAYMENT_LABELS[formData.payment] || formData.payment,
+      items: selectedItems.map((i) => ({
+        name: i.name,
+        price: i.discount > 0
+          ? (discountedUnitCents(i.price, i.discount) / 100).toFixed(2)
+          : i.price,
+        quantity: i.quantity,
+      })),
+      deliveryFee: safeDeliveryFee,
+      discount: 0,
+    };
+  }, [formData, selectedItems, id, orderCreatedAt, safeDeliveryFee, t]);
+
+  // react-to-print hook
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Order_${id}`,
+  });
+
   // справочники
   const fetchCouriers = async () => {
     const r = await fetch(`${API}/order-support/couriers`, { headers: authHeaders });
-    if (r.status === 401) {
-      navigate("/login");
-      return;
-    }
+    if (r.status === 401) { navigate("/login"); return; }
     const d = await r.json();
     if (!r.ok || !d.ok) throw new Error(d.error || t("createOrder.errors.couriersLoadFailed"));
     setCouriers(d.items || []);
@@ -113,10 +165,7 @@ const EditOrder = () => {
 
   const fetchPickupPoints = async () => {
     const r = await fetch(`${API}/order-support/pickup-points`, { headers: authHeaders });
-    if (r.status === 401) {
-      navigate("/login");
-      return;
-    }
+    if (r.status === 401) { navigate("/login"); return; }
     const d = await r.json();
     if (!r.ok || !d.ok) throw new Error(d.error || t("createOrder.errors.pickupPointsLoadFailed"));
     setPickupPoints(d.items || []);
@@ -124,10 +173,7 @@ const EditOrder = () => {
 
   const fetchAllMenu = async () => {
     const r = await fetch(`${API}/order-support/menu?all=1`, { headers: authHeaders });
-    if (r.status === 401) {
-      navigate("/login");
-      return;
-    }
+    if (r.status === 401) { navigate("/login"); return; }
     const d = await r.json();
     if (!r.ok || !d.ok) throw new Error(d.error || t("createOrder.errors.menuLoadFailed"));
     setAllMenu(d.items || []);
@@ -136,24 +182,22 @@ const EditOrder = () => {
   // загрузка заказа
   const loadOrder = async () => {
     const r = await fetch(`${API}/current-orders/${id}`, { headers: authHeaders });
-    if (r.status === 401) {
-      navigate("/login");
-      return;
-    }
+    if (r.status === 401) { navigate("/login"); return; }
     const d = await r.json();
     if (!r.ok || !d.ok)
-      throw new Error(
-        d.error ||
-          t("createOrder.errors.getOrderFailed", {
-            defaultValue: "Не удалось получить заказ",
-          })
-      );
+      throw new Error(d.error || t("createOrder.errors.getOrderFailed", { defaultValue: "Не удалось получить заказ" }));
 
     const o = d.item;
 
-    // scheduledAt -> date/time
-    let scheduledDate = "",
-      scheduledTime = "";
+    // Save original createdAt for the invoice
+    if (o.createdAt) {
+      const dt = new Date(o.createdAt);
+      setOrderCreatedAt(
+        `${dt.getFullYear()}-${pad2(dt.getMonth() + 1)}-${pad2(dt.getDate())} ${pad2(dt.getHours())}:${pad2(dt.getMinutes())}:${pad2(dt.getSeconds())}`
+      );
+    }
+
+    let scheduledDate = "", scheduledTime = "";
     if (o.scheduledAt) {
       const dt = new Date(o.scheduledAt);
       scheduledDate = toLocalDateInput(dt);
@@ -174,7 +218,7 @@ const EditOrder = () => {
       numOfPeople: o.numOfPeople || "",
       courierId: o.courierId || "",
       deliveryFee: o.deliveryFee ?? "",
-      payment: o.paymentMethod || "", // 'cash' | 'card' | 'wire'
+      payment: o.paymentMethod || "",
       pickupId: o.pickupId || "",
       notes: o.notes || "",
       scheduledDate,
@@ -193,15 +237,11 @@ const EditOrder = () => {
   };
 
   useEffect(() => {
-    if (!token) {
-      navigate("/login");
-      return;
-    }
+    if (!token) { navigate("/login"); return; }
     (async () => {
       try {
         await Promise.all([fetchCouriers(), fetchPickupPoints(), fetchAllMenu()]);
         await loadOrder();
-        // await Promise.all([loadOrder(), fetchCouriers(), fetchPickupPoints(), fetchAllMenu()]);
       } catch (e) {
         alert(e.message);
       } finally {
@@ -244,7 +284,6 @@ const EditOrder = () => {
 
   const removeItem = (id2) => setSelectedItems((prev) => prev.filter((i) => i.id !== id2));
 
-  // Итоговая сумма оплаты
   const calculateItemsTotalCents = () =>
     selectedItems.reduce(
       (sumCents, it) => sumCents + lineTotalCents(it.price, it.discount, it.quantity),
@@ -264,23 +303,17 @@ const EditOrder = () => {
 
   const validateForm = () => {
     const e = {};
-
     if (!formData.customer.trim()) e.customer = t("createOrder.validation.customerRequired");
-
     if (!formData.phone.trim()) e.phone = t("createOrder.validation.phoneRequired");
     else if (!/^\+371\d{8}$/.test(formData.phone.replace(/\s/g, ""))) {
       e.phone = t("createOrder.validation.phoneInvalid");
     }
-
     if (selectedItems.length === 0) e.items = t("createOrder.validation.itemsRequired");
-    // if (!formData.courierId) e.courier = t("createOrder.validation.courierRequired");
     if (!formData.pickupId) e.restaurant = t("createOrder.validation.pickupRequired");
     if (!formData.payment) e.payment = t("createOrder.validation.paymentRequired");
-
     if (formData.orderType === "preorder") {
       if (!formData.scheduledDate) e.scheduledDate = t("createOrder.validation.scheduledDateRequired");
       if (!formData.scheduledTime) e.scheduledTime = t("createOrder.validation.scheduledTimeRequired");
-
       if (formData.scheduledDate && formData.scheduledTime) {
         const scheduled = new Date(`${formData.scheduledDate}T${formData.scheduledTime}`);
         const minAllowed = new Date();
@@ -290,14 +323,12 @@ const EditOrder = () => {
         }
       }
     }
-
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const handleSave = async () => {
     if (!validateForm()) return;
-
     setIsSaving(true);
     try {
       const scheduledAt =
@@ -311,7 +342,7 @@ const EditOrder = () => {
         scheduledAt,
         courierId: Number(formData.courierId) || null,
         pickupId: Number(formData.pickupId) || null,
-        payment: formData.payment, // 'cash' | 'card' | 'wire'
+        payment: formData.payment,
         deliveryFee: safeDeliveryFee,
         customer: formData.customer,
         phone: formData.phone,
@@ -340,12 +371,7 @@ const EditOrder = () => {
 
       const d = await r.json();
       if (!r.ok || !d.ok)
-        throw new Error(
-          d.error ||
-            t("createOrder.errors.updateOrderFailed", {
-              defaultValue: "Ошибка сохранения",
-            })
-        );
+        throw new Error(d.error || t("createOrder.errors.updateOrderFailed", { defaultValue: "Ошибка сохранения" }));
 
       navigate("/orderPanel");
     } catch (e) {
@@ -355,9 +381,13 @@ const EditOrder = () => {
     }
   };
 
-
   return (
     <div className="create-order-page">
+      {/* Hidden invoice for printing */}
+      <div style={{ display: "none" }}>
+        <InvoiceTemplate ref={printRef} order={invoiceOrder} />
+      </div>
+
       <header className="header">
         <div className="header-left">
           <button className="back-btn" onClick={() => navigate("/orderPanel")}>
@@ -377,410 +407,422 @@ const EditOrder = () => {
         {isLoading ? (
           <Loader />
         ) : (
-        <div className="order-form">
-          <div className="form-grid">
-            {/* Клиент */}
-            <div className="form-section">
-              <div className="section-header">
-                <User size={20} />
-                <h3>{t("createOrder.sections.customerInfo")}</h3>
-              </div>
+          <div className="order-form">
+            <div className="form-grid">
+              {/* Клиент */}
+              <div className="form-section">
+                <div className="section-header">
+                  <User size={20} />
+                  <h3>{t("createOrder.sections.customerInfo")}</h3>
+                </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>{t("createOrder.fields.phone")} *</label>
-                  <div className="input-with-icon">
-                    <Phone size={16} />
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>{t("createOrder.fields.phone")} *</label>
+                    <div className="input-with-icon">
+                      <Phone size={16} />
+                      <input
+                        type="tel"
+                        value={formData.phone}
+                        onChange={(e) => handleInputChange("phone", formatPhoneNumber(e.target.value))}
+                        className={errors.phone ? "error" : ""}
+                        placeholder={t("createOrder.placeholders.phone")}
+                      />
+                    </div>
+                    {errors.phone && <span className="error-text">{errors.phone}</span>}
+                  </div>
+
+                  <div className="form-group">
+                    <label>{t("createOrder.fields.customer")} *</label>
                     <input
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => handleInputChange("phone", formatPhoneNumber(e.target.value))}
-                      className={errors.phone ? "error" : ""}
-                      placeholder={t("createOrder.placeholders.phone")}
+                      value={formData.customer}
+                      onChange={(e) => handleInputChange("customer", e.target.value)}
+                      className={errors.customer ? "error" : ""}
+                      placeholder={t("createOrder.placeholders.customer")}
                     />
-                  </div>
-                  {errors.phone && <span className="error-text">{errors.phone}</span>}
-                </div>
-
-                <div className="form-group">
-                  <label>{t("createOrder.fields.customer")} *</label>
-                  <input
-                    value={formData.customer}
-                    onChange={(e) => handleInputChange("customer", e.target.value)}
-                    className={errors.customer ? "error" : ""}
-                    placeholder={t("createOrder.placeholders.customer")}
-                  />
-                  {errors.customer && <span className="error-text">{errors.customer}</span>}
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>{t("createOrder.fields.street")}</label>
-                  <input
-                    value={formData.street}
-                    onChange={(e) => handleInputChange("street", e.target.value)}
-                    placeholder={t("createOrder.placeholders.street")}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>{t("createOrder.fields.house")}</label>
-                  <input
-                    value={formData.house}
-                    onChange={(e) => handleInputChange("house", e.target.value)}
-                    placeholder={t("createOrder.placeholders.house")}
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>{t("createOrder.fields.building")}</label>
-                  <input
-                    value={formData.building}
-                    onChange={(e) => handleInputChange("building", e.target.value)}
-                    placeholder={t("createOrder.placeholders.building")}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>{t("createOrder.fields.apart")}</label>
-                  <input
-                    value={formData.apart}
-                    onChange={(e) => handleInputChange("apart", e.target.value)}
-                    placeholder={t("createOrder.placeholders.apart")}
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>{t("createOrder.fields.floor")}</label>
-                  <input
-                    value={formData.floor}
-                    onChange={(e) => handleInputChange("floor", e.target.value)}
-                    placeholder={t("createOrder.placeholders.floor")}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>{t("createOrder.fields.code")}</label>
-                  <input
-                    value={formData.code}
-                    onChange={(e) => handleInputChange("code", e.target.value)}
-                    placeholder={t("createOrder.placeholders.code")}
-                  />
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>{t("createOrder.fields.numOfPeople")}</label>
-                  <input
-                    value={formData.numOfPeople}
-                    onChange={(e) => handleInputChange("numOfPeople", e.target.value)}
-                    placeholder={t("createOrder.placeholders.numOfPeople")}
-                  />
-                </div>
-              </div>
-
-              {/* Доставка */}
-              <div className="section-header">
-                <Truck size={20} />
-                <h3>{t("createOrder.sections.delivery")}</h3>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="deliveryFee">{t("createOrder.fields.deliveryFee")} €</label>
-                <input
-                  id="deliveryFee"
-                  type="number"
-                  step="0.01"
-                  inputMode="decimal"
-                  value={formData.deliveryFee}
-                  onChange={(e) => handleInputChange("deliveryFee", e.target.value)}
-                  placeholder={t("createOrder.placeholders.deliveryFee")}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>{t("createOrder.fields.courier")} *</label>
-                <select
-                  value={formData.courierId}
-                  onChange={(e) => handleInputChange("courierId", e.target.value)}
-                  className={errors.courier ? "error" : ""}
-                >
-                  <option value="">{t("createOrder.placeholders.courier")}</option>
-                  {couriers.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.nickname}
-                    </option>
-                  ))}
-                </select>
-                {errors.courier && <span className="error-text">{errors.courier}</span>}
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>{t("createOrder.fields.orderType")}</label>
-                  <div className="radio-group">
-                    <label className="radio-option">
-                      <input
-                        type="radio"
-                        name="orderType"
-                        value="active"
-                        checked={formData.orderType === "active"}
-                        onChange={(e) => handleInputChange("orderType", e.target.value)}
-                      />
-                      <span>{t("createOrder.orderType.active")}</span>
-                    </label>
-
-                    <label className="radio-option">
-                      <input
-                        type="radio"
-                        name="orderType"
-                        value="preorder"
-                        checked={formData.orderType === "preorder"}
-                        onChange={(e) => handleInputChange("orderType", e.target.value)}
-                      />
-                      <span>{t("createOrder.orderType.preorder")}</span>
-                    </label>
+                    {errors.customer && <span className="error-text">{errors.customer}</span>}
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label>{t("createOrder.fields.status", { defaultValue: "Status" })}</label>
-                  <select value={formData.status} onChange={(e) => handleInputChange("status", e.target.value)}>
-                    <option value="new">new</option>
-                    <option value="ready">ready</option>
-                    <option value="enroute">enroute</option>
-                    <option value="paused">paused</option>
-                    <option value="cancelled">cancelled</option>
-                  </select>
-                </div>
-              </div>
-
-              {formData.orderType === "preorder" && (
-                <>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>{t("createOrder.fields.scheduledDate")} *</label>
-                      <input
-                        type="date"
-                        min={minDate}
-                        value={formData.scheduledDate}
-                        onChange={(e) => handleInputChange("scheduledDate", e.target.value)}
-                        className={errors.scheduledDate ? "error" : ""}
-                      />
-                      {errors.scheduledDate && <span className="error-text">{errors.scheduledDate}</span>}
-                    </div>
-
-                    <div className="form-group">
-                      <label>{t("createOrder.fields.scheduledTime")} *</label>
-                      <input
-                        type="time"
-                        value={formData.scheduledTime}
-                        onChange={(e) => handleInputChange("scheduledTime", e.target.value)}
-                        className={errors.scheduledTime ? "error" : ""}
-                        min={formData.scheduledDate === minDate ? minTimeToday : undefined}
-                      />
-                      {errors.scheduledTime && <span className="error-text">{errors.scheduledTime}</span>}
-                    </div>
-                  </div>
-
-                  <div className="hint muted" style={{ marginTop: 4 }}>
-                    {t("createOrder.preorderHint", { min: PREORDER_MIN_OFFSET_MIN })}
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Товары */}
-            <div className="form-section">
-              <div className="section-header">
-                <Package size={20} />
-                <h3>{t("createOrder.sections.items")}</h3>
-              </div>
-
-              <div className="form-group">
-                <label>{t("createOrder.fields.searchItems")} *</label>
-                <div className="search-container">
-                  <div className="input-with-icon">
-                    <Search size={16} />
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>{t("createOrder.fields.street")}</label>
                     <input
-                      value={searchTerm}
-                      onChange={(e) => {
-                        setSearchTerm(e.target.value);
-                        setShowSearchResults(e.target.value.length > 0);
-                      }}
-                      onFocus={() => setShowSearchResults(searchTerm.length > 0)}
-                      className={errors.items ? "error" : ""}
-                      placeholder={t("createOrder.placeholders.search")}
+                      value={formData.street}
+                      onChange={(e) => handleInputChange("street", e.target.value)}
+                      placeholder={t("createOrder.placeholders.street")}
                     />
                   </div>
 
-                  {showSearchResults && searchResults.length > 0 && (
-                    <div className="search-results">
-                      {searchResults.map((item) => (
-                        <div
-                          key={item.id}
-                          className="search-result-item"
-                          onClick={() => addItemToOrder(item)}
-                        >
-                          <div className="item-info">
-                            <span className="item-name">{item.name}</span>
-                            <span className="item-price">
-                              {item.discount > 0 ? (
-                                <>
-                                  <span className="original-price">€{formatCents(toCents(item.price))}</span>
-                                  <span className="discounted-price">
-                                    €{formatCents(discountedUnitCents(item.price, item.discount))}
-                                  </span>
-                                  <span className="discount-badge">-{item.discount}%</span>
-                                </>
-                              ) : (
-                                <span>€{formatCents(toCents(item.price))}</span>
-                              )}
-                            </span>
-                          </div>
-                          <Plus size={16} className="add-icon" />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                {errors.items && <span className="error-text">{errors.items}</span>}
-              </div>
-
-              {selectedItems.length > 0 && (
-                <div className="selected-items">
-                  <h4>{t("createOrder.selectedItemsTitle")}</h4>
-
-                  {selectedItems.map((item) => {
-                    const unitCents = discountedUnitCents(item.price, item.discount);
-                    const totalCents = unitCents * item.quantity;
-
-                    return (
-                      <div key={item.id} className="selected-item">
-                        <div className="item-details">
-                          <span className="item-name">{item.name}</span>
-                          <div className="item-price-info">
-                            {item.discount > 0 && <span className="discount-info">-{item.discount}%</span>}
-                            <span className="unit-price">€{formatCents(unitCents)}</span>
-                          </div>
-                        </div>
-
-                        <div className="quantity-controls">
-                          <button
-                            type="button"
-                            onClick={() => updateItemQuantity(item.id, item.quantity - 1)}
-                            className="quantity-btn"
-                          >
-                            <Minus size={14} />
-                          </button>
-
-                          <span className="quantity">{item.quantity}</span>
-
-                          <button
-                            type="button"
-                            onClick={() => updateItemQuantity(item.id, item.quantity + 1)}
-                            className="quantity-btn"
-                          >
-                            <Plus size={14} />
-                          </button>
-                        </div>
-
-                        <div className="item-total">
-                          <span>€{formatCents(totalCents)}</span>
-                        </div>
-
-                        <button type="button" onClick={() => removeItem(item.id)} className="remove-btn">
-                          <X size={16} />
-                        </button>
-                      </div>
-                    );
-                  })}
-
-                  <div className="order-total">
-                    <div className="text-muted">
-                      {t("createOrder.fields.itemsPrice")}: {formatCents(calculateItemsTotalCents())}€
-                    </div>
-                    <div className="text-muted">
-                      {t("createOrder.fields.deliveryFee")}: {formatCents(toCents(safeDeliveryFee))}€
-                    </div>
-                    <strong className="text-total">
-                      {t("createOrder.fields.totalPrice")}: {formatCents(calculateGrandTotalCents())}€
-                    </strong>
+                  <div className="form-group">
+                    <label>{t("createOrder.fields.house")}</label>
+                    <input
+                      value={formData.house}
+                      onChange={(e) => handleInputChange("house", e.target.value)}
+                      placeholder={t("createOrder.placeholders.house")}
+                    />
                   </div>
                 </div>
-              )}
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>{t("createOrder.fields.payment")} *</label>
-                  <select
-                    value={formData.payment}
-                    onChange={(e) => handleInputChange("payment", e.target.value)}
-                    className={errors.payment ? "error" : ""}
-                  >
-                    <option value="">{t("createOrder.placeholders.payment")}</option>
-                    <option value="cash">{t("createOrder.payment.cash")}</option>
-                    <option value="card">{t("createOrder.payment.card")}</option>
-                    <option value="wire">{t("createOrder.payment.wire")}</option>
-                  </select>
-                  {errors.payment && <span className="error-text">{errors.payment}</span>}
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>{t("createOrder.fields.building")}</label>
+                    <input
+                      value={formData.building}
+                      onChange={(e) => handleInputChange("building", e.target.value)}
+                      placeholder={t("createOrder.placeholders.building")}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>{t("createOrder.fields.apart")}</label>
+                    <input
+                      value={formData.apart}
+                      onChange={(e) => handleInputChange("apart", e.target.value)}
+                      placeholder={t("createOrder.placeholders.apart")}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>{t("createOrder.fields.floor")}</label>
+                    <input
+                      value={formData.floor}
+                      onChange={(e) => handleInputChange("floor", e.target.value)}
+                      placeholder={t("createOrder.placeholders.floor")}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>{t("createOrder.fields.code")}</label>
+                    <input
+                      value={formData.code}
+                      onChange={(e) => handleInputChange("code", e.target.value)}
+                      placeholder={t("createOrder.placeholders.code")}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>{t("createOrder.fields.numOfPeople")}</label>
+                    <input
+                      value={formData.numOfPeople}
+                      onChange={(e) => handleInputChange("numOfPeople", e.target.value)}
+                      placeholder={t("createOrder.placeholders.numOfPeople")}
+                    />
+                  </div>
+                </div>
+
+                {/* Доставка */}
+                <div className="section-header">
+                  <Truck size={20} />
+                  <h3>{t("createOrder.sections.delivery")}</h3>
                 </div>
 
                 <div className="form-group">
-                  <label>{t("createOrder.fields.pickup")} *</label>
+                  <label htmlFor="deliveryFee">{t("createOrder.fields.deliveryFee")} €</label>
+                  <input
+                    id="deliveryFee"
+                    type="number"
+                    step="0.01"
+                    inputMode="decimal"
+                    value={formData.deliveryFee}
+                    onChange={(e) => handleInputChange("deliveryFee", e.target.value)}
+                    placeholder={t("createOrder.placeholders.deliveryFee")}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>{t("createOrder.fields.courier")} *</label>
                   <select
-                    value={formData.pickupId}
-                    onChange={(e) => handleInputChange("pickupId", e.target.value)}
-                    className={errors.restaurant ? "error" : ""}
+                    value={formData.courierId}
+                    onChange={(e) => handleInputChange("courierId", e.target.value)}
+                    className={errors.courier ? "error" : ""}
                   >
-                    <option value="">{t("createOrder.placeholders.pickup")}</option>
-                    {pickupPoints.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.nickname}
+                    <option value="">{t("createOrder.placeholders.courier")}</option>
+                    {couriers.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.nickname}
                       </option>
                     ))}
                   </select>
-                  {errors.restaurant && <span className="error-text">{errors.restaurant}</span>}
+                  {errors.courier && <span className="error-text">{errors.courier}</span>}
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>{t("createOrder.fields.orderType")}</label>
+                    <div className="radio-group">
+                      <label className="radio-option">
+                        <input
+                          type="radio"
+                          name="orderType"
+                          value="active"
+                          checked={formData.orderType === "active"}
+                          onChange={(e) => handleInputChange("orderType", e.target.value)}
+                        />
+                        <span>{t("createOrder.orderType.active")}</span>
+                      </label>
+
+                      <label className="radio-option">
+                        <input
+                          type="radio"
+                          name="orderType"
+                          value="preorder"
+                          checked={formData.orderType === "preorder"}
+                          onChange={(e) => handleInputChange("orderType", e.target.value)}
+                        />
+                        <span>{t("createOrder.orderType.preorder")}</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label>{t("createOrder.fields.status", { defaultValue: "Status" })}</label>
+                    <select value={formData.status} onChange={(e) => handleInputChange("status", e.target.value)}>
+                      <option value="new">new</option>
+                      <option value="ready">ready</option>
+                      <option value="enroute">enroute</option>
+                      <option value="paused">paused</option>
+                      <option value="cancelled">cancelled</option>
+                    </select>
+                  </div>
+                </div>
+
+                {formData.orderType === "preorder" && (
+                  <>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>{t("createOrder.fields.scheduledDate")} *</label>
+                        <input
+                          type="date"
+                          min={minDate}
+                          value={formData.scheduledDate}
+                          onChange={(e) => handleInputChange("scheduledDate", e.target.value)}
+                          className={errors.scheduledDate ? "error" : ""}
+                        />
+                        {errors.scheduledDate && <span className="error-text">{errors.scheduledDate}</span>}
+                      </div>
+
+                      <div className="form-group">
+                        <label>{t("createOrder.fields.scheduledTime")} *</label>
+                        <input
+                          type="time"
+                          value={formData.scheduledTime}
+                          onChange={(e) => handleInputChange("scheduledTime", e.target.value)}
+                          className={errors.scheduledTime ? "error" : ""}
+                          min={formData.scheduledDate === minDate ? minTimeToday : undefined}
+                        />
+                        {errors.scheduledTime && <span className="error-text">{errors.scheduledTime}</span>}
+                      </div>
+                    </div>
+
+                    <div className="hint muted" style={{ marginTop: 4 }}>
+                      {t("createOrder.preorderHint", { min: PREORDER_MIN_OFFSET_MIN })}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Товары */}
+              <div className="form-section">
+                <div className="section-header">
+                  <Package size={20} />
+                  <h3>{t("createOrder.sections.items")}</h3>
+                </div>
+
+                <div className="form-group">
+                  <label>{t("createOrder.fields.searchItems")} *</label>
+                  <div className="search-container">
+                    <div className="input-with-icon">
+                      <Search size={16} />
+                      <input
+                        value={searchTerm}
+                        onChange={(e) => {
+                          setSearchTerm(e.target.value);
+                          setShowSearchResults(e.target.value.length > 0);
+                        }}
+                        onFocus={() => setShowSearchResults(searchTerm.length > 0)}
+                        className={errors.items ? "error" : ""}
+                        placeholder={t("createOrder.placeholders.search")}
+                      />
+                    </div>
+
+                    {showSearchResults && searchResults.length > 0 && (
+                      <div className="search-results">
+                        {searchResults.map((item) => (
+                          <div
+                            key={item.id}
+                            className="search-result-item"
+                            onClick={() => addItemToOrder(item)}
+                          >
+                            <div className="item-info">
+                              <span className="item-name">{item.name}</span>
+                              <span className="item-price">
+                                {item.discount > 0 ? (
+                                  <>
+                                    <span className="original-price">€{formatCents(toCents(item.price))}</span>
+                                    <span className="discounted-price">
+                                      €{formatCents(discountedUnitCents(item.price, item.discount))}
+                                    </span>
+                                    <span className="discount-badge">-{item.discount}%</span>
+                                  </>
+                                ) : (
+                                  <span>€{formatCents(toCents(item.price))}</span>
+                                )}
+                              </span>
+                            </div>
+                            <Plus size={16} className="add-icon" />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {errors.items && <span className="error-text">{errors.items}</span>}
+                </div>
+
+                {selectedItems.length > 0 && (
+                  <div className="selected-items">
+                    <h4>{t("createOrder.selectedItemsTitle")}</h4>
+
+                    {selectedItems.map((item) => {
+                      const unitCents = discountedUnitCents(item.price, item.discount);
+                      const totalCents = unitCents * item.quantity;
+
+                      return (
+                        <div key={item.id} className="selected-item">
+                          <div className="item-details">
+                            <span className="item-name">{item.name}</span>
+                            <div className="item-price-info">
+                              {item.discount > 0 && <span className="discount-info">-{item.discount}%</span>}
+                              <span className="unit-price">€{formatCents(unitCents)}</span>
+                            </div>
+                          </div>
+
+                          <div className="quantity-controls">
+                            <button
+                              type="button"
+                              onClick={() => updateItemQuantity(item.id, item.quantity - 1)}
+                              className="quantity-btn"
+                            >
+                              <Minus size={14} />
+                            </button>
+
+                            <span className="quantity">{item.quantity}</span>
+
+                            <button
+                              type="button"
+                              onClick={() => updateItemQuantity(item.id, item.quantity + 1)}
+                              className="quantity-btn"
+                            >
+                              <Plus size={14} />
+                            </button>
+                          </div>
+
+                          <div className="item-total">
+                            <span>€{formatCents(totalCents)}</span>
+                          </div>
+
+                          <button type="button" onClick={() => removeItem(item.id)} className="remove-btn">
+                            <X size={16} />
+                          </button>
+                        </div>
+                      );
+                    })}
+
+                    <div className="order-total">
+                      <div className="text-muted">
+                        {t("createOrder.fields.itemsPrice")}: {formatCents(calculateItemsTotalCents())}€
+                      </div>
+                      <div className="text-muted">
+                        {t("createOrder.fields.deliveryFee")}: {formatCents(toCents(safeDeliveryFee))}€
+                      </div>
+                      <strong className="text-total">
+                        {t("createOrder.fields.totalPrice")}: {formatCents(calculateGrandTotalCents())}€
+                      </strong>
+                    </div>
+                  </div>
+                )}
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>{t("createOrder.fields.payment")} *</label>
+                    <select
+                      value={formData.payment}
+                      onChange={(e) => handleInputChange("payment", e.target.value)}
+                      className={errors.payment ? "error" : ""}
+                    >
+                      <option value="">{t("createOrder.placeholders.payment")}</option>
+                      <option value="cash">{t("createOrder.payment.cash")}</option>
+                      <option value="card">{t("createOrder.payment.card")}</option>
+                      <option value="wire">{t("createOrder.payment.wire")}</option>
+                    </select>
+                    {errors.payment && <span className="error-text">{errors.payment}</span>}
+                  </div>
+
+                  <div className="form-group">
+                    <label>{t("createOrder.fields.pickup")} *</label>
+                    <select
+                      value={formData.pickupId}
+                      onChange={(e) => handleInputChange("pickupId", e.target.value)}
+                      className={errors.restaurant ? "error" : ""}
+                    >
+                      <option value="">{t("createOrder.placeholders.pickup")}</option>
+                      {pickupPoints.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.nickname}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.restaurant && <span className="error-text">{errors.restaurant}</span>}
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-section full-width">
+                <div className="section-header">
+                  <Clock size={20} />
+                  <h3>{t("createOrder.sections.notes")}</h3>
+                </div>
+
+                <div className="form-group">
+                  <label>{t("createOrder.fields.notes")}</label>
+                  <textarea
+                    rows="3"
+                    value={formData.notes}
+                    onChange={(e) => handleInputChange("notes", e.target.value)}
+                    placeholder={t("createOrder.placeholders.notes")}
+                  />
                 </div>
               </div>
             </div>
 
-            <div className="form-section full-width">
-              <div className="section-header">
-                <Clock size={20} />
-                <h3>{t("createOrder.sections.notes")}</h3>
-              </div>
+            <div className="form-footer">
+              <button type="button" className="btn-secondary" onClick={() => navigate("/orderPanel")}>
+                {t("createOrder.buttons.cancel")}
+              </button>
 
-              <div className="form-group">
-                <label>{t("createOrder.fields.notes")}</label>
-                <textarea
-                  rows="3"
-                  value={formData.notes}
-                  onChange={(e) => handleInputChange("notes", e.target.value)}
-                  placeholder={t("createOrder.placeholders.notes")}
-                />
-              </div>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={handlePrint}
+                disabled={isLoading}
+                title={t("createOrder.buttons.print", { defaultValue: "Drukāt" })}
+              >
+                <Printer size={16} />
+                {t("createOrder.buttons.print", { defaultValue: "Drukāt" })}
+              </button>
+
+              <button type="button" className="btn-primary" disabled={isSaving} onClick={handleSave}>
+                <Save size={16} />{" "}
+                {isSaving
+                  ? t("createOrder.buttons.creating", { defaultValue: "Сохранение..." })
+                  : t("createOrder.buttons.create", { defaultValue: "Сохранить изменения" })}
+              </button>
             </div>
           </div>
-
-          <div className="form-footer">
-            <button type="button" className="btn-secondary" onClick={() => navigate("/orderPanel")}>
-              {t("createOrder.buttons.cancel")}
-            </button>
-
-            <button type="button" className="btn-primary" disabled={isSaving} onClick={handleSave}>
-              <Save size={16} />{" "}
-              {isSaving
-                ? t("createOrder.buttons.creating", { defaultValue: "Сохранение..." })
-                : t("createOrder.buttons.create", { defaultValue: "Сохранить изменения" })}
-            </button>
-          </div>
-        </div>
         )}
       </div>
     </div>
