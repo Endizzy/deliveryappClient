@@ -448,5 +448,33 @@
     "weather" :  "Gaisa temperatūra",
     "orders" : "Pasūtījumu skaits",
     "orders_exp" : "pasūtījumu plānot saņemt"
+  },
+  "invoiceSettings": {
+    "buttons": {
+      "save": "Saglabāt"
+    },
+    "actions": {
+      "save": "Saglabāšana...",
+      "loading": "Ielāde..."
+    },
+    "hint": {
+      "title": "Padoms:",
+      "description": "Šie iestatījumi tiks izmantoti, drukājot rēķinus visiem pasūtījumiem. Klienta un produkta informācija tiks aizpildīta automātiski."
+    },
+    "settings": {
+      "companyName": "UZŅĒMUMA NOSAUKUMS",
+      "companyPhone": "TĀLRUŅA NUMURS",
+      "companyEmail": "E-PASTS",
+      "companyWebsite": "TĪMEKĻA VIETNE",
+      "footerNote": "Ziņojums rēķina apakšdaļā"
+    },
+    "main": {
+      "invoiceTitle": "Rēķina iestatīšana",
+      "invoiceEdit": "Rēķina rediģēšana",
+      "invoicePreview": "Rēķina priekšskatījums (A4)"
+    },
+    "notifications": {
+      "saved": "Rēķins veiksmīgi saglabāts"
+    }
   }
 }

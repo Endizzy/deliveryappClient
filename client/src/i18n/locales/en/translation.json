@@ -447,5 +447,33 @@
     "weather" :  "Weather (Hourly)",
     "orders" : "Predicted Order Volume",
     "orders_exp" : "orders expected"
+  },
+  "invoiceSettings": {
+    "buttons": {
+      "save": "Save"
+    },
+    "actions": {
+      "save": "Saving...",
+      "loading": "Loading..."
+    },
+    "hint": {
+      "title": "Hint:",
+      "description": "These settings will be used when printing invoices for all orders. Customer and product information will be inserted automatically."
+    },
+    "settings": {
+      "companyName": "COMPANY NAME",
+      "companyPhone": "PHONE NUMBER",
+      "companyEmail": "E-MAIL",
+      "companyWebsite": "WEBSITE",
+      "footerNote": "Message at the bottom of the invoice"
+    },
+    "main": {
+      "invoiceTitle": "Invoice Settings",
+      "invoiceEdit": "Edit Invoice",
+      "invoicePreview": "Invoice Preview (A4)"
+    },
+    "notifications": {
+      "saved": "Invoice successfully saved"
+    }
   }
 }

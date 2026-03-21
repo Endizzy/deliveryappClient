@@ -1,138 +1,253 @@
-/* Шаблон накладной A4 */
+
 .page {
-    width: 210mm;
-    min-height: 297mm;
-    background: white;
-    padding: 20mm;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    font-family: Arial, Helvetica, sans-serif;
-    color: #000;
-    position: relative;
-    transform: scale(0.7);
-    transform-origin: top center;
-    margin: 0 auto;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  color: #111;
+  background: #fff;
+  width: 794px;          /* A4 at 96dpi */
+  min-height: 1123px;
+  margin: 0 auto;
+  padding: 24px 32px 32px;
+  box-sizing: border-box;
 }
 
-/* Водяной знак */
-.watermark {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(-45deg);
-    font-size: 80pt;
-    font-weight: 900;
-    color: rgba(102, 126, 234, 0.08);
-    pointer-events: none;
-    z-index: 1;
-    letter-spacing: 10px;
+/* ── Top date ── */
+.topDate {
+  text-align: center;
+  font-size: 12px;
+  color: #333;
+  margin-bottom: 16px;
 }
 
-/* Утилиты */
-.center {
-    text-align: center;
+/* ── Header row ── */
+.header {
+  display: flex;
+  gap: 16px;
+  /* align-items: center; */
+  justify-content: space-between;
+  margin-bottom: 16px;
 }
 
-.right {
-    text-align: right;
+/* Company box (dark) */
+.companyBox {
+  background: #4a4a4a;
+  color: #fff;
+  border-radius: 8px;
+  padding: 20px 18px;
+  width: 200px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.small {
-    font-size: 12px;
+.companyName {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.companyNameBig {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+
+.companyNameSub {
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 2px;
+  text-transform: lowercase;
+  margin-top: 2px;
+}
+
+.companyDetails {
+  font-size: 11px;
+  line-height: 1.8;
+  color: #e0e0e0;
+}
+
+/* QR box */
+.qrBox {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qrSvg {
+  width: 90px;
+  height: 90px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 4px;
+}
+
+/* Order info (right) */
+.orderInfo {
+  /* flex: 1; */
+  /* background: #e6e5e5; */
+  /* border: 2px solid #ccc; */
+  border-top: 2px solid #ccc;
+  border-bottom: 2px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.orderNumber {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #111;
+}
+
+.customerInfo {
+  font-size: 12px;
+  line-height: 1.9;
+  color: #222;
+}
+
+.customerName {
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+/* ── Notes bar ── */
+.notesBar {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  margin-bottom: 16px;
+  background: #fff;
+  color: #222;
+}
+
+/* ── Items table ── */
+.itemsTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  font-size: 12px;
+}
+
+.itemsTable thead tr {
+  background: #fff;
+}
+
+.thLeft,
+.thRight {
+  border: 1px solid #ccc;
+  padding: 8px 10px;
+  font-weight: 700;
+  background: #fff;
+}
+
+.thLeft {
+  text-align: left;
+  width: 50%;
+}
+
+.thRight {
+  text-align: right;
+  width: 16.66%;
+}
+
+.tdLeft,
+.tdRight {
+  border: 1px solid #ccc;
+  padding: 8px 10px;
+}
+
+.tdLeft {
+  text-align: left;
+}
+
+.tdRight {
+  text-align: right;
+}
+
+.itemsTable tbody tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+/* ── Bottom section ── */
+.bottomSection {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+/* Wishes box */
+.wishesBox {
+  flex: 1;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  min-height: 185px;
+  padding: 10px 14px;
+  font-size: 12px;
+}
+
+.wishesTitle {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.wishesContent {
+  color: #333;
+  line-height: 1.6;
+}
+
+/* Summary box */
+.summaryBox {
+  flex: 1;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.summaryTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.summaryTable tr {
+  border-bottom: 1px solid #eee;
+}
+
+.summaryTable tr:last-child {
+  border-bottom: none;
+}
+
+.summaryLabel {
+  padding: 9px 14px;
+  text-align: left;
+  color: #333;
+}
+
+.summaryValue {
+  padding: 9px 14px;
+  text-align: right;
+  color: #111;
+  white-space: nowrap;
+}
+
+.paymentRow {
+  background: #f5f5f5;
+  border-top: 1px solid #ccc !important;
 }
 
 .bold {
-    font-weight: bold;
+  font-weight: 700;
 }
 
-.summaryLine {
-    width: 100%;
-    border-bottom: 2px solid #cfcfcf;
-    /* margin: 200px 0; */
-}
-
-/* Линия-разделитель */
-.line {
-    width: 100%;
-    border-bottom: 1px solid #cfcfcf;
-    margin: 10px 0;
-}
-
-/* Заголовок */
-.title {
-    font-size: 26px;
-    font-weight: 500;
-    margin: 10px 0;
-}
-
-/* Блоки текста */
-.block {
-    text-align: center;
-    line-height: 1.5;
-}
-
-/* Таблица товаров */
-.table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-    margin: 10px 0;
-    color: black;
-}
-
-.table th,
-.table td {
-    padding: 6px 4px;
-}
-
-.table thead {
-    border-bottom: 1px solid #cfcfcf;
-}
-
-.table thead th {
-    font-weight: normal;
-    text-align: right;
-}
-
-.table tbody tr {
-    border-bottom: 1px solid #eee;
-}
-
-.table tbody tr:last-child {
-    border-bottom: none;
-}
-
-/* Сводка (итого) */
-.summary {
-    width: 300px;
-    margin-left: auto;
-    margin-top: 20px;
-    color: black;
-    /* border: 2px solid #cfcfcf; */
-}
-
-.summary table {
-    width: 100%;
-    font-size: 14px;
-    color: black;
-}
-
-.summary table td {
-    padding: 4px;
-}
-
-/* Футер */
+/* ── Footer ── */
 .footer {
-    margin-top: 40px;
-    text-align: center;
-    font-size: 14px;
-}
-
-/* Стили для печати */
-@media print {
-    .page {
-        transform: scale(1);
-        box-shadow: none;
-        margin: 0;
-        page-break-after: always;
-    }
+  margin-top: 24px;
+  text-align: center;
+  font-size: 11px;
+  color: #888;
 }

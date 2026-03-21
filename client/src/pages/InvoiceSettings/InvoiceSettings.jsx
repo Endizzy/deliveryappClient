@@ -105,7 +105,7 @@ export default function InvoiceSettings() {
   if (loading) {
     return (
       <div className="owner-page">
-        <div className="owner-content">Загрузка...</div>
+        <div className="owner-content">{t("invoiceSettings.actions.loading")}</div>
       </div>
     );
   }
@@ -113,7 +113,7 @@ export default function InvoiceSettings() {
   if (error) {
     return (
       <div className="owner-page">
-        <div className="owner-content">Ошибка: {error}</div>
+        <div className="owner-content">Error: {error}</div>
       </div>
     );
   }
@@ -124,10 +124,11 @@ export default function InvoiceSettings() {
     <div className="owner-page">
       <Header user={user} />
 
+
       <nav className="owner-tabs">
         <strong className="owner-title">
           <FileText size={20} style={{ verticalAlign: "middle", marginRight: "8px" }} />
-          Настройки накладной
+          {t("invoiceSettings.main.invoiceTitle")} 
         </strong>
       </nav>
 
@@ -137,21 +138,21 @@ export default function InvoiceSettings() {
           <section className={`owner-card ${styles.settingsPanel}`}>
             <div className="owner-card-header">
               <div className="owner-card-title">
-               Редактирование накладной
+               {t("invoiceSettings.main.invoiceEdit")}
               </div>
               <button
                 className="owner-primary-btn"
                 onClick={handleSave}
                 disabled={saving}
               >
-                <Save size={16} /> {saving ? "Сохранение..." : "Сохранить"}
+                <Save size={16} /> {saving ? t("invoiceSettings.actions.save") : t("invoiceSettings.buttons.save")}
               </button>
             </div>
 
             <div className={styles.form}>
               <div className="owner-field">
                 <label>
-                  <Building2 size={14} style={{ verticalAlign: "middle" }} /> Название компании
+                  <Building2 size={14} style={{ verticalAlign: "middle" }} /> {t("invoiceSettings.settings.companyName")}
                 </label>
                 <input
                   value={invoiceSettings.companyName}
@@ -162,7 +163,7 @@ export default function InvoiceSettings() {
 
               <div className="owner-field">
                 <label>
-                  <Phone size={14} style={{ verticalAlign: "middle" }} /> Номер телефона
+                  <Phone size={14} style={{ verticalAlign: "middle" }} /> {t("invoiceSettings.settings.companyPhone")}
                 </label>
                 <input
                   value={invoiceSettings.regNumber}
@@ -173,7 +174,7 @@ export default function InvoiceSettings() {
 
               <div className="owner-field">
                 <label>
-                  <Mail size={14} style={{ verticalAlign: "middle" }} /> Email
+                  <Mail size={14} style={{ verticalAlign: "middle" }} /> {t("invoiceSettings.settings.companyEmail")}
                 </label>
                 <input
                   type="email"
@@ -185,7 +186,7 @@ export default function InvoiceSettings() {
 
               <div className="owner-field">
                 <label>
-                  <Globe size={14} style={{ verticalAlign: "middle" }} /> Website
+                  <Globe size={14} style={{ verticalAlign: "middle" }} /> {t("invoiceSettings.settings.companyWebsite")}
                 </label>
                 <input
                   type="url"
@@ -197,7 +198,7 @@ export default function InvoiceSettings() {
 
               <div className="owner-field">
                 <label>
-                  <MessageSquare size={14} style={{ verticalAlign: "middle" }} /> Сообщение внизу накладной
+                  <MessageSquare size={14} style={{ verticalAlign: "middle" }} /> {t("invoiceSettings.settings.footerNote")}
                 </label>
                 <textarea
                   value={invoiceSettings.footerMessage}
@@ -218,7 +219,7 @@ export default function InvoiceSettings() {
               </div>
 
               <div className={styles.infoBox}>
-                <p><strong>Подсказка:</strong> Эти настройки будут использоваться при печати накладных для всех заказов. Информация о клиенте и товарах будет подставляться автоматически.</p>
+                <p><strong>{t("invoiceSettings.hint.title")}</strong> {t("invoiceSettings.hint.description")}</p>
               </div>
             </div>
           </section>
@@ -227,7 +228,7 @@ export default function InvoiceSettings() {
           <section className={`owner-card ${styles.previewPanel}`}>
             <div className="owner-card-header">
               <div className="owner-card-title">
-                <FileText size={18} /> Превью накладной (A4)
+                <FileText size={18} /> {t("invoiceSettings.main.invoicePreview")}
               </div>
             </div>
 
