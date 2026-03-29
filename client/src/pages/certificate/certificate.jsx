@@ -418,17 +418,13 @@ export default function App() {
                                 }}>
                                     <img
                                         className="cat-img"
-                                        src="https://cataas.com/cat/funny?width=400&height=280"
+                                        src="public/catFun.jpg"
                                         alt="Смешной котик"
                                         style={{
                                             width: "100%",
                                             height: "220px",
                                             objectFit: "cover",
                                             display: "block",
-                                        }}
-                                        onError={(e) => {
-                                            // Fallback to another cat API if first fails
-                                            e.target.src = "https://placecats.com/400/220";
                                         }}
                                     />
                                 </div>
