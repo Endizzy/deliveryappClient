@@ -198,6 +198,11 @@ export default function App() {
           to { opacity: 1; letter-spacing: 0.05em; }
         }
 
+        @keyframes wiggle {
+          0%, 100% { transform: rotate(-2deg) scale(1); }
+          50% { transform: rotate(2deg) scale(1.03); }
+        }
+
         .cert-card {
           animation: bounce-in 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
           opacity: 0;
@@ -230,6 +235,10 @@ export default function App() {
         .stamp {
           animation: rotate-slow 8s linear infinite;
           display: inline-block;
+        }
+
+        .cat-img {
+          animation: wiggle 3s ease-in-out infinite;
         }
       `}</style>
 
@@ -329,7 +338,7 @@ export default function App() {
                                     textTransform: "uppercase",
                                     opacity: 0.8,
                                 }}>
-                                    Официальный Сертификат
+                                    Сертификат
                                 </div>
                             </div>
 
@@ -391,42 +400,57 @@ export default function App() {
                                 </p>
                             </div>
 
-                            {/* Features */}
+                            {/* Cat block */}
                             <div style={{
-                                display: "grid",
-                                gridTemplateColumns: "1fr 1fr",
-                                gap: "10px",
-                                marginBottom: "22px",
                                 position: "relative",
                                 zIndex: 2,
+                                marginBottom: "22px",
+                                textAlign: "center",
                             }}>
-                                {[
-                                    { icon: "🌑", text: "Тонировка боковых стёкол" },
-                                    { icon: "☀️", text: "Защита от UV лучей" },
-                                    { icon: "🔒", text: "Приватность в салоне" },
-                                    { icon: "❄️", text: "Сохранение прохлады" },
-                                ].map((item, i) => (
-                                    <div
-                                        key={i}
+                                {/* Cat image */}
+                                <div style={{
+                                    borderRadius: "14px",
+                                    overflow: "hidden",
+                                    border: "2px solid rgba(255,215,0,0.35)",
+                                    boxShadow: "0 4px 24px rgba(255,105,180,0.2)",
+                                    display: "inline-block",
+                                    width: "100%",
+                                }}>
+                                    <img
+                                        className="cat-img"
+                                        src="https://cataas.com/cat/funny?width=400&height=280"
+                                        alt="Смешной котик"
                                         style={{
-                                            background: "rgba(255,255,255,0.04)",
-                                            border: "1px solid rgba(255,255,255,0.1)",
-                                            borderRadius: "10px",
-                                            padding: "12px 10px",
-                                            textAlign: "center",
+                                            width: "100%",
+                                            height: "220px",
+                                            objectFit: "cover",
+                                            display: "block",
                                         }}
-                                    >
-                                        <div style={{ fontSize: "20px", marginBottom: "5px" }}>{item.icon}</div>
-                                        <div style={{
-                                            fontFamily: "'Cormorant Garamond', serif",
-                                            fontSize: "clamp(11px, 2.8vw, 13px)",
-                                            color: "rgba(255,255,255,0.7)",
-                                            lineHeight: 1.3,
-                                        }}>
-                                            {item.text}
-                                        </div>
-                                    </div>
-                                ))}
+                                        onError={(e) => {
+                                            // Fallback to another cat API if first fails
+                                            e.target.src = "https://placecats.com/400/220";
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Caption */}
+                                <div style={{
+                                    marginTop: "12px",
+                                    background: "rgba(255,105,180,0.08)",
+                                    border: "1px solid rgba(255,105,180,0.25)",
+                                    borderRadius: "10px",
+                                    padding: "10px 14px",
+                                }}>
+                                    <p style={{
+                                        fontFamily: "'Cormorant Garamond', serif",
+                                        fontSize: "clamp(13px, 3.5vw, 16px)",
+                                        color: "rgba(255,255,255,0.85)",
+                                        lineHeight: 1.5,
+                                        fontStyle: "italic",
+                                    }}>
+                                        🐱 Это ты, когда сядешь в свою затонированую Тайоту 😎
+                                    </p>
+                                </div>
                             </div>
 
                             {/* Recipient line */}
