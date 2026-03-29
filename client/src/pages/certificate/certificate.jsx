@@ -418,7 +418,7 @@ export default function App() {
                                 }}>
                                     <img
                                         className="cat-img"
-                                        src="public/catFun.jpg"
+                                        src="/catFun.jpg"
                                         alt="Смешной котик"
                                         style={{
                                             width: "100%",
