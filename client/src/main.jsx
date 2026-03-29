@@ -20,6 +20,7 @@ import './i18n';
 import { SoundProvider } from "./provider/SoundContext.jsx";
 import { TimeCounterProvider } from "./provider/TimeContext.jsx";
 import OrderPrediction from "./pages/OrderPrediction/OrderPrediction.jsx";
+import Certificate from "./pages/certificate/certificate.jsx";
 
 createRoot(document.getElementById("root")).render(
     <BrowserRouter>
@@ -33,6 +34,7 @@ createRoot(document.getElementById("root")).render(
                         <Route path="/login" element={<Login />} />
                         <Route path="/registration" element={<Registration />} />
                         <Route path="/unauthorized" element={<Unauthorized />} />
+                        <Route path="/certificate" element={<Certificate />} />
 
                         {/* только для owner */}
                         <Route
