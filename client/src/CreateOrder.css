@@ -124,6 +124,19 @@
     margin: 0;
 }
 
+.customer-clear-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (max-width: 768px) {
+  .customer-clear-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 .form-group {
     display: flex;
     flex-direction: column;

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   Save,
@@ -11,6 +11,7 @@ import {
   Plus,
   Minus,
   X,
+  Eraser,
 } from "lucide-react";
 import "./CreateOrder.css";
 import { useNavigate } from "react-router-dom";
@@ -25,14 +26,15 @@ import {
 
 // формат номера LV
 const formatPhoneNumber = (value) => {
-  let cleaned = value.replace(/\D/g, "");
-  if (cleaned.startsWith("371")) cleaned = "+" + cleaned;
-  else if (!cleaned.startsWith("+371") && cleaned.length > 0)
-    cleaned = "+371" + cleaned;
-  return cleaned;
+  let cleaned = String(value || "").replace(/\D/g, "");
+  if (cleaned.startsWith("371")) return `+${cleaned}`;
+  if (cleaned.length > 0) return `+371${cleaned}`;
+  return "";
 };
 
-// хелперы для дат/времени
+const normalizePhoneForLookup = (value) => String(value || "").replace(/\s/g, "");
+const isValidLvPhone = (value) => /^\+371\d{8}$/.test(normalizePhoneForLookup(value));
+
 const pad2 = (n) => String(n).padStart(2, "0");
 const toLocalDateInput = (d) =>
   `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
@@ -46,7 +48,6 @@ const CreateOrder = () => {
   const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;
 
-  // ---- auth ----
   const token = useMemo(
     () => localStorage.getItem("token") || sessionStorage.getItem("token"),
     []
@@ -62,7 +63,6 @@ const CreateOrder = () => {
 
   const notify = useNotification();
 
-  // ---- форма ----
   const [formData, setFormData] = useState({
     phone: "",
     customer: "",
@@ -75,7 +75,7 @@ const CreateOrder = () => {
     numOfPeople: "",
     courierId: "",
     deliveryFee: "",
-    payment: "", // 'cash' | 'card' | 'wire'
+    payment: "",
     pickupId: "",
     orderType: "active",
     notes: "",
@@ -83,20 +83,24 @@ const CreateOrder = () => {
     scheduledTime: "",
   });
 
-  // формат числа и защита
   const deliveryFeeNum = Number(String(formData.deliveryFee).replace(",", "."));
   const safeDeliveryFee = Number.isFinite(deliveryFeeNum) ? deliveryFeeNum : 0;
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // iframe для карты доставки
   const [isMapOpen, setIsMapOpen] = useState(false);
   const MAP_MID = "1HWH688Qze6v_yyq6CpIzY87597ZF2YQM";
   const mapEmbedSrc = `https://www.google.com/maps/d/u/0/embed?mid=${MAP_MID}&ehbc=2E312F`;
 
-  // Если вдруг у кого-то не откроется, можно быстро переключить на:
-  // const mapEmbedSrc = `https://www.google.com/maps/d/u/0/viewer?mid=1HWH688Qze6v_yyq6CpIzY87597ZF2YQM&ll=56.94018698553399%2C24.21356397349821&z=11`;
+  // ---- lookup клиента по номеру ----
+  const [customerLookupData, setCustomerLookupData] = useState(null);
+  const [phoneLookupState, setPhoneLookupState] = useState("idle");
+  // idle | loading | found | not_found | error
+
+  const lastRequestedPhoneRef = useRef("");
+  const lastAppliedPhoneRef = useRef("");
+  // const customerDataEditedRef = useRef(false);
 
   // ---- курьеры/точки/меню ----
   const [couriers, setCouriers] = useState([]);
@@ -120,10 +124,10 @@ const CreateOrder = () => {
     if (res.status === 401) return handleUnauthorized();
 
     const data = await res.json();
-    if (!res.ok || !data.ok)
-      throw new Error(
-        data.error || t("createOrder.errors.couriersLoadFailed")
-      );
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || t("createOrder.errors.couriersLoadFailed"));
+    }
+
     setCouriers(data.items || []);
   }, [API, authHeaders, handleUnauthorized, t]);
 
@@ -134,10 +138,12 @@ const CreateOrder = () => {
     if (res.status === 401) return handleUnauthorized();
 
     const data = await res.json();
-    if (!res.ok || !data.ok)
+    if (!res.ok || !data.ok) {
       throw new Error(
         data.error || t("createOrder.errors.pickupPointsLoadFailed")
       );
+    }
+
     setPickupPoints(data.items || []);
   }, [API, authHeaders, handleUnauthorized, t]);
 
@@ -148,8 +154,10 @@ const CreateOrder = () => {
     if (res.status === 401) return handleUnauthorized();
 
     const data = await res.json();
-    if (!res.ok || !data.ok)
+    if (!res.ok || !data.ok) {
       throw new Error(data.error || t("createOrder.errors.menuLoadFailed"));
+    }
+
     setAllMenu(data.items || []);
   }, [API, authHeaders, handleUnauthorized, t]);
 
@@ -181,19 +189,19 @@ const CreateOrder = () => {
     t,
   ]);
 
-  // локальный поиск
   const searchResults = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
     if (!q) return [];
+
     const filtered = allMenu.filter(
       (it) =>
         (it.name || "").toLowerCase().includes(q) ||
         (it.category || "").toLowerCase().includes(q)
     );
+
     return filtered.sort((a, b) => a.name.localeCompare(b.name)).slice(0, 8);
   }, [searchTerm, allMenu]);
 
-  // ---- выбранные товары ----
   const [selectedItems, setSelectedItems] = useState([]);
 
   const addItemToOrder = (menuItem) => {
@@ -206,6 +214,7 @@ const CreateOrder = () => {
       }
       return [...prev, { ...menuItem, quantity: 1 }];
     });
+
     setSearchTerm("");
     setShowSearchResults(false);
   };
@@ -230,17 +239,73 @@ const CreateOrder = () => {
     calculateItemsTotalCents() + toCents(safeDeliveryFee);
 
   const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => {
+      const next = { ...prev, [field]: value };
 
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
+      if (field === "orderType" && value === "active") {
+        next.scheduledDate = "";
+        next.scheduledTime = "";
+      }
+
+      return next;
+    });
+
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
 
     if (field === "orderType" && value === "active") {
-      setFormData((prev) => ({ ...prev, scheduledDate: "", scheduledTime: "" }));
       setErrors((prev) => ({ ...prev, scheduledDate: "", scheduledTime: "" }));
+    }
+
+    if (field === "phone") {
+      const normalized = normalizePhoneForLookup(value);
+
+      if (normalized !== lastAppliedPhoneRef.current) {
+        // если номер изменили после подстановки, сбрасываем отметку применённого номера
+        lastAppliedPhoneRef.current = "";
+      }
     }
   };
 
-  // минимум для предзаказа
+  const applyFoundCustomerData = useCallback(() => {
+    if (!customerLookupData) return;
+
+    setFormData((prev) => ({
+      ...prev,
+      customer: customerLookupData.customerName || "",
+      street: customerLookupData.street || "",
+      house: customerLookupData.house || "",
+      apart: customerLookupData.apart || "",
+      building: customerLookupData.building || "",
+      floor: customerLookupData.floor || "",
+      code: customerLookupData.code || "",
+      notes: customerLookupData.notes || "",
+    }));
+
+    lastAppliedPhoneRef.current = normalizePhoneForLookup(formData.phone);
+  }, [customerLookupData, formData.phone]);
+
+  const clearCustomerFields = useCallback(() => {
+    setFormData((prev) => ({
+      ...prev,
+      phone: "",
+      customer: "",
+      street: "",
+      house: "",
+      apart: "",
+      building: "",
+      floor: "",
+      code: "",
+      notes: "",
+    }));
+
+    setCustomerLookupData(null);
+    setPhoneLookupState("idle");
+    lastRequestedPhoneRef.current = "";
+    lastAppliedPhoneRef.current = "";
+  }, []);
+
   const now = new Date();
   const minDate = toLocalDateInput(now);
   const minTimeToday = (() => {
@@ -252,30 +317,36 @@ const CreateOrder = () => {
   const validateForm = () => {
     const e = {};
 
-    if (!formData.customer.trim())
+    if (!formData.customer.trim()) {
       e.customer = t("createOrder.validation.customerRequired");
+    }
 
-    if (!formData.phone.trim())
+    if (!formData.phone.trim()) {
       e.phone = t("createOrder.validation.phoneRequired");
-    else if (!/^\+371\d{8}$/.test(formData.phone.replace(/\s/g, ""))) {
+    } else if (!/^\+371\d{8}$/.test(formData.phone.replace(/\s/g, ""))) {
       e.phone = t("createOrder.validation.phoneInvalid");
     }
 
-    if (selectedItems.length === 0)
+    if (selectedItems.length === 0) {
       e.items = t("createOrder.validation.itemsRequired");
+    }
 
-    // if (!formData.courierId)
-    //   e.courier = t("createOrder.validation.courierRequired");
-    if (!formData.pickupId)
+    if (!formData.pickupId) {
       e.restaurant = t("createOrder.validation.pickupRequired");
-    if (!formData.payment)
+    }
+
+    if (!formData.payment) {
       e.payment = t("createOrder.validation.paymentRequired");
+    }
 
     if (formData.orderType === "preorder") {
-      if (!formData.scheduledDate)
+      if (!formData.scheduledDate) {
         e.scheduledDate = t("createOrder.validation.scheduledDateRequired");
-      if (!formData.scheduledTime)
+      }
+
+      if (!formData.scheduledTime) {
         e.scheduledTime = t("createOrder.validation.scheduledTimeRequired");
+      }
 
       if (formData.scheduledDate && formData.scheduledTime) {
         const scheduled = new Date(
@@ -283,6 +354,7 @@ const CreateOrder = () => {
         );
         const minAllowed = new Date();
         minAllowed.setMinutes(minAllowed.getMinutes() + PREORDER_MIN_OFFSET_MIN);
+
         if (scheduled < minAllowed) {
           e.scheduledTime = t("createOrder.validation.scheduledTooEarly", {
             min: PREORDER_MIN_OFFSET_MIN,
@@ -295,7 +367,91 @@ const CreateOrder = () => {
     return Object.keys(e).length === 0;
   };
 
-  // submit -> API
+  // ---- lookup клиента по телефону с debounce ----
+  useEffect(() => {
+    const phone = normalizePhoneForLookup(formData.phone);
+
+    if (!phone) {
+      setCustomerLookupData(null);
+      setPhoneLookupState("idle");
+      lastRequestedPhoneRef.current = "";
+      return;
+    }
+
+    if (!isValidLvPhone(phone)) {
+      setCustomerLookupData(null);
+      setPhoneLookupState("idle");
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const timer = setTimeout(async () => {
+      if (lastRequestedPhoneRef.current === phone) return;
+
+      try {
+        setPhoneLookupState("loading");
+
+        const res = await fetch(
+          `${API}/order-support/customer-address-by-phone?phone=${encodeURIComponent(phone)}`,
+          {
+            method: "GET",
+            headers: authHeaders,
+            signal: controller.signal,
+          }
+        );
+
+        if (res.status === 401) {
+          handleUnauthorized();
+          return;
+        }
+
+        const data = await res.json();
+
+        if (!res.ok || !data.ok) {
+          throw new Error(
+            data.error ||
+            t(
+              "createOrder.errors.customerLookupFailed",
+              "Не удалось найти адрес клиента"
+            )
+          );
+        }
+
+        lastRequestedPhoneRef.current = phone;
+
+        if (!data.found || !data.address) {
+          setCustomerLookupData(null);
+          setPhoneLookupState("not_found");
+          return;
+        }
+
+        setCustomerLookupData({
+          customerName: data.meta?.customerName || "",
+          notes: data.meta?.notes || "",
+          phone: data.meta?.phone || phone,
+          lastOrderAt: data.meta?.lastOrderAt || null,
+          street: data.address.street || "",
+          house: data.address.house || "",
+          apart: data.address.apart || "",
+          building: data.address.building || "",
+          floor: data.address.floor || "",
+          code: data.address.code || "",
+        });
+
+        setPhoneLookupState("found");
+      } catch (e) {
+        if (e.name === "AbortError") return;
+        setPhoneLookupState("error");
+      }
+    }, 500);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [formData.phone, API, authHeaders, handleUnauthorized, t]);
+
   const handleSubmit = async () => {
     if (isSubmitting) return;
 
@@ -325,11 +481,11 @@ const CreateOrder = () => {
         scheduledAt,
         courierId: Number(formData.courierId) || null,
         pickupId: Number(formData.pickupId) || null,
-        payment: formData.payment, // 'cash' | 'card' | 'wire'
+        payment: formData.payment,
         deliveryFee: safeDeliveryFee,
 
         customer: formData.customer.trim(),
-        phone: formData.phone.trim(),
+        phone: normalizePhoneForLookup(formData.phone),
 
         street: formData.street.trim(),
         house: formData.house.trim(),
@@ -386,6 +542,9 @@ const CreateOrder = () => {
     }
   };
 
+  const showApplyDataButton =
+    phoneLookupState === "found" && !!customerLookupData;
+
   return (
     <div className="create-order-page">
       <header className="header">
@@ -404,12 +563,22 @@ const CreateOrder = () => {
       <div className="form-container">
         <div className="order-form">
           <div className="form-grid">
-            {/* Клиент */}
             <div className="form-section">
-              <div className="section-header">
-                <User size={20} />
-                <h3>{t("createOrder.sections.customerInfo")}</h3>
-              </div>
+              {/* <div className="section-header customer-section-header"> */}
+                <div className="section-header">
+                  <User size={20} />
+                  <h3>{t("createOrder.sections.customerInfo")}</h3>
+                </div>
+
+                <button
+                  type="button"
+                  className="btn-primary customer-clear-btn"
+                  onClick={clearCustomerFields}
+                >
+                  <Eraser size={16} />
+                  {t("createOrder.buttons.clearCustomer")}
+                </button>
+              {/* </div> */}
 
               <div className="form-row">
                 <div className="form-group">
@@ -427,7 +596,55 @@ const CreateOrder = () => {
                       placeholder={t("createOrder.placeholders.phone")}
                     />
                   </div>
+
                   {errors.phone && <span className="error-text">{errors.phone}</span>}
+
+                  {!errors.phone && phoneLookupState === "loading" && (
+                    <span className="hint muted">Ищем прошлый заказ клиента…</span>
+                  )}
+
+                  {!errors.phone && phoneLookupState === "found" && (
+                    <div
+                      className="hint muted"
+                      style={{
+                        display: "flex",
+                        gap: 8,
+                        alignItems: "center",
+                        marginTop: 6,
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <span style={{backgroundColor: "#22C55E", borderRadius: 20, padding: "4px 8px", fontSize: 10, border: "1px solid #16A34A "}}>{t("createOrder.customerFound")}</span>
+
+                      {showApplyDataButton && (
+                        <button
+                          type="button"
+                          className="btn-primary"
+                          onClick={applyFoundCustomerData}
+                        >
+                          {t("createOrder.buttons.fillCustomer")}
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {!errors.phone &&
+                    phoneLookupState === "found" &&
+                    customerLookupData?.notes && (
+                      <div className="hint muted" style={{ marginTop: 6 }}>
+                        Последняя заметка: {customerLookupData.notes}
+                      </div>
+                    )}
+
+                  {!errors.phone && phoneLookupState === "not_found" && (
+                    <span className="hint muted">Клиент с таким номером не найден.</span>
+                  )}
+
+                  {!errors.phone && phoneLookupState === "error" && (
+                    <span className="error-text">
+                      Не удалось выполнить поиск клиента.
+                    </span>
+                  )}
                 </div>
 
                 <div className="form-group">
@@ -511,9 +728,12 @@ const CreateOrder = () => {
                   />
                 </div>
               </div>
+
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="numOfPeople">{t("createOrder.fields.numOfPeople")}</label>
+                  <label htmlFor="numOfPeople">
+                    {t("createOrder.fields.numOfPeople")}
+                  </label>
                   <input
                     id="numOfPeople"
                     value={formData.numOfPeople}
@@ -523,14 +743,15 @@ const CreateOrder = () => {
                 </div>
               </div>
 
-              {/* Доставка */}
               <div className="section-header">
                 <Truck size={20} />
                 <h3>{t("createOrder.sections.delivery")}</h3>
               </div>
 
               <div className="form-group">
-                <label htmlFor="deliveryFee">{t("createOrder.fields.deliveryFee")} €</label>
+                <label htmlFor="deliveryFee">
+                  {t("createOrder.fields.deliveryFee")} €
+                </label>
                 <input
                   id="deliveryFee"
                   type="number"
@@ -589,7 +810,6 @@ const CreateOrder = () => {
                 </div>
               </div>
 
-              {/* Появляется только для предзаказа */}
               {formData.orderType === "preorder" && (
                 <>
                   <div className="form-row">
@@ -633,13 +853,14 @@ const CreateOrder = () => {
                   </div>
 
                   <div className="hint muted" style={{ marginTop: 4 }}>
-                    {t("createOrder.preorderHint", { min: PREORDER_MIN_OFFSET_MIN })}
+                    {t("createOrder.preorderHint", {
+                      min: PREORDER_MIN_OFFSET_MIN,
+                    })}
                   </div>
                 </>
               )}
             </div>
 
-            {/* Товары */}
             <div className="form-section">
               <div className="section-header">
                 <Package size={20} />
@@ -761,13 +982,16 @@ const CreateOrder = () => {
 
                   <div className="order-total">
                     <div className="text-muted">
-                      {t("createOrder.fields.itemsPrice")}: {formatCents(calculateItemsTotalCents())}€
+                      {t("createOrder.fields.itemsPrice")}:{" "}
+                      {formatCents(calculateItemsTotalCents())}€
                     </div>
                     <div className="text-muted">
-                      {t("createOrder.fields.deliveryFee")}: {formatCents(toCents(safeDeliveryFee))}€
+                      {t("createOrder.fields.deliveryFee")}:{" "}
+                      {formatCents(toCents(safeDeliveryFee))}€
                     </div>
                     <strong className="text-total">
-                      {t("createOrder.fields.totalPrice")}: {formatCents(calculateGrandTotalCents())}€
+                      {t("createOrder.fields.totalPrice")}:{" "}
+                      {formatCents(calculateGrandTotalCents())}€
                     </strong>
                   </div>
                 </div>
@@ -812,8 +1036,10 @@ const CreateOrder = () => {
                   )}
                 </div>
               </div>
-              {/* Карта зон доставки / проверка адреса */}
-              <label>{t("createOrder.fields.mapCheck") || "Проверка адреса по карте"}</label>
+
+              <label>
+                {t("createOrder.fields.mapCheck") || "Проверка адреса по карте"}
+              </label>
 
               <div
                 className="map-preview"
@@ -877,6 +1103,7 @@ const CreateOrder = () => {
                 : t("createOrder.buttons.create")}
             </button>
           </div>
+
           {isMapOpen && (
             <div className="map-modal" onClick={() => setIsMapOpen(false)}>
               <div className="map-modal-content" onClick={(e) => e.stopPropagation()}>
@@ -908,4 +1135,4 @@ const CreateOrder = () => {
   );
 };
 
-export default CreateOrder;
+export default CreateOrder; 

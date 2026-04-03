@@ -82,6 +82,7 @@
     "back": "Back",
     "title": "Create a new order",
     "subtitle": "Fill in all required fields to create an order",
+    "customerFound": "Customer data found",  
     "sections": {
       "customerInfo": "Customer information",
       "delivery": "Delivery",
@@ -143,7 +144,9 @@
       "cancel": "Cancel",
       "create": "Create order",
       "creating": "Creating...",
-      "print": "Print"
+      "print": "Print",
+      "clearCustomer": "Clear customer data",
+      "fillCustomer": "Fill in customer data"
     },
     "validation": {
       "customerRequired": "Customer name is required",
