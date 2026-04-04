@@ -585,7 +585,7 @@ const EditOrder = () => {
                       <option value="new">new</option>
                       <option value="ready">ready</option>
                       <option value="enroute">enroute</option>
-                      <option value="paused">paused</option>
+                      <option value="completed">completed</option>
                       <option value="cancelled">cancelled</option>
                     </select>
                   </div>

@@ -129,12 +129,11 @@ const OrderPanel = () => {
   }, [token, navigate]); // eslint-disable-line
 
   async function loadTab(tab) {
-    const q = tab === "completed" ? "active" : tab;
-    const res = await fetch(`${API}/current-orders?tab=${q}`, { headers: authHeaders });
-    const data = await res.json();
-    if (!res.ok || !data.ok) throw new Error(data.error || t("orderPanel.errors.loadOrdersFailed"));
-    setOrdersByTab((prev) => ({ ...prev, [q]: data.items || [] }));
-  }
+  const res = await fetch(`${API}/current-orders?tab=${tab}`, { headers: authHeaders });
+  const data = await res.json();
+  if (!res.ok || !data.ok) throw new Error(data.error || t("orderPanel.errors.loadOrdersFailed"));
+  setOrdersByTab((prev) => ({ ...prev, [tab]: data.items || [] }));
+}
 
   function upsertOrderToTabs(order) {
     const tabKey = order.orderType === "preorder" ? "preorders" : "active";
@@ -163,6 +162,7 @@ const OrderPanel = () => {
 
     loadTab("active").catch(console.error);
     loadTab("preorders").catch(console.error);
+    loadTab("completed").catch(console.error);
 
     const ws = new WebSocket(`${WS_URL.replace(/\/$/, "")}`);
     ws.addEventListener("open", () => {
