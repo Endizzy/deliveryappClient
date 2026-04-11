@@ -6,8 +6,30 @@
     "map": "Map",
     "profile": "Profile",
     "orders": "Orders",
+    "report": "Report",
     "menu": "Menu",
     "logout": "Logout"
+  },
+  "app": {
+    "ownerEntry": "Owner Login",
+    "staffEntry": "Staff Login",
+    "reports": "Reports"
+  },
+  "report": {
+    "back": "Back",
+    "loadButton": "Load Report",
+    "loading": "Loading…",
+    "errorMissingDates": "Please select both start and end dates.",
+    "empty": "No data. Select a date range and click Load Report.",
+    "nonCouriers": "Orders from non-couriers",
+    "columns": {
+      "courier": "Courier",
+      "totalOrders": "Total Orders",
+      "totalSum": "Total Sum (€)",
+      "cash": "Cash (€)",
+      "card": "Card (€)",
+      "totalItems": "Total Items"
+    }
   },
   "login": {
     "title": "Login",

@@ -1,8 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export default function App() {
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     return (
         <div>
@@ -16,13 +18,13 @@ export default function App() {
                     style={{ padding: "10px", minWidth: "140px", borderRadius: "5px", border: "2px solid black" }}
                     onClick={() => navigate('/orderPanel')}
                 >
-                    <h1 style={{ fontSize: "20px" }}>Вход для владельца</h1>
+                    <h1 style={{ fontSize: "20px" }}>{t("app.ownerEntry")}</h1>
                 </button>
                 <button
                     style={{ padding: "10px", minWidth: "140px", borderRadius: "5px", border: "2px solid black" }}
                     onClick={() => navigate('/map')}
                 >
-                    <h1 style={{ fontSize: "20px" }}>Вход сотрудника</h1>
+                    <h1 style={{ fontSize: "20px" }}>{t("app.staffEntry")}</h1>
                 </button>
             </div>
         </div>

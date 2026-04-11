@@ -6,9 +6,30 @@
     "map": "Karte",
     "profile": "Profils",
     "orders": "Pasūtījumi",
+    "report": "Pārskati",
     "menu": "Izvēlne",
     "logout": "Izrakstīties"
-
+  },
+  "app": {
+    "ownerEntry": "Īpašnieka ieeja",
+    "staffEntry": "Darbinieka ieeja",
+    "reports": "Pārskati"
+  },
+  "report": {
+    "back": "Atpakaļ",
+    "loadButton": "Ielādēt pārskatu",
+    "loading": "Ielādē…",
+    "errorMissingDates": "Lūdzu izvēlieties sākuma un beigu datumu.",
+    "empty": "Nav datu. Izvēlieties datumu diapazonu un nospiediet «Ielādēt pārskatu».",
+    "nonCouriers": "Pasūtījumi no ne-kurjeriem",
+    "columns": {
+      "courier": "Kurjers",
+      "totalOrders": "Kopā pasūtījumi",
+      "totalSum": "Kopējā summa (€)",
+      "cash": "Skaidrā (€)",
+      "card": "Karte (€)",
+      "totalItems": "Kopā preces"
+    }
   },
   "login": {
     "title": "Pieslēgties",

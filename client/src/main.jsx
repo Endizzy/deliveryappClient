@@ -21,6 +21,7 @@ import { SoundProvider } from "./provider/SoundContext.jsx";
 import { TimeCounterProvider } from "./provider/TimeContext.jsx";
 import OrderPrediction from "./pages/OrderPrediction/OrderPrediction.jsx";
 import Certificate from "./pages/certificate/certificate.jsx";
+import Report from "./pages/Report/Report.jsx";
 
 createRoot(document.getElementById("root")).render(
     <BrowserRouter>
@@ -101,6 +102,14 @@ createRoot(document.getElementById("root")).render(
                             element={
                                 <ProtectedRoute allowedRoles={["owner", "admin"]}>
                                     <OrderPrediction />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/report"
+                            element={
+                                <ProtectedRoute allowedRoles={["owner", "admin"]}>
+                                    <Report />
                                 </ProtectedRoute>
                             }
                         />

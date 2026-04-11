@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import styles from "./Header.module.css";
-import { Map as MapIcon, Settings, MonitorCog, User, Box, Menu, X } from "lucide-react";
+import { Map as MapIcon, Settings, MonitorCog, User, Box, Menu, X, BarChart2 } from "lucide-react";
 import { useTheme } from "../../provider/ThemeContext.jsx";
 import { useNavigate } from "react-router-dom";
 import LanguageSelector from "./../LanguageSelect/LanguageSelect.jsx";
@@ -93,6 +93,17 @@ const Header = ({ user = null }) => {
             </button>
           </div>
 
+          <div className={styles.icon_content}>
+            <span className={styles.icon_span}>{t("header.report")}</span>
+            <button
+              className={styles.icon_btn}
+              onClick={() => handleNavigation("/report")}
+              title={t("header.report")}
+            >
+              <BarChart2 size={24} />
+            </button>
+          </div>
+
           <div className={styles.user_info}>
             <span className={styles.user_name}>
               {user?.firstName ?? "undefined"} {user?.lastName ?? "undefined"}
@@ -147,6 +158,14 @@ const Header = ({ user = null }) => {
             >
               <Box size={20} />
               <span>{t("header.orders")}</span>
+            </button>
+
+            <button
+              className={styles.mobile_menu_item}
+              onClick={() => handleNavigation("/report")}
+            >
+              <BarChart2 size={20} />
+              <span>{t("header.report")}</span>
             </button>
 
             <div className={styles.mobile_user_section}>
