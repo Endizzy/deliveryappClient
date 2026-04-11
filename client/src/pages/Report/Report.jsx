@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import Header from "../../components/Header/Header.jsx";
 import { useTranslation } from "react-i18next";
-import "./Report.css";
+import styles from "./Report.module.css";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -51,36 +51,36 @@ export default function Report() {
   }
 
   return (
-    <div className="report-page">
+    <div className={styles.report_page}>
       <Header />
 
-      <div className="report-content">
-        <div className="report-controls">
-          <button className="report-back-btn" onClick={() => navigate(-1)}>
+      <div className={styles.report_content}>
+        <div className={styles.report_controls}>
+          <button className={styles.report_back_btn} onClick={() => navigate(-1)}>
             ← {t("report.back")}
           </button>
           <input
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="report-date-input"
+            className={styles.report_date_input}
           />
           <input
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="report-date-input"
+            className={styles.report_date_input}
           />
-          <button className="report-load-btn" onClick={loadReport} disabled={loading}>
+          <button className={styles.report_load_btn} onClick={loadReport} disabled={loading}>
             {loading ? t("report.loading") : t("report.loadButton")}
           </button>
         </div>
 
-        {error && <div className="report-error">{error}</div>}
+        {error && <div className={styles.report_error}>{error}</div>}
 
         {rows.length > 0 && (
-          <div className="report-table">
-            <div className="table-header">
+          <div className={styles.report_table}>
+            <div className={styles.table_header}>
               <span>{t("report.columns.courier")}</span>
               <span>{t("report.columns.totalOrders")}</span>
               <span>{t("report.columns.totalSum")}</span>
@@ -89,7 +89,7 @@ export default function Report() {
               <span>{t("report.columns.totalItems")}</span>
             </div>
             {rows.map((row) => (
-              <div className="table-row" key={row.unit_id ?? "unassigned"}>
+              <div className={styles.table_row} key={row.unit_id ?? "unassigned"}>
                 <span>{row.unit_id === null ? t("report.nonCouriers") : row.unit_nickname}</span>
                 <span>{row.total_orders}</span>
                 <span>{Number(row.total_sum).toFixed(2)}</span>
@@ -102,7 +102,7 @@ export default function Report() {
         )}
 
         {!loading && rows.length === 0 && !error && (
-          <div className="report-empty">{t("report.empty")}</div>
+          <div className={styles.report_empty}>{t("report.empty")}</div>
         )}
       </div>
     </div>
