@@ -28,6 +28,7 @@
       "totalSum": "Total Sum (€)",
       "cash": "Cash (€)",
       "card": "Card (€)",
+      "online": "Transfer (€)",
       "totalItems": "Total Items"
     }
   },

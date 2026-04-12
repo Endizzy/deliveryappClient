@@ -28,6 +28,7 @@
       "totalSum": "Kopējā summa (€)",
       "cash": "Skaidrā (€)",
       "card": "Karte (€)",
+      "online": "Pārskaitījums (€)",
       "totalItems": "Kopā preces"
     }
   },
