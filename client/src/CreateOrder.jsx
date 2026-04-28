@@ -472,7 +472,7 @@ const CreateOrder = () => {
         formData.orderType === "preorder" &&
           formData.scheduledDate &&
           formData.scheduledTime
-          ? `${formData.scheduledDate}T${formData.scheduledTime}`
+          ? new Date(`${formData.scheduledDate}T${formData.scheduledTime}`).toISOString()
           : null;
 
       const payload = {
@@ -565,19 +565,19 @@ const CreateOrder = () => {
           <div className="form-grid">
             <div className="form-section">
               {/* <div className="section-header customer-section-header"> */}
-                <div className="section-header">
-                  <User size={20} />
-                  <h3>{t("createOrder.sections.customerInfo")}</h3>
-                </div>
+              <div className="section-header">
+                <User size={20} />
+                <h3>{t("createOrder.sections.customerInfo")}</h3>
+              </div>
 
-                <button
-                  type="button"
-                  className="btn-primary customer-clear-btn"
-                  onClick={clearCustomerFields}
-                >
-                  <Eraser size={16} />
-                  {t("createOrder.buttons.clearCustomer")}
-                </button>
+              <button
+                type="button"
+                className="btn-primary customer-clear-btn"
+                onClick={clearCustomerFields}
+              >
+                <Eraser size={16} />
+                {t("createOrder.buttons.clearCustomer")}
+              </button>
               {/* </div> */}
 
               <div className="form-row">
@@ -614,7 +614,7 @@ const CreateOrder = () => {
                         flexWrap: "wrap",
                       }}
                     >
-                      <span style={{backgroundColor: "#22C55E", borderRadius: 20, padding: "4px 8px", fontSize: 10, border: "1px solid #16A34A "}}>{t("createOrder.customerFound")}</span>
+                      <span style={{ backgroundColor: "#22C55E", borderRadius: 20, padding: "4px 8px", fontSize: 10, border: "1px solid #16A34A " }}>{t("createOrder.customerFound")}</span>
 
                       {showApplyDataButton && (
                         <button
