@@ -118,16 +118,16 @@ const FilterPanel = ({ orders = [], columnName, onClose }) => {
               <h4>{t("orderPanel.filter.selectTimeSort")}</h4>
               <div className="sort-buttons">
                 <button
-                  className={timeSort === "asc" ? "sort-btn active" : "sort-btn"}
-                  onClick={() => handleTimeSort("asc")}
-                >
-                  {t("orderPanel.filter.sortAsc")}
-                </button>
-                <button
                   className={timeSort === "desc" ? "sort-btn active" : "sort-btn"}
                   onClick={() => handleTimeSort("desc")}
                 >
                   {t("orderPanel.filter.sortDesc")}
+                </button>
+                <button
+                  className={timeSort === "asc" ? "sort-btn active" : "sort-btn"}
+                  onClick={() => handleTimeSort("asc")}
+                >
+                  {t("orderPanel.filter.sortAsc")}
                 </button>
               </div>
             </div>
@@ -141,13 +141,13 @@ const FilterPanel = ({ orders = [], columnName, onClose }) => {
                   className={amountSort === "asc" ? "sort-btn active" : "sort-btn"}
                   onClick={() => handleAmountSort("asc")}
                 >
-                  {t("orderPanel.filter.sortAsc")}
+                  {t("orderPanel.filter.sortAmountAsc")}
                 </button>
                 <button
                   className={amountSort === "desc" ? "sort-btn active" : "sort-btn"}
                   onClick={() => handleAmountSort("desc")}
                 >
-                  {t("orderPanel.filter.sortDesc")}
+                  {t("orderPanel.filter.sortAmountDesc")}
                 </button>
               </div>
             </div>

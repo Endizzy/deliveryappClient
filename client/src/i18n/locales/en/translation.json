@@ -383,7 +383,13 @@
       "from": "From",
       "to": "To",
       "reset": "Reset all filters",
-      "apply": "Apply filters"
+      "apply": "Apply filters",
+      "sortDesc": "Newest first",
+      "sortAsc": "Oldest first",
+      "sortAmountAsc": "Smallest first",
+      "sortAmountDesc": "Largest first",
+      "selectTimeSort": "Sort by time",
+      "selectAmountSort": "Sort by amount"
     },
     "table": {
       "status": "Status",

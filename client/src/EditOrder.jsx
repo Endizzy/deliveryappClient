@@ -318,9 +318,9 @@ const EditOrder = () => {
         const scheduled = new Date(`${formData.scheduledDate}T${formData.scheduledTime}`);
         const minAllowed = new Date();
         minAllowed.setMinutes(minAllowed.getMinutes() + PREORDER_MIN_OFFSET_MIN);
-        if (scheduled < minAllowed) {
-          e.scheduledTime = t("createOrder.validation.scheduledTooEarly", { min: PREORDER_MIN_OFFSET_MIN });
-        }
+        // if (scheduled < minAllowed) {
+        //   e.scheduledTime = t("createOrder.validation.scheduledTooEarly", { min: PREORDER_MIN_OFFSET_MIN });
+        // }
       }
     }
     setErrors(e);

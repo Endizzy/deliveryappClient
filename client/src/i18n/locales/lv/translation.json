@@ -383,7 +383,13 @@
       "from": "No",
       "to": "Līdz",
       "reset": "Notīrīt visus filtrus",
-      "apply": "Pielietot filtrus"
+      "apply": "Pielietot filtrus",
+      "sortDesc": "Vispirms jaunie",
+      "sortAsc": "Vispirms vecie",
+      "sortAmountAsc": "Vispirms mazākie",
+      "sortAmountDesc": "Vispirms lielākie",
+      "selectTimeSort": "Kārtot pēc laika",
+      "selectAmountSort": "Kārtot pēc summas"
     },
     "table": {
       "status": "Statuss",
