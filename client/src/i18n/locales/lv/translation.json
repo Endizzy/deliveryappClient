@@ -28,7 +28,7 @@
       "totalSum": "Kopējā summa (€)",
       "cash": "Skaidrā (€)",
       "card": "Karte (€)",
-      "online": "Pārskaitījums (€)",
+      "wire": "Pārskaitījums (€)",
       "totalItems": "Kopā preces"
     }
   },
@@ -446,8 +446,6 @@
       "title": "Izskats",
       "selectAria": "Izvēlēties tēmu",
       "themes": {
-        "light": "Gaišā tēma",
-        "dark": "Tumšā tēma"
       }
     },
     "sound": {

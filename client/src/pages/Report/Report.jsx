@@ -18,8 +18,7 @@ export default function Report() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const token =
-    localStorage.getItem("token") || sessionStorage.getItem("token");
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
   if (!token) return <Navigate to="/login" replace />;
 

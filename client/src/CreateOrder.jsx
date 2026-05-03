@@ -28,12 +28,12 @@ import {
 const formatPhoneNumber = (value) => {
   let cleaned = String(value || "").replace(/\D/g, "");
   if (cleaned.startsWith("371")) return `+${cleaned}`;
-  if (cleaned.length > 0) return `+371${cleaned}`;
+  if (cleaned.length > 0) return `+${cleaned}`;
   return "";
 };
 
 const normalizePhoneForLookup = (value) => String(value || "").replace(/\s/g, "");
-const isValidLvPhone = (value) => /^\+371\d{8}$/.test(normalizePhoneForLookup(value));
+const isValidLvPhone = (value) => /^\+\d{20}$/.test(normalizePhoneForLookup(value));
 
 const pad2 = (n) => String(n).padStart(2, "0");
 const toLocalDateInput = (d) =>

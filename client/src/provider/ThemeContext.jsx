@@ -6,7 +6,7 @@ const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
     // по умолчанию фиолетовая тема
-    const [themeKey, setThemeKey] = useState("purpleTheme");
+    const [themeKey, setThemeKey] = useState("midnightTheme");
 
     // при первом запуске читаем сохранённую тему
     useEffect(() => {

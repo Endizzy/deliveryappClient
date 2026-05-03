@@ -28,7 +28,7 @@
       "totalSum": "Total Sum (€)",
       "cash": "Cash (€)",
       "card": "Card (€)",
-      "online": "Transfer (€)",
+      "wire": "Transfer (€)",
       "totalItems": "Total Items"
     }
   },
@@ -446,8 +446,6 @@
       "title": "Appearance",
       "selectAria": "Select theme",
       "themes": {
-        "light": "Light theme",
-        "dark": "Dark theme"
       }
     },
     "sound": {

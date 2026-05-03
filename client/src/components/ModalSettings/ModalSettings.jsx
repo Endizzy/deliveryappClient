@@ -82,8 +82,8 @@ export default function ModalSettings({ isOpen, onClose }) {
                 onChange={(e) => changeTheme(e.target.value)}
                 aria-label={t("modalSettings.appearance.selectAria")}
               >
-                <option value="purpleTheme">{t("modalSettings.appearance.themes.light")}</option>
-                <option value="darkGreenTheme">{t("modalSettings.appearance.themes.dark")}</option>
+                <option value="midnightTheme">Midnight</option>
+                <option value="deepOceanTheme">Deep Ocean</option>
               </select>
             </div>
           </div>
