@@ -84,7 +84,7 @@ export default function Report() {
               <span>{t("report.columns.totalSum")}</span>
               <span>{t("report.columns.cash")}</span>
               <span>{t("report.columns.card")}</span>
-              <span>{t("report.columns.online")}</span>
+              <span>{t("report.columns.wire")}</span>
               <span>{t("report.columns.totalItems")}</span>
             </div>
             {rows.map((row) => (
@@ -94,7 +94,7 @@ export default function Report() {
                 <span>{Number(row.total_sum).toFixed(2)}</span>
                 <span>{Number(row.total_cash_sum).toFixed(2)}</span>
                 <span>{Number(row.total_card_sum).toFixed(2)}</span>
-                <span>{Number(row.total_online_sum).toFixed(2)}</span>
+                <span>{Number(row.total_wire_sum).toFixed(2)}</span>
                 <span>{row.total_items}</span>
               </div>
             ))}
