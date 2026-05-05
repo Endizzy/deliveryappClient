@@ -274,6 +274,12 @@
         "price": "Price",
         "discount": "Discount",
         "actions": "Actions"
+      },
+      "invoice": {
+        "title": "Invoice preview",
+        "editTemplate": "Edit template",
+        "notConfigured": "Template not configured",
+        "configured": "Template configured"
       }
     },
     "menuModal": {

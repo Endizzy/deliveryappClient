@@ -274,6 +274,12 @@
         "price": "Cena",
         "discount": "Atlaide",
         "actions": "Darbības"
+      },
+      "invoice": {
+        "title": "Rēķina priekšskatījums",
+        "editTemplate": "Rediģēt veidni",
+        "notConfigured": "Veidne nav konfigurēta",
+        "configured": "Veidne ir konfigurēta"
       }
     },
     "menuModal": {

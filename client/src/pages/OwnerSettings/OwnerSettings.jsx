@@ -473,22 +473,22 @@ export default function OwnerSettings() {
             {/* Invoice settings */}
             <div className="owner-card-2">
               <div className="owner-field">
-                <label>Настройка накладной</label>
+                <label> {t("ownerSettings.invoice.title")} </label>
               </div>
 
               <div className="owner-field">
                 <button className="owner-invoice-btn" onClick={() => navigate("/invoiceSettings")}>
-                  <Edit size={16} /> Редактировать шаблон
+                  <Edit size={16} /> {t("ownerSettings.invoice.editTemplate")}
                 </button>
 
 
                 {!invoice ? (
                   <span className="owner-invoice-status-disabled">
-                    Шаблон не настроен
+                    {t("ownerSettings.invoice.notConfigured")}
                   </span>
                 ) : (
                   <span className="owner-invoice-status-active">
-                    Шаблон активен
+                    {t("ownerSettings.invoice.configured")}
                   </span>
                 )}
               </div>

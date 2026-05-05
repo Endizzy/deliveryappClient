@@ -274,7 +274,13 @@
         "price": "Цена",
         "discount": "Скидка",
         "actions": "Действия"
-      }
+      },
+       "invoice": {
+        "title": "Превью накладной",
+        "editTemplate": "Редактировать шаблон",
+        "notConfigured": "Шаблон не настроен",
+        "configured": "Шаблон настроен"
+       }
     },
     "menuModal": {
       "addTitle": "Добавить позицию",
