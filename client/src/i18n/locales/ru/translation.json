@@ -236,6 +236,12 @@
       "menu": "Меню ресторана",
       "accounts": "Аккаунты (админы и курьеры)"
     },
+    "invoice": {
+        "title": "Превью накладной",
+        "editTemplate": "Редактировать шаблон",
+        "notConfigured": "Шаблон не настроен",
+        "configured": "Шаблон настроен"
+       },
     "stats": {
       "items": "Позиции: {{total}}",
       "active": "Активно: {{active}}",
@@ -274,13 +280,7 @@
         "price": "Цена",
         "discount": "Скидка",
         "actions": "Действия"
-      },
-       "invoice": {
-        "title": "Превью накладной",
-        "editTemplate": "Редактировать шаблон",
-        "notConfigured": "Шаблон не настроен",
-        "configured": "Шаблон настроен"
-       }
+      }
     },
     "menuModal": {
       "addTitle": "Добавить позицию",

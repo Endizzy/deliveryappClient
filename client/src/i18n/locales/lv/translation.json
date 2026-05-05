@@ -236,6 +236,12 @@
       "menu": "Restorāna ēdienkarte",
       "accounts": "Konti (administratori un kurjeri)"
     },
+    "invoice": {
+        "title": "Rēķina priekšskatījums",
+        "editTemplate": "Rediģēt veidni",
+        "notConfigured": "Veidne nav konfigurēta",
+        "configured": "Veidne ir konfigurēta"
+      },
     "stats": {
       "items": "Pozīcijas: {{total}}",
       "active": "Aktīvs: {{active}}",
@@ -274,12 +280,6 @@
         "price": "Cena",
         "discount": "Atlaide",
         "actions": "Darbības"
-      },
-      "invoice": {
-        "title": "Rēķina priekšskatījums",
-        "editTemplate": "Rediģēt veidni",
-        "notConfigured": "Veidne nav konfigurēta",
-        "configured": "Veidne ir konfigurēta"
       }
     },
     "menuModal": {

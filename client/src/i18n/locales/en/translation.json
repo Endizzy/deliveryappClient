@@ -236,6 +236,12 @@
       "menu": "Restaurant menu",
       "accounts": "Accounts (admins and couriers)"
     },
+    "invoice": {
+        "title": "Invoice preview",
+        "editTemplate": "Edit template",
+        "notConfigured": "Template not configured",
+        "configured": "Template configured"
+      },
     "stats": {
       "items": "Items: {{total}}",
       "active": "Active: {{active}}",
@@ -274,12 +280,6 @@
         "price": "Price",
         "discount": "Discount",
         "actions": "Actions"
-      },
-      "invoice": {
-        "title": "Invoice preview",
-        "editTemplate": "Edit template",
-        "notConfigured": "Template not configured",
-        "configured": "Template configured"
       }
     },
     "menuModal": {
