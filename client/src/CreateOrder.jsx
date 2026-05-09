@@ -24,16 +24,16 @@ import {
   toCents,
 } from "./utils/money.js";
 
-// формат номера LV
+// Универсальный форматтер номера
 const formatPhoneNumber = (value) => {
   let cleaned = String(value || "").replace(/\D/g, "");
-  if (cleaned.startsWith("371")) return `+${cleaned}`;
-  if (cleaned.length > 0) return `+${cleaned}`;
-  return "";
+  if (!cleaned) return "";
+  return value.startsWith("+") ? value : `+${cleaned}`;
 };
 
 const normalizePhoneForLookup = (value) => String(value || "").replace(/\s/g, "");
-const isValidLvPhone = (value) => /^\+\d{20}$/.test(normalizePhoneForLookup(value));
+// Универсальная валидация международного номера: + и 8-15 цифр
+const isValidPhone = (value) => /^\+\d{8,15}$/.test(normalizePhoneForLookup(value));
 
 const pad2 = (n) => String(n).padStart(2, "0");
 const toLocalDateInput = (d) =>
@@ -323,7 +323,7 @@ const CreateOrder = () => {
 
     if (!formData.phone.trim()) {
       e.phone = t("createOrder.validation.phoneRequired");
-    } else if (!/^\+371\d{8}$/.test(formData.phone.replace(/\s/g, ""))) {
+    } else if (!/^\+\d{8,15}$/.test(formData.phone.replace(/\s/g, ""))) {
       e.phone = t("createOrder.validation.phoneInvalid");
     }
 
@@ -378,7 +378,7 @@ const CreateOrder = () => {
       return;
     }
 
-    if (!isValidLvPhone(phone)) {
+    if (!isValidPhone(phone)) {
       setCustomerLookupData(null);
       setPhoneLookupState("idle");
       return;
