@@ -23,6 +23,9 @@ export default function OwnerSettings() {
 
   const [invoice, setInvoice] = useState(false);
 
+  // активная вкладка настроек: general | menu | accounts
+  const [activeTab, setActiveTab] = useState("general");
+
   // визуальные поля
   const [restaurant, setRestaurant] = useState({ name: "", logo: "" });
 
@@ -396,26 +399,64 @@ export default function OwnerSettings() {
     <div className="owner-page">
       <Header user={user} />
 
-      {/* Tabs */}
+      {/* Title + (menu) stats */}
       <nav className="owner-tabs">
         <strong className="owner-title">{t("ownerSettings.title")}</strong>
-        <div className="owner-stats">
-          <div className="owner-chip">
-            <BadgeCheck size={14} /> {t("ownerSettings.stats.items", { total: stats.total })}
+        {activeTab === "menu" && (
+          <div className="owner-stats">
+            <div className="owner-chip">
+              <BadgeCheck size={14} /> {t("ownerSettings.stats.items", { total: stats.total })}
+            </div>
+            <div className="owner-chip">
+              <ChevronUp size={14} /> {t("ownerSettings.stats.active", { active: stats.active })}
+            </div>
+            <div className="owner-chip">
+              <ChevronDown size={14} /> {t("ownerSettings.stats.avgPrice", { price: toEUR(stats.avg) })}
+            </div>
           </div>
-          <div className="owner-chip">
-            <ChevronUp size={14} /> {t("ownerSettings.stats.active", { active: stats.active })}
-          </div>
-          <div className="owner-chip">
-            <ChevronDown size={14} /> {t("ownerSettings.stats.avgPrice", { price: toEUR(stats.avg) })}
-          </div>
-        </div>
+        )}
       </nav>
+
+      {/* Tab navigation */}
+      <div className="owner-nav-tabs" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === "general"}
+          className={`owner-nav-tab ${activeTab === "general" ? "active" : ""}`}
+          onClick={() => setActiveTab("general")}
+        >
+          <Shield size={18} />
+          <span>{t("ownerSettings.sections.general")}</span>
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === "menu"}
+          className={`owner-nav-tab ${activeTab === "menu" ? "active" : ""}`}
+          onClick={() => setActiveTab("menu")}
+        >
+          <Package size={18} />
+          <span>{t("ownerSettings.sections.menu")}</span>
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === "accounts"}
+          className={`owner-nav-tab ${activeTab === "accounts" ? "active" : ""}`}
+          onClick={() => setActiveTab("accounts")}
+        >
+          <Users size={18} />
+          <span>{t("ownerSettings.sections.accounts")}</span>
+        </button>
+      </div>
 
       {/* Content */}
       <div className="owner-content">
         {/* General info */}
-        {/* restaurant info */}
+        {activeTab === "general" && (
         <section className="owner-card">
           <div className="owner-card-header">
             <div className="owner-card-title">
@@ -495,8 +536,10 @@ export default function OwnerSettings() {
             </div>
           </div>
         </section>
+        )}
 
         {/* Menu */}
+        {activeTab === "menu" && (
         <section className="owner-card">
           <div className="owner-card-header">
             <div className="owner-card-title">
@@ -594,8 +637,10 @@ export default function OwnerSettings() {
             </div>
           </div>
         </section>
+        )}
 
         {/* Staff */}
+        {activeTab === "accounts" && (
         <section className="owner-card">
           <div className="owner-card-header">
             <div className="owner-card-title">
@@ -685,6 +730,7 @@ export default function OwnerSettings() {
             </div>
           </div>
         </section>
+        )}
       </div>
 
       {/* ---- MENU MODAL ---- */}
