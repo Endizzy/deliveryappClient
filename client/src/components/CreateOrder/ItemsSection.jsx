@@ -1,6 +1,7 @@
 import React from "react";
 import { Package, Search, Plus, Minus, X } from "lucide-react";
 import { discountedUnitCents, formatCents, toCents } from "../../utils/money.js";
+import AddressMapField from "./AddressMapField.jsx";
 
 // Секция «Позиции заказа»: поиск по меню, выбранные позиции, оплата/самовывоз, карта.
 const ItemsSection = ({
@@ -21,8 +22,18 @@ const ItemsSection = ({
   formData,
   handleInputChange,
   pickupPoints,
-  mapEmbedSrc,
-  onOpenMap,
+  // ── проверка адреса доставки на карте ──
+  geo,
+  geoConfirmed,
+  geoLoading,
+  geoError,
+  addressError,
+  onVerifyAddress,
+  onConfirmAddress,
+  onMarkerMove,
+  onExpandMap,
+  zones,
+  currentZone,
 }) => {
   return (
     <div className="form-section">
@@ -201,29 +212,21 @@ const ItemsSection = ({
         </div>
       </div>
 
-      <label>
-        {t("createOrder.fields.mapCheck") || "Проверка адреса по карте"}
-      </label>
-
-      <div
-        className="map-preview"
-        role="button"
-        tabIndex={0}
-        onClick={() => onOpenMap()}
-        onKeyDown={(e) => e.key === "Enter" && onOpenMap()}
-        title="Открыть карту"
-      >
-        <iframe
-          src={mapEmbedSrc}
-          className="map-iframe"
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          allowFullScreen
-        />
-        <div className="map-preview-overlay">
-          <span>Нажми, чтобы увеличить</span>
-        </div>
-      </div>
+      <AddressMapField
+        t={t}
+        formData={formData}
+        geo={geo}
+        geoConfirmed={geoConfirmed}
+        geoLoading={geoLoading}
+        geoError={geoError}
+        addressError={addressError}
+        onVerifyAddress={onVerifyAddress}
+        onConfirmAddress={onConfirmAddress}
+        onMarkerMove={onMarkerMove}
+        onExpandMap={onExpandMap}
+        zones={zones}
+        currentZone={currentZone}
+      />
     </div>
   );
 };

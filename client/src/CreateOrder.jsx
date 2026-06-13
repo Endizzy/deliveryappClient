@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Save } from "lucide-react";
 import "./CreateOrder.css";
 import { useNavigate } from "react-router-dom";
@@ -14,6 +14,7 @@ import CustomerSection from "./components/CreateOrder/CustomerSection.jsx";
 import ItemsSection from "./components/CreateOrder/ItemsSection.jsx";
 import NotesSection from "./components/CreateOrder/NotesSection.jsx";
 import DeliveryMapModal from "./components/CreateOrder/DeliveryMapModal.jsx";
+import { findZoneForPoint } from "./utils/zones.js";
 
 const PREORDER_MIN_OFFSET_MIN = 15;
 
@@ -63,9 +64,37 @@ const CreateOrder = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // ── Проверка адреса доставки на карте ──
+  // geo: { lat, lng } | null — текущая точка на карте
+  // geoConfirmed: адрес проверен и подтверждён администратором (обязательно перед созданием)
+  const [geo, setGeo] = useState(null);
+  const [geoConfirmed, setGeoConfirmed] = useState(false);
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [geoError, setGeoError] = useState(null);
+
+  // Зоны доставки компании (для показа на карте и определения зоны точки)
+  const [zones, setZones] = useState([]);
+  const currentZone = useMemo(
+    () => (geo ? findZoneForPoint(geo.lat, geo.lng, zones) : null),
+    [geo, zones]
+  );
+
+  // Загружаем зоны компании один раз
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(`${API}/delivery-zones`, { headers: authHeaders });
+        if (res.status === 401) return;
+        const data = await res.json();
+        if (res.ok && data.ok) setZones(data.zones || []);
+      } catch (e) {
+        // зоны не критичны для создания заказа
+      }
+    })();
+  }, [API, authHeaders]);
+
+  // Модалка с большой интерактивной картой адреса доставки
   const [isMapOpen, setIsMapOpen] = useState(false);
-  const MAP_MID = "1HWH688Qze6v_yyq6CpIzY87597ZF2YQM";
-  const mapEmbedSrc = `https://www.google.com/maps/d/u/0/embed?mid=${MAP_MID}&ehbc=2E312F`;
 
   const handleUnauthorized = useCallback(() => {
     try {
@@ -156,7 +185,67 @@ const CreateOrder = () => {
     if (field === "phone") {
       handlePhoneChanged(value);
     }
+
+    // Любое изменение адреса требует повторной проверки на карте
+    if (["street", "house", "building", "apart"].includes(field)) {
+      setGeoConfirmed(false);
+      setGeoError(null);
+    }
   };
+
+  // ── Геокодинг адреса через сервер (ключ Geoapify скрыт на бэкенде) ──
+  const verifyAddress = useCallback(async () => {
+    if (!formData.street.trim()) return;
+    setGeoLoading(true);
+    setGeoError(null);
+    try {
+      const res = await fetch(`${API}/geocode`, {
+        method: "POST",
+        headers: authHeaders,
+        body: JSON.stringify({
+          street: formData.street,
+          house: formData.house,
+          building: formData.building,
+          apart: formData.apart,
+        }),
+      });
+      if (res.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+      const data = await res.json();
+      if (!res.ok || !data.ok || !Number.isFinite(Number(data.lat))) {
+        throw new Error(data.error || "geocode failed");
+      }
+      setGeo({ lat: Number(data.lat), lng: Number(data.lng) });
+      setGeoConfirmed(false);
+    } catch (e) {
+      setGeo(null);
+      setGeoConfirmed(false);
+      setGeoError(
+        t("createOrder.map.error", {
+          defaultValue:
+            "Не удалось определить координаты. Уточните адрес и попробуйте снова.",
+        })
+      );
+    } finally {
+      setGeoLoading(false);
+    }
+  }, [API, authHeaders, formData.street, formData.house, formData.building, formData.apart, handleUnauthorized, t]);
+
+  // Перетаскивание маркера админом → координаты обновлены, требуется повторное подтверждение
+  const handleMarkerMove = useCallback((latlng) => {
+    if (!latlng || !Number.isFinite(latlng.lat)) return;
+    setGeo({ lat: latlng.lat, lng: latlng.lng });
+    setGeoConfirmed(false);
+  }, []);
+
+  const confirmAddress = useCallback(() => {
+    if (geo) {
+      setGeoConfirmed(true);
+      setErrors((prev) => ({ ...prev, address: "" }));
+    }
+  }, [geo]);
 
   const applyFoundCustomerData = useCallback(() => {
     if (!customerLookupData) return;
@@ -172,6 +261,11 @@ const CreateOrder = () => {
       code: customerLookupData.code || "",
       notes: customerLookupData.notes || "",
     }));
+
+    // Адрес сменился — требуется заново проверить на карте
+    setGeo(null);
+    setGeoConfirmed(false);
+    setGeoError(null);
 
     markApplied(formData.phone);
   }, [customerLookupData, formData.phone, markApplied]);
@@ -189,6 +283,10 @@ const CreateOrder = () => {
       code: "",
       notes: "",
     }));
+
+    setGeo(null);
+    setGeoConfirmed(false);
+    setGeoError(null);
 
     resetCustomerLookup();
   }, [resetCustomerLookup]);
@@ -224,6 +322,13 @@ const CreateOrder = () => {
 
     if (!formData.payment) {
       e.payment = t("createOrder.validation.paymentRequired");
+    }
+
+    // Если указан адрес доставки — он должен быть проверен и подтверждён на карте
+    if (formData.street.trim() && (!geoConfirmed || !geo)) {
+      e.address = t("createOrder.map.mustConfirm", {
+        defaultValue: "Подтвердите адрес доставки на карте перед созданием заказа",
+      });
     }
 
     if (formData.orderType === "preorder") {
@@ -296,6 +401,10 @@ const CreateOrder = () => {
         floor: formData.floor.trim(),
         code: formData.code.trim(),
         numOfPeople: formData.numOfPeople.trim(),
+
+        // Подтверждённые на карте координаты доставки (сервер сохранит их как есть)
+        addressLat: geo?.lat ?? null,
+        addressLng: geo?.lng ?? null,
 
         notes: formData.notes,
 
@@ -399,8 +508,17 @@ const CreateOrder = () => {
               formData={formData}
               handleInputChange={handleInputChange}
               pickupPoints={pickupPoints}
-              mapEmbedSrc={mapEmbedSrc}
-              onOpenMap={() => setIsMapOpen(true)}
+              geo={geo}
+              geoConfirmed={geoConfirmed}
+              geoLoading={geoLoading}
+              geoError={geoError}
+              addressError={errors.address}
+              onVerifyAddress={verifyAddress}
+              onConfirmAddress={confirmAddress}
+              onMarkerMove={handleMarkerMove}
+              onExpandMap={() => setIsMapOpen(true)}
+              zones={zones}
+              currentZone={currentZone}
             />
 
             <NotesSection
@@ -433,9 +551,17 @@ const CreateOrder = () => {
             </button>
           </div>
 
-          {isMapOpen && (
+          {isMapOpen && geo && (
             <DeliveryMapModal
-              mapEmbedSrc={mapEmbedSrc}
+              t={t}
+              position={geo}
+              onChange={handleMarkerMove}
+              confirmed={geoConfirmed}
+              zones={zones}
+              onConfirm={() => {
+                confirmAddress();
+                setIsMapOpen(false);
+              }}
               onClose={() => setIsMapOpen(false)}
             />
           )}

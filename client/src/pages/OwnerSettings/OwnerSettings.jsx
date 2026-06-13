@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 import {
   Save, Upload, Image as ImageIcon, Plus, Edit, Trash2,
   Search, Percent, Package, Users, Shield, Phone, Mail,
-  BadgeCheck, X, ChevronDown, ChevronUp
+  BadgeCheck, X, ChevronDown, ChevronUp, Map as MapIcon
 } from "lucide-react";
 import "./ownerSettings.css";
 import Header from "../../components/Header/Header.jsx";
+import DeliveryZonesEditor from "./DeliveryZonesEditor.jsx";
 import { useTranslation } from "react-i18next";
 import { formatCents, toCents } from "../../utils/money.js";
 
@@ -451,6 +452,17 @@ export default function OwnerSettings() {
           <Users size={18} />
           <span>{t("ownerSettings.sections.accounts")}</span>
         </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === "zones"}
+          className={`owner-nav-tab ${activeTab === "zones" ? "active" : ""}`}
+          onClick={() => setActiveTab("zones")}
+        >
+          <MapIcon size={18} />
+          <span>{t("ownerSettings.sections.zones", { defaultValue: "Зоны доставки" })}</span>
+        </button>
       </div>
 
       {/* Content */}
@@ -730,6 +742,11 @@ export default function OwnerSettings() {
             </div>
           </div>
         </section>
+        )}
+
+        {/* Delivery zones */}
+        {activeTab === "zones" && (
+          <DeliveryZonesEditor API={API} authHeaders={authHeaders} t={t} />
         )}
       </div>
 
