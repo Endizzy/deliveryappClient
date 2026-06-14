@@ -136,12 +136,30 @@ const OrderPanel = () => {
 }
 
   function upsertOrderToTabs(order) {
-    const tabKey = order.orderType === "preorder" ? "preorders" : "active";
-    const otherKey = tabKey === "active" ? "preorders" : "active";
+    const status = String(order.status || "").toLowerCase();
+
+    // отменённый заказ убираем из всех вкладок
+    if (status === "cancelled") {
+      removeOrderFromTabs(order.id);
+      return;
+    }
+
+    // вкладка определяется в первую очередь статусом, затем типом заказа
+    const tabKey =
+      status === "completed"
+        ? "completed"
+        : order.orderType === "preorder"
+          ? "preorders"
+          : "active";
 
     setOrdersByTab((prev) => {
       const next = { ...prev };
-      next[otherKey] = (next[otherKey] || []).filter((x) => x.id !== order.id);
+      // убрать заказ из всех остальных вкладок (на случай смены статуса/типа)
+      ["active", "preorders", "completed"].forEach((k) => {
+        if (k !== tabKey) {
+          next[k] = (next[k] || []).filter((x) => x.id !== order.id);
+        }
+      });
       next[tabKey] = mergeById(next[tabKey], [order]);
       return next;
     });

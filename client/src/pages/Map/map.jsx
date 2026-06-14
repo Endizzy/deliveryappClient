@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import { createAdminSocket } from "../../ws.js";
+import { jwtDecode } from "jwt-decode";
 import { Info, Navigation2, Package } from "lucide-react";
 import styles from "./map.module.css";
 import Header from "../../components/Header/Header.jsx";
@@ -25,6 +26,18 @@ export default function DeliveryMap() {
     () => ({ "Content-Type": "application/json", Authorization: `Bearer ${token}` }),
     [token]
   );
+
+  // companyId нужен сокету, иначе серверные рассылки (фильтр по компании) не дойдут
+  const companyId = useMemo(() => {
+    try {
+      if (!token) return null;
+      const p = jwtDecode(token);
+      const cid = Number(p?.companyId ?? p?.company_id);
+      return Number.isFinite(cid) ? cid : null;
+    } catch {
+      return null;
+    }
+  }, [token]);
 
   const mapRef = useRef(null);
 
@@ -77,24 +90,30 @@ export default function DeliveryMap() {
         if (msg.type === "order_created" || msg.type === "order_updated") {
           const o = msg.order;
           if (o) {
-            upsertOrderMarker({
-              orderId: o.id,
-              status: o.status,
-              orderType: o.orderType,
-              customer: o.customer,
-              phone: o.phone,
-              addressLat: o.addressLat,
-              addressLng: o.addressLng,
-              address: o.address,
-              addressStreet: o.addressStreet ?? null,
-              addressHouse: o.addressHouse ?? null,
-              addressBuilding: o.addressBuilding ?? null,
-              addressApartment: o.addressApartment ?? null,
-              addressFloor: o.addressFloor ?? null,
-              addressCode: o.addressCode ?? null,
-              courierId: o.courierId,
-              pickupId: o.pickupId,
-            });
+            const st = String(o.status || "").toLowerCase();
+            if (st === "completed" || st === "cancelled") {
+              // заказ завершён/отменён → убираем маркер с карты
+              removeOrderMarker(o.id);
+            } else {
+              upsertOrderMarker({
+                orderId: o.id,
+                status: o.status,
+                orderType: o.orderType,
+                customer: o.customer,
+                phone: o.phone,
+                addressLat: o.addressLat,
+                addressLng: o.addressLng,
+                address: o.address,
+                addressStreet: o.addressStreet ?? null,
+                addressHouse: o.addressHouse ?? null,
+                addressBuilding: o.addressBuilding ?? null,
+                addressApartment: o.addressApartment ?? null,
+                addressFloor: o.addressFloor ?? null,
+                addressCode: o.addressCode ?? null,
+                courierId: o.courierId,
+                pickupId: o.pickupId,
+              });
+            }
           }
         }
 
@@ -104,7 +123,7 @@ export default function DeliveryMap() {
       } catch (e) {
         console.warn("WS message handler error", e);
       }
-    });
+    }, { companyId });
 
     return () => {
       try {
