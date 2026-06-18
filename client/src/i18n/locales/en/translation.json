@@ -166,6 +166,7 @@
     "buttons": {
       "cancel": "Cancel",
       "create": "Create order",
+      "save": "Save order",
       "creating": "Creating...",
       "print": "Print",
       "clearCustomer": "Clear customer data",

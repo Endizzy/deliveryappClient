@@ -19,6 +19,7 @@ const AddressMapField = ({
   onExpandMap,
   zones,
   currentZone,
+  requireConfirm = true,
 }) => {
   const hasZones = Array.isArray(zones) && zones.length > 0;
   return (
@@ -52,7 +53,7 @@ const AddressMapField = ({
               })}
         </button>
 
-        {geo && !geoConfirmed && (
+        {requireConfirm && geo && !geoConfirmed && (
           <button type="button" className="btn-primary" onClick={onConfirmAddress}>
             <Check size={16} />
             {t("createOrder.map.confirm", {
@@ -61,7 +62,7 @@ const AddressMapField = ({
           </button>
         )}
 
-        {geo && geoConfirmed && (
+        {requireConfirm && geo && geoConfirmed && (
           <span
             style={{
               display: "inline-flex",
@@ -124,7 +125,11 @@ const AddressMapField = ({
             </button>
           </div>
           <span className="hint muted" style={{ display: "block", marginTop: 6 }}>
-            {geoConfirmed
+            {!requireConfirm
+              ? t("createOrder.map.dragHintEdit", {
+                  defaultValue: "Перетащите маркер, чтобы скорректировать точку",
+                })
+              : geoConfirmed
               ? t("createOrder.map.dragHintConfirmed", {
                   defaultValue:
                     "Можно перетащить маркер для уточнения — потребуется подтвердить заново",

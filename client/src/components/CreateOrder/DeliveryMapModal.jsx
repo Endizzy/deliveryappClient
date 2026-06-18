@@ -13,6 +13,7 @@ const DeliveryMapModal = ({
   zones,
   onConfirm,
   onClose,
+  requireConfirm = true,
 }) => {
   const tr = (key, def) => (t ? t(key, { defaultValue: def }) : def);
 
@@ -57,7 +58,12 @@ const DeliveryMapModal = ({
             )}
           </span>
 
-          {confirmed ? (
+          {!requireConfirm ? (
+            <button type="button" className="btn-primary" onClick={() => onClose()}>
+              <Check size={16} />
+              {tr("createOrder.map.done", "Готово")}
+            </button>
+          ) : confirmed ? (
             <span
               style={{
                 display: "inline-flex",

@@ -3,11 +3,13 @@ import { useNavigate } from "react-router-dom";
 import {
   Save, Upload, Image as ImageIcon, Plus, Edit, Trash2,
   Search, Percent, Package, Users, Shield, Phone, Mail,
-  BadgeCheck, X, ChevronDown, ChevronUp, Map as MapIcon
+  BadgeCheck, X, ChevronDown, ChevronUp, Map as MapIcon, FileText,
+  MapPin, Clock, Globe, Building2, Info
 } from "lucide-react";
 import "./ownerSettings.css";
 import Header from "../../components/Header/Header.jsx";
 import DeliveryZonesEditor from "./DeliveryZonesEditor.jsx";
+import InvoiceSettingsTab from "./InvoiceSettingsTab.jsx";
 import { useTranslation } from "react-i18next";
 import { formatCents, toCents } from "../../utils/money.js";
 
@@ -29,6 +31,23 @@ export default function OwnerSettings() {
 
   // визуальные поля
   const [restaurant, setRestaurant] = useState({ name: "", logo: "" });
+
+  // общие настройки ресторана (пока заглушки — не сохраняются)
+  const [general, setGeneral] = useState({
+    phone: "",
+    email: "",
+    address: "",
+    website: "",
+    openTime: "10:00",
+    closeTime: "22:00",
+    timezone: "Europe/Riga",
+    currency: "EUR",
+    minOrder: "",
+    defaultDeliveryFee: "",
+    freeDeliveryFrom: "",
+    prepTimeMin: "",
+  });
+  const setG = (field, value) => setGeneral((p) => ({ ...p, [field]: value }));
 
   // --- Меню (из API) ---
   const [menu, setMenu] = useState([]);
@@ -161,12 +180,21 @@ export default function OwnerSettings() {
   }, [staff, staffSearch]);
 
   // ---- restaurant logo ----
-  const onLogoChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const [logoDrag, setLogoDrag] = useState(false);
+
+  const readLogoFile = (file) => {
+    if (!file || !file.type?.startsWith("image/")) return;
     const reader = new FileReader();
-    reader.onload = () => setRestaurant(r => ({ ...r, logo: reader.result }));
+    reader.onload = () => setRestaurant((r) => ({ ...r, logo: reader.result }));
     reader.readAsDataURL(file);
+  };
+
+  const onLogoChange = (e) => readLogoFile(e.target.files?.[0]);
+
+  const onLogoDrop = (e) => {
+    e.preventDefault();
+    setLogoDrag(false);
+    readLogoFile(e.dataTransfer?.files?.[0]);
   };
 
   // ---- MENU modal ----
@@ -463,6 +491,17 @@ export default function OwnerSettings() {
           <MapIcon size={18} />
           <span>{t("ownerSettings.sections.zones", { defaultValue: "Зоны доставки" })}</span>
         </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === "invoice"}
+          className={`owner-nav-tab ${activeTab === "invoice" ? "active" : ""}`}
+          onClick={() => setActiveTab("invoice")}
+        >
+          <FileText size={18} />
+          <span>{t("ownerSettings.sections.invoice", { defaultValue: "Накладная" })}</span>
+        </button>
       </div>
 
       {/* Content */}
@@ -483,8 +522,17 @@ export default function OwnerSettings() {
             </button>
           </div>
 
-          <div className="new-grid-2">
-            <div className="owner-card-2">
+          {/* Бренд */}
+          <div className="os-group">
+            <div className="os-group-head">
+              <span className="os-ico"><Building2 size={18} /></span>
+              <div>
+                <h4>{t("ownerSettings.general.brandTitle", { defaultValue: "Бренд" })}</h4>
+                <p>{t("ownerSettings.general.brandHint", { defaultValue: "Название и логотип ресторана" })}</p>
+              </div>
+            </div>
+
+            <div className="os-grid">
               <div className="owner-field">
                 <label>{t("ownerSettings.general.restaurantName")}</label>
                 <input
@@ -494,58 +542,152 @@ export default function OwnerSettings() {
                 />
               </div>
 
-              <div className="owner-field">
+              <div className="owner-field os-col-2">
                 <label>{t("ownerSettings.general.logo")}</label>
-                <div className="owner-logo-uploader">
+
+                <label
+                  className={`os-drop ${restaurant.logo ? "filled" : ""} ${logoDrag ? "drag" : ""}`}
+                  onDragOver={(e) => { e.preventDefault(); setLogoDrag(true); }}
+                  onDragLeave={() => setLogoDrag(false)}
+                  onDrop={onLogoDrop}
+                >
+                  <input type="file" accept="image/*" onChange={onLogoChange} hidden />
+
                   {restaurant.logo ? (
-                    <img className="owner-logo-preview" src={restaurant.logo} alt="logo" />
+                    <>
+                      <img className="os-drop-img" src={restaurant.logo} alt="logo" />
+                      <div className="os-drop-overlay">
+                        <span className="os-drop-overlay-btn">
+                          <Upload size={16} /> {t("ownerSettings.general.logoReplace", { defaultValue: "Заменить" })}
+                        </span>
+                      </div>
+                    </>
                   ) : (
-                    <div className="owner-logo-placeholder">
-                      <ImageIcon size={24} />
-                      <span>{t("ownerSettings.general.noLogo")}</span>
+                    <div className="os-drop-empty">
+                      <div className="os-drop-ico"><Upload size={22} /></div>
+                      <div className="os-drop-text">
+                        <strong>{t("ownerSettings.general.logoDropTitle", { defaultValue: "Перетащите логотип сюда" })}</strong>
+                        <span>{t("ownerSettings.general.logoDropHint", { defaultValue: "или нажмите, чтобы выбрать · PNG, JPG, SVG до 2 МБ" })}</span>
+                      </div>
                     </div>
                   )}
+                </label>
 
-                  <label className="owner-upload-btn">
-                    <Upload size={16} /> {t("ownerSettings.actions.upload")}
-                    <input type="file" accept="image/*" onChange={onLogoChange} hidden />
-                  </label>
-
-                  {restaurant.logo && (
-                    <button
-                      className="owner-secondary-btn"
-                      onClick={() => setRestaurant((r) => ({ ...r, logo: "" }))}
-                    >
-                      <X size={16} /> {t("ownerSettings.actions.delete")}
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Invoice settings */}
-            <div className="owner-card-2">
-              <div className="owner-field">
-                <label> {t("ownerSettings.invoice.title")} </label>
-              </div>
-
-              <div className="owner-field">
-                <button className="owner-invoice-btn" onClick={() => navigate("/invoiceSettings")}>
-                  <Edit size={16} /> {t("ownerSettings.invoice.editTemplate")}
-                </button>
-
-
-                {!invoice ? (
-                  <span className="owner-invoice-status-disabled">
-                    {t("ownerSettings.invoice.notConfigured")}
-                  </span>
-                ) : (
-                  <span className="owner-invoice-status-active">
-                    {t("ownerSettings.invoice.configured")}
-                  </span>
+                {restaurant.logo && (
+                  <button
+                    type="button"
+                    className="os-logo-remove"
+                    onClick={() => setRestaurant((r) => ({ ...r, logo: "" }))}
+                  >
+                    <Trash2 size={15} /> {t("ownerSettings.actions.delete")}
+                  </button>
                 )}
               </div>
             </div>
+          </div>
+
+          {/* Контакты */}
+          <div className="os-group">
+            <div className="os-group-head">
+              <span className="os-ico"><Phone size={18} /></span>
+              <div>
+                <h4>{t("ownerSettings.general.contactsTitle", { defaultValue: "Контакты" })}</h4>
+                <p>{t("ownerSettings.general.contactsHint", { defaultValue: "Для клиентов и накладной" })}</p>
+              </div>
+            </div>
+
+            <div className="os-grid">
+              <div className="owner-field">
+                <label>{t("ownerSettings.general.phone", { defaultValue: "Контактный телефон" })}</label>
+                <input value={general.phone} onChange={(e) => setG("phone", e.target.value)} placeholder="+371 20000000" />
+              </div>
+
+              <div className="owner-field">
+                <label>{t("ownerSettings.general.email", { defaultValue: "Email" })}</label>
+                <input type="email" value={general.email} onChange={(e) => setG("email", e.target.value)} placeholder="info@restaurant.lv" />
+              </div>
+
+              <div className="owner-field os-col-2">
+                <label>{t("ownerSettings.general.address", { defaultValue: "Адрес ресторана" })}</label>
+                <input
+                  value={general.address}
+                  onChange={(e) => setG("address", e.target.value)}
+                  placeholder={t("ownerSettings.general.addressPlaceholder", { defaultValue: "Улица, дом, город" })}
+                />
+              </div>
+
+              <div className="owner-field">
+                <label>{t("ownerSettings.general.website", { defaultValue: "Сайт" })}</label>
+                <input type="url" value={general.website} onChange={(e) => setG("website", e.target.value)} placeholder="www.restaurant.lv" />
+              </div>
+            </div>
+          </div>
+
+          {/* Доставка и работа */}
+          <div className="os-group">
+            <div className="os-group-head">
+              <span className="os-ico"><Clock size={18} /></span>
+              <div>
+                <h4>{t("ownerSettings.general.opsTitle", { defaultValue: "Доставка и работа" })}</h4>
+                <p>{t("ownerSettings.general.opsHint", { defaultValue: "Часы, валюта и параметры доставки" })}</p>
+              </div>
+            </div>
+
+            <div className="os-grid">
+              <div className="owner-field">
+                <label>{t("ownerSettings.general.workingHours", { defaultValue: "Часы работы" })}</label>
+                <div className="os-hours">
+                  <input type="time" value={general.openTime} onChange={(e) => setG("openTime", e.target.value)} />
+                  <span className="os-dash">—</span>
+                  <input type="time" value={general.closeTime} onChange={(e) => setG("closeTime", e.target.value)} />
+                </div>
+              </div>
+
+              <div className="owner-field">
+                <label>{t("ownerSettings.general.timezone", { defaultValue: "Часовой пояс" })}</label>
+                <select value={general.timezone} onChange={(e) => setG("timezone", e.target.value)}>
+                  <option value="Europe/Riga">Europe/Riga</option>
+                  <option value="Europe/Vilnius">Europe/Vilnius</option>
+                  <option value="Europe/Tallinn">Europe/Tallinn</option>
+                  <option value="UTC">UTC</option>
+                </select>
+              </div>
+
+              <div className="owner-field">
+                <label>{t("ownerSettings.general.currency", { defaultValue: "Валюта" })}</label>
+                <select value={general.currency} onChange={(e) => setG("currency", e.target.value)}>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="USD">USD ($)</option>
+                </select>
+              </div>
+
+              <div className="owner-field">
+                <label>{t("ownerSettings.general.minOrder", { defaultValue: "Мин. сумма заказа, €" })}</label>
+                <input type="number" step="0.01" min="0" value={general.minOrder} onChange={(e) => setG("minOrder", e.target.value)} placeholder="0.00" />
+              </div>
+
+              <div className="owner-field">
+                <label>{t("ownerSettings.general.defaultDeliveryFee", { defaultValue: "Доставка по умолчанию, €" })}</label>
+                <input type="number" step="0.01" min="0" value={general.defaultDeliveryFee} onChange={(e) => setG("defaultDeliveryFee", e.target.value)} placeholder="0.00" />
+              </div>
+
+              <div className="owner-field">
+                <label>{t("ownerSettings.general.freeDeliveryFrom", { defaultValue: "Бесплатная доставка от, €" })}</label>
+                <input type="number" step="0.01" min="0" value={general.freeDeliveryFrom} onChange={(e) => setG("freeDeliveryFrom", e.target.value)} placeholder="0.00" />
+              </div>
+
+              <div className="owner-field">
+                <label>{t("ownerSettings.general.prepTime", { defaultValue: "Время приготовления, мин" })}</label>
+                <input type="number" min="0" value={general.prepTimeMin} onChange={(e) => setG("prepTimeMin", e.target.value)} placeholder="30" />
+              </div>
+            </div>
+          </div>
+
+          <div className="os-note">
+            <Info size={16} />
+            {t("ownerSettings.general.stubNote", {
+              defaultValue: "Эти настройки пока не сохраняются — заглушки для будущей логики.",
+            })}
           </div>
         </section>
         )}
@@ -747,6 +889,11 @@ export default function OwnerSettings() {
         {/* Delivery zones */}
         {activeTab === "zones" && (
           <DeliveryZonesEditor API={API} authHeaders={authHeaders} t={t} />
+        )}
+
+        {/* Invoice settings */}
+        {activeTab === "invoice" && (
+          <InvoiceSettingsTab API={API} authHeaders={authHeaders} t={t} />
         )}
       </div>
 

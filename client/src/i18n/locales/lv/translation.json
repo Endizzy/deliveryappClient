@@ -166,6 +166,7 @@
     "buttons": {
       "cancel": "Atcelt",
       "create": "Izveidot pasūtījumu",
+      "save": "Saglabāt pasūtījumu",
       "creating": "Veido...",
       "print": "Drukāt",
       "clearCustomer": "Notīrīt data",

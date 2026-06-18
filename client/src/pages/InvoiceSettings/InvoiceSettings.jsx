@@ -157,7 +157,7 @@ export default function InvoiceSettings() {
                 <input
                   value={invoiceSettings.companyName}
                   onChange={(e) => updateField("companyName", e.target.value)}
-                  placeholder="BENTO SUSHI"
+                  placeholder="COMPANY NAME"
                 />
               </div>
 
@@ -180,7 +180,7 @@ export default function InvoiceSettings() {
                   type="email"
                   value={invoiceSettings.email}
                   onChange={(e) => updateField("email", e.target.value)}
-                  placeholder="info@bentosushi.lv"
+                  placeholder="info@website.lv"
                 />
               </div>
 

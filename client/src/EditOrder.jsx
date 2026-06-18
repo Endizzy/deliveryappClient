@@ -20,6 +20,9 @@ import { useReactToPrint } from "react-to-print";
 import { discountedUnitCents, formatCents, lineTotalCents, toCents } from "./utils/money.js";
 import Loader from "./components/Loader/Loader.jsx";
 import InvoiceTemplate from "./pages/InvoiceSettings/InvoiceTemplate.jsx";
+import AddressMapField from "./components/CreateOrder/AddressMapField.jsx";
+import DeliveryMapModal from "./components/CreateOrder/DeliveryMapModal.jsx";
+import { findZoneForPoint } from "./utils/zones.js";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -101,6 +104,17 @@ const EditOrder = () => {
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
 
+  // карта адреса (без обязательного подтверждения; точка показывается сразу)
+  const [geo, setGeo] = useState(null);
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [geoError, setGeoError] = useState(null);
+  const [zones, setZones] = useState([]);
+  const [isMapOpen, setIsMapOpen] = useState(false);
+  const currentZone = useMemo(
+    () => (geo ? findZoneForPoint(geo.lat, geo.lng, zones) : null),
+    [geo, zones]
+  );
+
   // минимум для предзаказа
   const now = new Date();
   const minDate = toLocalDateInput(now);
@@ -179,6 +193,15 @@ const EditOrder = () => {
     setAllMenu(d.items || []);
   };
 
+  const fetchZones = async () => {
+    try {
+      const r = await fetch(`${API}/delivery-zones`, { headers: authHeaders });
+      if (r.status === 401) return;
+      const d = await r.json();
+      if (r.ok && d.ok) setZones(d.zones || []);
+    } catch { /* зоны не критичны */ }
+  };
+
   // загрузка заказа
   const loadOrder = async () => {
     const r = await fetch(`${API}/current-orders/${id}`, { headers: authHeaders });
@@ -234,13 +257,20 @@ const EditOrder = () => {
         quantity: Number(i.quantity || 1),
       }))
     );
+
+    // сразу показываем точку заказа на карте, если координаты есть
+    if (o.addressLat != null && o.addressLng != null) {
+      const lat = Number(o.addressLat);
+      const lng = Number(o.addressLng);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) setGeo({ lat, lng });
+    }
   };
 
   useEffect(() => {
     if (!token) { navigate("/login"); return; }
     (async () => {
       try {
-        await Promise.all([fetchCouriers(), fetchPickupPoints(), fetchAllMenu()]);
+        await Promise.all([fetchCouriers(), fetchPickupPoints(), fetchAllMenu(), fetchZones()]);
         await loadOrder();
       } catch (e) {
         alert(e.message);
@@ -299,6 +329,47 @@ const EditOrder = () => {
       setFormData((prev) => ({ ...prev, scheduledDate: "", scheduledTime: "" }));
       setErrors((prev) => ({ ...prev, scheduledDate: "", scheduledTime: "" }));
     }
+    if (["street", "house", "building", "apart"].includes(field)) {
+      setGeoError(null);
+    }
+  };
+
+  // Перегеокодировать адрес (если поменяли адрес) — подтверждение не требуется
+  const verifyAddress = async () => {
+    if (!formData.street.trim()) return;
+    setGeoLoading(true);
+    setGeoError(null);
+    try {
+      const res = await fetch(`${API}/geocode`, {
+        method: "POST",
+        headers: authHeaders,
+        body: JSON.stringify({
+          street: formData.street,
+          house: formData.house,
+          building: formData.building,
+          apart: formData.apart,
+        }),
+      });
+      if (res.status === 401) { navigate("/login"); return; }
+      const data = await res.json();
+      if (!res.ok || !data.ok || !Number.isFinite(Number(data.lat))) {
+        throw new Error(data.error || "geocode failed");
+      }
+      setGeo({ lat: Number(data.lat), lng: Number(data.lng) });
+    } catch (e) {
+      setGeoError(
+        t("createOrder.map.error", {
+          defaultValue: "Не удалось определить координаты. Уточните адрес.",
+        })
+      );
+    } finally {
+      setGeoLoading(false);
+    }
+  };
+
+  const handleMarkerMove = (latlng) => {
+    if (!latlng || !Number.isFinite(latlng.lat)) return;
+    setGeo({ lat: latlng.lat, lng: latlng.lng });
   };
 
   const validateForm = () => {
@@ -353,6 +424,8 @@ const EditOrder = () => {
         floor: formData.floor,
         code: formData.code,
         numOfPeople: formData.numOfPeople ? Number(formData.numOfPeople) : null,
+        addressLat: geo?.lat ?? null,
+        addressLng: geo?.lng ?? null,
         notes: formData.notes,
         selectedItems: selectedItems.map((i) => ({
           id: i.id,
@@ -407,8 +480,8 @@ const EditOrder = () => {
         {isLoading ? (
           <Loader />
         ) : (
-          <div className="order-form">
-            <div className="form-grid">
+          <div className="co-shell">
+            <div className="co-feed">
               {/* Клиент */}
               <div className="form-section">
                 <div className="section-header">
@@ -732,17 +805,6 @@ const EditOrder = () => {
                       );
                     })}
 
-                    <div className="order-total">
-                      <div className="text-muted">
-                        {t("createOrder.fields.itemsPrice")}: {formatCents(calculateItemsTotalCents())}€
-                      </div>
-                      <div className="text-muted">
-                        {t("createOrder.fields.deliveryFee")}: {formatCents(toCents(safeDeliveryFee))}€
-                      </div>
-                      <strong className="text-total">
-                        {t("createOrder.fields.totalPrice")}: {formatCents(calculateGrandTotalCents())}€
-                      </strong>
-                    </div>
                   </div>
                 )}
 
@@ -779,6 +841,21 @@ const EditOrder = () => {
                     {errors.restaurant && <span className="error-text">{errors.restaurant}</span>}
                   </div>
                 </div>
+
+                <AddressMapField
+                  t={t}
+                  formData={formData}
+                  geo={geo}
+                  geoConfirmed={true}
+                  geoLoading={geoLoading}
+                  geoError={geoError}
+                  requireConfirm={false}
+                  onVerifyAddress={verifyAddress}
+                  onMarkerMove={handleMarkerMove}
+                  onExpandMap={() => setIsMapOpen(true)}
+                  zones={zones}
+                  currentZone={currentZone}
+                />
               </div>
 
               <div className="form-section full-width">
@@ -799,29 +876,108 @@ const EditOrder = () => {
               </div>
             </div>
 
-            <div className="form-footer">
-              <button type="button" className="btn-secondary" onClick={() => navigate("/orderPanel")}>
-                {t("createOrder.buttons.cancel")}
-              </button>
+            <aside className="co-rail">
+              <div className="co-rail-card">
+                <h3 className="co-rail-title">
+                  {t("createOrder.summary.title", { defaultValue: "Итог заказа" })}
+                </h3>
 
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={handlePrint}
-                disabled={isLoading}
-                title={t("createOrder.buttons.print")}
-              >
-                <Printer size={16} />
-                {t("createOrder.buttons.print")}
-              </button>
+                <div className="co-rail-row">
+                  <span>{t("createOrder.fields.orderType")}</span>
+                  <span className="v">
+                    {formData.orderType === "preorder"
+                      ? t("createOrder.orderType.preorder")
+                      : t("createOrder.orderType.active")}
+                  </span>
+                </div>
 
-              <button type="button" className="btn-primary" disabled={isSaving} onClick={handleSave}>
-                <Save size={16} />{" "}
-                {isSaving
-                  ? t("createOrder.buttons.creating", { defaultValue: "Сохранение..." })
-                  : t("createOrder.buttons.create", { defaultValue: "Сохранить изменения" })}
-              </button>
-            </div>
+                <div className="co-rail-row">
+                  <span>{t("createOrder.fields.status", { defaultValue: "Status" })}</span>
+                  <span className="v">{formData.status}</span>
+                </div>
+
+                {formData.orderType === "preorder" &&
+                  formData.scheduledDate &&
+                  formData.scheduledTime && (
+                    <div className="co-rail-row">
+                      <span>{t("createOrder.fields.scheduledTime")}</span>
+                      <span className="v">
+                        {formData.scheduledDate} {formData.scheduledTime}
+                      </span>
+                    </div>
+                  )}
+
+                <div className="co-rail-row">
+                  <span>{t("createOrder.summary.items", { defaultValue: "Позиции" })}</span>
+                  <span className="v">
+                    {selectedItems.reduce((a, i) => a + (i.quantity || 0), 0)}
+                  </span>
+                </div>
+
+                <div className="co-rail-divider" />
+
+                <div className="co-rail-row">
+                  <span>{t("createOrder.fields.itemsPrice")}</span>
+                  <span className="v">{formatCents(calculateItemsTotalCents())} €</span>
+                </div>
+                <div className="co-rail-row">
+                  <span>{t("createOrder.fields.deliveryFee")}</span>
+                  <span className="v">{formatCents(toCents(safeDeliveryFee))} €</span>
+                </div>
+
+                <div className="co-rail-divider" />
+
+                <div className="co-rail-total">
+                  <span className="lbl">{t("createOrder.fields.totalPrice")}</span>
+                  <span className="amt">{formatCents(calculateGrandTotalCents())} €</span>
+                </div>
+
+                {geo && currentZone && (
+                  <div className="co-rail-status ok">
+                    {t("createOrder.map.zoneLabel", { defaultValue: "Зона" })}: {currentZone.name}
+                  </div>
+                )}
+                {geo && zones.length > 0 && !currentZone && (
+                  <div className="co-rail-status warn">
+                    {t("createOrder.map.outsideZones", { defaultValue: "Точка вне зон доставки" })}
+                  </div>
+                )}
+
+                <div className="co-rail-actions">
+                  <button type="button" className="btn-primary" disabled={isSaving} onClick={handleSave}>
+                    <Save size={16} />{" "}
+                    {isSaving
+                      ? t("createOrder.buttons.creating", { defaultValue: "Сохранение..." })
+                      : t("createOrder.buttons.save", { defaultValue: "Сохранить изменения" })}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={handlePrint}
+                    disabled={isLoading}
+                    title={t("createOrder.buttons.print")}
+                  >
+                    <Printer size={16} /> {t("createOrder.buttons.print")}
+                  </button>
+                  <button type="button" className="btn-secondary" onClick={() => navigate("/orderPanel")}>
+                    {t("createOrder.buttons.cancel")}
+                  </button>
+                </div>
+              </div>
+            </aside>
+
+            {isMapOpen && geo && (
+              <DeliveryMapModal
+                t={t}
+                position={geo}
+                onChange={handleMarkerMove}
+                confirmed={true}
+                requireConfirm={false}
+                zones={zones}
+                onConfirm={() => setIsMapOpen(false)}
+                onClose={() => setIsMapOpen(false)}
+              />
+            )}
           </div>
         )}
       </div>

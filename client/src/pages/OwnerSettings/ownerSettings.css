@@ -230,6 +230,222 @@
     padding: 20px;
 }
 
+/* ── General settings: сгруппированный дизайн ── */
+.os-group {
+    border: 1px solid #e8edf3;
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-top: 16px;
+    background: #fbfcfe;
+}
+
+.os-group-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.os-group-head .os-ico {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    background: #eef2ff;
+    color: #4f46e5;
+    flex: 0 0 auto;
+}
+
+.os-group-head h4 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.os-group-head p {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.os-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    align-items: start;
+}
+
+.os-grid .os-col-2 {
+    grid-column: span 2;
+}
+
+.os-hours {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.os-hours input {
+    flex: 1;
+    min-width: 0;
+}
+
+.os-hours .os-dash {
+    color: #94a3b8;
+    font-weight: 700;
+}
+
+.os-note {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+.os-note svg {
+    color: #94a3b8;
+    flex: 0 0 auto;
+}
+
+/* logo uploader — профессиональный dropzone */
+.os-drop {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 132px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 14px;
+    background: #f8fafc;
+    cursor: pointer;
+    overflow: hidden;
+    transition: .18s;
+}
+
+.os-drop:hover {
+    border-color: #818cf8;
+    background: #f5f6ff;
+}
+
+.os-drop.drag {
+    border-color: #4f46e5;
+    background: #eef2ff;
+}
+
+.os-drop.filled {
+    border-style: solid;
+    border-color: #e2e8f0;
+    background: #fff;
+    min-height: 150px;
+    padding: 12px;
+}
+
+.os-drop-empty {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px;
+}
+
+.os-drop-ico {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: #eef2ff;
+    color: #4f46e5;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+}
+
+.os-drop-text {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.os-drop-text strong {
+    font-size: 14px;
+    color: #334155;
+    font-weight: 700;
+}
+
+.os-drop-text span {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.os-drop-img {
+    max-width: 90%;
+    max-height: 124px;
+    object-fit: contain;
+}
+
+.os-drop-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: .18s;
+}
+
+.os-drop:hover .os-drop-overlay {
+    opacity: 1;
+    background: rgba(15, 23, 42, .42);
+}
+
+.os-drop-overlay-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    color: #1e293b;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .2);
+}
+
+.os-logo-remove {
+    margin-top: 8px;
+    align-self: flex-start;
+    border: none;
+    background: transparent;
+    color: #ef4444;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    transition: .15s;
+}
+
+.os-logo-remove:hover {
+    background: #fef2f2;
+}
+
+@media (max-width: 720px) {
+    .os-grid .os-col-2 {
+        grid-column: span 1;
+    }
+}
+
 .owner-grid-6 {
     display: grid;
     grid-template-columns: 40px 2fr 1.3fr 1fr 1fr 1.4fr;
