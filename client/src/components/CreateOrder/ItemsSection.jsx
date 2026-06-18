@@ -155,20 +155,6 @@ const ItemsSection = ({
             );
           })}
 
-          <div className="order-total">
-            <div className="text-muted">
-              {t("createOrder.fields.itemsPrice")}:{" "}
-              {formatCents(calculateItemsTotalCents())}€
-            </div>
-            <div className="text-muted">
-              {t("createOrder.fields.deliveryFee")}:{" "}
-              {formatCents(toCents(safeDeliveryFee))}€
-            </div>
-            <strong className="text-total">
-              {t("createOrder.fields.totalPrice")}:{" "}
-              {formatCents(calculateGrandTotalCents())}€
-            </strong>
-          </div>
         </div>
       )}
 

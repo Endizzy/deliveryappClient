@@ -4,7 +4,7 @@ import "./CreateOrder.css";
 import { useNavigate } from "react-router-dom";
 import useNotification from "./hooks/useNotification.jsx";
 import { useTranslation } from "react-i18next";
-import { toCents } from "./utils/money.js";
+import { toCents, formatCents } from "./utils/money.js";
 import { normalizePhoneForLookup } from "./utils/phone.js";
 import { toLocalDateInput, toLocalTimeInput } from "./utils/datetime.js";
 import useOrderResources from "./hooks/useOrderResources.js";
@@ -472,8 +472,8 @@ const CreateOrder = () => {
       </header>
 
       <div className="form-container">
-        <div className="order-form">
-          <div className="form-grid">
+        <div className="co-shell">
+          <div className="co-feed">
             <CustomerSection
               t={t}
               formData={formData}
@@ -528,44 +528,111 @@ const CreateOrder = () => {
             />
           </div>
 
-          <div className="form-footer">
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={() => navigate("/orderPanel")}
-              disabled={isSubmitting}
-            >
-              {t("createOrder.buttons.cancel")}
-            </button>
+          <aside className="co-rail">
+            <div className="co-rail-card">
+              <h3 className="co-rail-title">
+                {t("createOrder.summary.title", { defaultValue: "Итог заказа" })}
+              </h3>
 
-            <button
-              type="button"
-              className="btn-primary"
-              disabled={isSubmitting}
-              onClick={handleSubmit}
-            >
-              <Save size={16} />{" "}
-              {isSubmitting
-                ? t("createOrder.buttons.creating")
-                : t("createOrder.buttons.create")}
-            </button>
-          </div>
+              <div className="co-rail-row">
+                <span>{t("createOrder.fields.orderType")}</span>
+                <span className="v">
+                  {formData.orderType === "preorder"
+                    ? t("createOrder.orderType.preorder")
+                    : t("createOrder.orderType.active")}
+                </span>
+              </div>
 
-          {isMapOpen && geo && (
-            <DeliveryMapModal
-              t={t}
-              position={geo}
-              onChange={handleMarkerMove}
-              confirmed={geoConfirmed}
-              zones={zones}
-              onConfirm={() => {
-                confirmAddress();
-                setIsMapOpen(false);
-              }}
-              onClose={() => setIsMapOpen(false)}
-            />
-          )}
+              {formData.orderType === "preorder" &&
+                formData.scheduledDate &&
+                formData.scheduledTime && (
+                  <div className="co-rail-row">
+                    <span>{t("createOrder.fields.scheduledTime")}</span>
+                    <span className="v">
+                      {formData.scheduledDate} {formData.scheduledTime}
+                    </span>
+                  </div>
+                )}
+
+              <div className="co-rail-row">
+                <span>{t("createOrder.summary.items", { defaultValue: "Позиции" })}</span>
+                <span className="v">
+                  {selectedItems.reduce((a, i) => a + (i.quantity || 0), 0)}
+                </span>
+              </div>
+
+              <div className="co-rail-divider" />
+
+              <div className="co-rail-row">
+                <span>{t("createOrder.fields.itemsPrice")}</span>
+                <span className="v">{formatCents(calculateItemsTotalCents())} €</span>
+              </div>
+              <div className="co-rail-row">
+                <span>{t("createOrder.fields.deliveryFee")}</span>
+                <span className="v">{formatCents(toCents(safeDeliveryFee))} €</span>
+              </div>
+
+              <div className="co-rail-divider" />
+
+              <div className="co-rail-total">
+                <span className="lbl">{t("createOrder.fields.totalPrice")}</span>
+                <span className="amt">{formatCents(calculateGrandTotalCents())} €</span>
+              </div>
+
+              {formData.street.trim() &&
+                (geoConfirmed ? (
+                  <div className="co-rail-status ok">
+                    {currentZone
+                      ? `${t("createOrder.map.zoneLabel", { defaultValue: "Зона" })}: ${currentZone.name}`
+                      : t("createOrder.map.confirmed", { defaultValue: "Адрес подтверждён" })}
+                  </div>
+                ) : (
+                  <div className="co-rail-status warn">
+                    {t("createOrder.map.mustConfirm", {
+                      defaultValue: "Подтвердите адрес доставки на карте",
+                    })}
+                  </div>
+                ))}
+
+              <div className="co-rail-actions">
+                <button
+                  type="button"
+                  className="btn-primary"
+                  disabled={isSubmitting}
+                  onClick={handleSubmit}
+                >
+                  <Save size={16} />{" "}
+                  {isSubmitting
+                    ? t("createOrder.buttons.creating")
+                    : t("createOrder.buttons.create")}
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => navigate("/orderPanel")}
+                  disabled={isSubmitting}
+                >
+                  {t("createOrder.buttons.cancel")}
+                </button>
+              </div>
+            </div>
+          </aside>
         </div>
+
+        {isMapOpen && geo && (
+          <DeliveryMapModal
+            t={t}
+            position={geo}
+            onChange={handleMarkerMove}
+            confirmed={geoConfirmed}
+            zones={zones}
+            onConfirm={() => {
+              confirmAddress();
+              setIsMapOpen(false);
+            }}
+            onClose={() => setIsMapOpen(false)}
+          />
+        )}
       </div>
     </div>
   );

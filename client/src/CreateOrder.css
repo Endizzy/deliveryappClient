@@ -85,6 +85,136 @@
     margin-bottom: 32px;
 }
 
+/* ── Вариант C: лента карточек + липкий итог ── */
+.co-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 24px;
+    align-items: stretch;
+}
+
+.co-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+}
+
+.co-feed .form-section {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    border: 1px solid #eef2f7;
+    gap: 18px;
+}
+
+.co-rail {
+    min-width: 0;
+}
+
+.co-rail-card {
+    position: sticky;
+    top: 16px;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    border: 1px solid #eef2f7;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.co-rail-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 4px 0;
+}
+
+.co-rail-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 14px;
+    color: #64748b;
+}
+
+.co-rail-row .v {
+    font-weight: 600;
+    color: #1e293b;
+    text-align: right;
+}
+
+.co-rail-divider {
+    height: 1px;
+    background: #eef2f7;
+    margin: 2px 0;
+}
+
+.co-rail-total {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.co-rail-total .lbl {
+    font-size: 14px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.co-rail-total .amt {
+    font-size: 26px;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.co-rail-status {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 10px;
+    border-radius: 10px;
+    margin-top: 2px;
+}
+
+.co-rail-status.ok {
+    background: #ecfdf5;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+.co-rail-status.warn {
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+.co-rail-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.co-rail-actions .btn-primary,
+.co-rail-actions .btn-secondary {
+    width: 100%;
+    justify-content: center;
+}
+
+@media (max-width: 980px) {
+    .co-shell {
+        grid-template-columns: 1fr;
+    }
+    .co-rail-card {
+        position: static;
+    }
+}
+
 .text-muted {
     color: #525f72;
     font-size: 13px;
