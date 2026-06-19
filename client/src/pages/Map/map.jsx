@@ -14,6 +14,21 @@ const COURIER_FOCUS_ZOOM = 16;
 const ORDER_ICON_W = 50;
 const ORDER_ICON_H = 50;
 
+// Палитра цветов курьеров — каждому свой устойчивый цвет по unit_id
+const COURIER_PALETTE = [
+  "#2F8CFF", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6",
+  "#EC4899", "#14B8A6", "#F97316", "#6366F1", "#84CC16",
+];
+function courierColor(id) {
+  const n = Number(id);
+  if (!Number.isFinite(n)) return "#94A3B8";
+  return COURIER_PALETTE[Math.abs(Math.trunc(n)) % COURIER_PALETTE.length];
+}
+
+// Размеры пина заказа
+const PIN_W = 30;
+const PIN_H = 40;
+
 export default function DeliveryMap() {
   const { t } = useTranslation();
   const API = import.meta.env.VITE_API_URL;
@@ -61,6 +76,15 @@ export default function DeliveryMap() {
 
     map.zoomControl.setPosition("bottomright");
     mapRef.current = map;
+
+    // анимация пульса для маркеров «в пути» (один раз, глобально)
+    if (!document.getElementById("map-pulse-style")) {
+      const st = document.createElement("style");
+      st.id = "map-pulse-style";
+      st.textContent =
+        "@keyframes mapPulse{0%{transform:translate(-50%,-50%) scale(.6);opacity:.5}100%{transform:translate(-50%,-50%) scale(1.7);opacity:0}}";
+      document.head.appendChild(st);
+    }
 
     (async () => {
       try {
@@ -111,6 +135,7 @@ export default function DeliveryMap() {
                 addressFloor: o.addressFloor ?? null,
                 addressCode: o.addressCode ?? null,
                 courierId: o.courierId,
+                courierName: o.courierName ?? null,
                 pickupId: o.pickupId,
               });
             }
@@ -158,7 +183,7 @@ export default function DeliveryMap() {
     return t("map.speedValue", { value: speedKmh.toFixed(0) });
   }
 
-  function createCourierIconHTML(key, speedKmh, nickname) {
+  function createCourierIconHTML(key, speedKmh, nickname, color) {
     const speedText =
       typeof speedKmh === "number"
         ? t("map.speedValue", { value: speedKmh.toFixed(0) })
@@ -170,12 +195,22 @@ export default function DeliveryMap() {
 
     return `
       <div style="display:flex;flex-direction:column;align-items:center;">
-        <img src="/car.png" style="width:41px;height:41px;transform:translateY(-2px)"/>
         <div style="
-            background: rgba(15, 23, 42, 0.56);
+            width:46px;height:46px;border-radius:50%;
+            background:${color}26;border:2px solid ${color};
+            display:flex;align-items:center;justify-content:center;
+            box-shadow:0 2px 8px rgba(0,0,0,.28);
+        ">
+          <img src="/car.png" style="width:32px;height:32px;"/>
+        </div>
+        <div style="
+            margin-top:3px;
+            background: rgba(15, 23, 42, 0.66);
+            border-bottom:3px solid ${color};
             padding:2px 6px;
             border-radius:4px;
             font-size:12px;
+            color:#fff;
             text-align:center;
             white-space:nowrap;
         ">
@@ -261,15 +296,16 @@ export default function DeliveryMap() {
     const map = mapRef.current;
     if (!map) return;
 
-    const html = createCourierIconHTML(key, speedKmh, courierNickname);
+    const color = courierColor(key);
+    const html = createCourierIconHTML(key, speedKmh, courierNickname, color);
 
     let marker = courierMarkersRef.current.get(key);
     if (!marker) {
       const icon = L.divIcon({
         html,
         className: "",
-        iconSize: [41, 60],
-        iconAnchor: [20, 41],
+        iconSize: [46, 74],
+        iconAnchor: [23, 46],
       });
       marker = L.marker([lat, lng], { icon }).addTo(map);
       courierMarkersRef.current.set(key, marker);
@@ -278,8 +314,8 @@ export default function DeliveryMap() {
         L.divIcon({
           html,
           className: "",
-          iconSize: [41, 60],
-          iconAnchor: [20, 41],
+          iconSize: [46, 74],
+          iconAnchor: [23, 46],
         })
       );
 
@@ -329,14 +365,26 @@ export default function DeliveryMap() {
     } catch (e) { }
   }
 
-  function createOrderIconHTML() {
+  function createOrderPinHTML(color, status) {
+    const s = String(status || "").toLowerCase();
+    const enroute = s === "enroute";
+
+    const pulse = enroute
+      ? `<span style="position:absolute;left:50%;top:14px;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;background:${color};opacity:.45;animation:mapPulse 1.5s ease-out infinite;"></span>`
+      : "";
+
+    // enroute → закрашенная точка внутри (везёт); иначе просто белый центр
+    const inner = enroute ? `<circle cx="14" cy="14" r="4" fill="${color}"/>` : "";
+
     return `
-      <div style="display:flex;align-items:center;justify-content:center;">
-        <img
-          src="/order_marker.png"
-          style="width:${ORDER_ICON_W}px;height:${ORDER_ICON_H}px;display:block;image-rendering:auto;"
-          alt=""
-        />
+      <div style="position:relative;width:${PIN_W}px;height:${PIN_H}px;">
+        ${pulse}
+        <svg width="${PIN_W}" height="${PIN_H}" viewBox="0 0 28 38"
+             style="position:relative;display:block;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35));">
+          <path d="M14 0C6.3 0 0 6.3 0 14c0 9.5 14 24 14 24s14-14.5 14-24C28 6.3 21.7 0 14 0z" fill="${color}"/>
+          <circle cx="14" cy="14" r="7" fill="#ffffff"/>
+          ${inner}
+        </svg>
       </div>
     `;
   }
@@ -364,12 +412,29 @@ export default function DeliveryMap() {
         .filter(Boolean)
         .join(", ");
 
+    const statusLc = String(order.status || "").toLowerCase();
+    const color = order.courierId != null ? courierColor(order.courierId) : "#94A3B8";
+
+    const statusText =
+      statusLc === "enroute"
+        ? t("map.orderStatus.enroute", { defaultValue: "В пути" })
+        : order.courierId != null
+          ? t("map.orderStatus.taken", { defaultValue: "Взят" })
+          : t("map.orderStatus.free", { defaultValue: "Свободен" });
+
+    const courierLine = order.courierName ? `  ·  ${order.courierName}` : "";
+
+    const popupHtml =
+      `<b>Заказ #${key}</b><br/>` +
+      `<span style="color:${color};font-weight:600;">${statusText}</span>${courierLine}<br/>` +
+      `${addrLine || ""}<br/>${order.customer || ""} ${order.phone || ""}`;
+
     const icon = L.divIcon({
-      html: createOrderIconHTML(),
+      html: createOrderPinHTML(color, order.status),
       className: "",
-      iconSize: [ORDER_ICON_W, ORDER_ICON_H],
-      iconAnchor: [Math.round(ORDER_ICON_W / 2), ORDER_ICON_H],
-      popupAnchor: [0, -ORDER_ICON_H],
+      iconSize: [PIN_W, PIN_H],
+      iconAnchor: [Math.round(PIN_W / 2), PIN_H],
+      popupAnchor: [0, -PIN_H],
     });
 
     let marker = orderMarkersRef.current.get(key);
@@ -377,20 +442,18 @@ export default function DeliveryMap() {
     if (!marker) {
       marker = L.marker([lat, lng], { icon }).addTo(map);
 
-      marker.bindPopup(
-        `<b>Заказ #${key}</b><br/>${addrLine || ""}<br/>${order.customer || ""} ${order.phone || ""}`,
-        {
-          autoPan: false,        
-          closeButton: true,
-          keepInView: false,
-        }
-      );
+      marker.bindPopup(popupHtml, {
+        autoPan: false,
+        closeButton: true,
+        keepInView: false,
+      });
 
       marker.on("click", () => focusOrder(key));
       orderMarkersRef.current.set(key, marker);
     } else {
       marker.setIcon(icon);
       marker.setLatLng([lat, lng]);
+      try { marker.setPopupContent(popupHtml); } catch (e) { }
     }
 
     setOrders((prev) => {
