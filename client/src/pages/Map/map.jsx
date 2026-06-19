@@ -63,6 +63,9 @@ export default function DeliveryMap() {
   // orders
   const orderMarkersRef = useRef(new Map()); // orderId -> marker
 
+  // цвета курьеров (задаются админом), id -> hex
+  const courierColorsRef = useRef(new Map());
+
   const [couriers, setCouriers] = useState(new Map());
   const [orders, setOrders] = useState(new Map());
 
@@ -88,6 +91,17 @@ export default function DeliveryMap() {
 
     (async () => {
       try {
+        // сначала подтягиваем цвета курьеров (заданные админом)
+        try {
+          const cr = await fetch(`${API}/order-support/couriers`, { headers: authHeaders });
+          const cd = await cr.json();
+          if (cd?.ok && Array.isArray(cd.items)) {
+            cd.items.forEach((c) => {
+              if (c.color) courierColorsRef.current.set(String(c.id), c.color);
+            });
+          }
+        } catch (e) { }
+
         const res = await fetch(`${API}/current-orders/map`, { headers: authHeaders });
         if (res.status === 401) return;
         const data = await res.json();
@@ -181,6 +195,12 @@ export default function DeliveryMap() {
   function formatSpeed(speedKmh) {
     if (typeof speedKmh !== "number") return t("map.speedUnknown");
     return t("map.speedValue", { value: speedKmh.toFixed(0) });
+  }
+
+  // Цвет курьера: заданный админом, иначе детерминированный из палитры
+  function colorForCourier(id) {
+    if (id == null) return "#94A3B8";
+    return courierColorsRef.current.get(String(id)) || courierColor(id);
   }
 
   function createCourierIconHTML(key, speedKmh, nickname, color) {
@@ -296,7 +316,7 @@ export default function DeliveryMap() {
     const map = mapRef.current;
     if (!map) return;
 
-    const color = courierColor(key);
+    const color = colorForCourier(key);
     const html = createCourierIconHTML(key, speedKmh, courierNickname, color);
 
     let marker = courierMarkersRef.current.get(key);
@@ -413,7 +433,7 @@ export default function DeliveryMap() {
         .join(", ");
 
     const statusLc = String(order.status || "").toLowerCase();
-    const color = order.courierId != null ? courierColor(order.courierId) : "#94A3B8";
+    const color = colorForCourier(order.courierId);
 
     const statusText =
       statusLc === "enroute"

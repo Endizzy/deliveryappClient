@@ -15,6 +15,13 @@ import { formatCents, toCents } from "../../utils/money.js";
 
 const toEUR = (n) => `€${formatCents(toCents(n))}`;
 
+// Палитра цветов курьеров (для маркеров на карте)
+const STAFF_COLORS = [
+  "#2F8CFF", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6",
+  "#EC4899", "#14B8A6", "#F97316", "#6366F1", "#84CC16",
+];
+const randomStaffColor = () => STAFF_COLORS[Math.floor(Math.random() * STAFF_COLORS.length)];
+
 export default function OwnerSettings() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -62,7 +69,7 @@ export default function OwnerSettings() {
   const [staffModal, setStaffModal] = useState({
     open: false,
     editId: null,
-    form: { role: "courier", nickname: "", phone: "", email: "", password: "" }
+    form: { role: "courier", nickname: "", phone: "", email: "", password: "", color: "#2F8CFF" }
   });
 
   // ---- auth ----
@@ -323,13 +330,13 @@ export default function OwnerSettings() {
   const openAddStaff = () =>
     setStaffModal({
       open: true, editId: null,
-      form: { role: "courier", nickname: "", phone: "", email: "", password: genPassword() }
+      form: { role: "courier", nickname: "", phone: "", email: "", password: genPassword(), color: randomStaffColor() }
     });
 
   const openEditStaff = (u) =>
     setStaffModal({
       open: true, editId: u.id,
-      form: { role: u.role, nickname: u.nickname, phone: u.phone, email: u.email || "", password: "" }
+      form: { role: u.role, nickname: u.nickname, phone: u.phone, email: u.email || "", password: "", color: u.color || randomStaffColor() }
     });
 
   const closeStaffModal = () => setStaffModal(m => ({ ...m, open: false }));
@@ -367,7 +374,7 @@ export default function OwnerSettings() {
     }
     try {
       if (staffModal.editId) {
-        const payload = { role: f.role, nickname: f.nickname, phone: f.phone, email: f.email || null };
+        const payload = { role: f.role, nickname: f.nickname, phone: f.phone, email: f.email || null, color: f.color };
         if (f.password) payload.password = f.password;
         const updated = await updateStaff(staffModal.editId, payload);
         setStaff(list => list.map(u => (u.id === updated.id ? updated : u)));
@@ -379,6 +386,7 @@ export default function OwnerSettings() {
           phone: f.phone,
           email: f.email || null,
           password: f.password,
+          color: f.color,
         });
         setStaff(list => [created, ...list]);
       }
@@ -839,7 +847,23 @@ export default function OwnerSettings() {
                     </span>
                   </div>
 
-                  <div className="owner-cell">{u.nickname}</div>
+                  <div className="owner-cell">
+                    {u.role === "courier" && u.color && (
+                      <span
+                        title={u.color}
+                        style={{
+                          width: 12,
+                          height: 12,
+                          borderRadius: 3,
+                          background: u.color,
+                          display: "inline-block",
+                          marginRight: 8,
+                          flex: "0 0 auto",
+                        }}
+                      />
+                    )}
+                    {u.nickname}
+                  </div>
 
                   <div className="owner-cell">
                     <div className="owner-contact">
@@ -995,6 +1019,27 @@ export default function OwnerSettings() {
                   <option value="admin">{t("ownerSettings.staff.roles.admin")}</option>
                 </select>
               </div>
+
+              {staffModal.form.role === "courier" && (
+                <div className="owner-field">
+                  <label>{t("ownerSettings.staffModal.fields.color", { defaultValue: "Цвет на карте" })}</label>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <input
+                      type="color"
+                      value={staffModal.form.color || "#2F8CFF"}
+                      onChange={(e) => setStaffModal((s) => ({ ...s, form: { ...s.form, color: e.target.value } }))}
+                      style={{ width: 46, height: 36, padding: 0, border: "none", background: "none", cursor: "pointer" }}
+                    />
+                    <button
+                      type="button"
+                      className="owner-secondary-btn"
+                      onClick={() => setStaffModal((s) => ({ ...s, form: { ...s.form, color: randomStaffColor() } }))}
+                    >
+                      {t("ownerSettings.staffModal.actions.randomColor", { defaultValue: "Случайный" })}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <div className="owner-field">
                 <label>{t("ownerSettings.staffModal.fields.nickname")}</label>
