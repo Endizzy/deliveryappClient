@@ -148,6 +148,11 @@
     text-align: right;
 }
 
+.co-rail-discount,
+.co-rail-discount .v {
+    color: #059669;
+}
+
 .co-rail-divider {
     height: 1px;
     background: #eef2f7;

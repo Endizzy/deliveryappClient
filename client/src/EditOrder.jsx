@@ -314,13 +314,52 @@ const EditOrder = () => {
 
   const removeItem = (id2) => setSelectedItems((prev) => prev.filter((i) => i.id !== id2));
 
+  // ---- персональная скидка клиента (по телефону) ----
+  const [customerDiscount, setCustomerDiscount] = useState(null);
+
+  useEffect(() => {
+    const raw = (formData.phone || "").replace(/\s/g, "");
+    if (!/^\+?\d{8,15}$/.test(raw)) {
+      setCustomerDiscount(null);
+      return;
+    }
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `${API}/customers/discount-by-phone?phone=${encodeURIComponent(raw)}`,
+          { headers: authHeaders }
+        );
+        if (res.status === 401) { navigate("/login"); return; }
+        const data = await res.json();
+        if (!cancelled) setCustomerDiscount(data?.ok ? data.discount || null : null);
+      } catch {
+        if (!cancelled) setCustomerDiscount(null);
+      }
+    }, 350);
+    return () => { cancelled = true; clearTimeout(timer); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.phone]);
+
   const calculateItemsTotalCents = () =>
     selectedItems.reduce(
       (sumCents, it) => sumCents + lineTotalCents(it.price, it.discount, it.quantity),
       0
     );
 
-  const calculateGrandTotalCents = () => calculateItemsTotalCents() + toCents(safeDeliveryFee);
+  // Персональная скидка клиента (по телефону, применяется сервером и при правке)
+  const customerDiscountCents = useMemo(() => {
+    if (!customerDiscount || !(Number(customerDiscount.value) > 0)) return 0;
+    const items = calculateItemsTotalCents();
+    if (customerDiscount.type === "fixed") {
+      return Math.min(toCents(customerDiscount.value), items);
+    }
+    return Math.round((items * Math.min(Number(customerDiscount.value), 100)) / 100);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customerDiscount, selectedItems]);
+
+  const calculateGrandTotalCents = () =>
+    Math.max(0, calculateItemsTotalCents() - customerDiscountCents) + toCents(safeDeliveryFee);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -920,6 +959,18 @@ const EditOrder = () => {
                   <span>{t("createOrder.fields.itemsPrice")}</span>
                   <span className="v">{formatCents(calculateItemsTotalCents())} €</span>
                 </div>
+                {customerDiscount && customerDiscountCents > 0 && (
+                  <div className="co-rail-row co-rail-discount">
+                    <span>
+                      {t("createOrder.summary.customerDiscount", { defaultValue: "Скидка клиента" })}
+                      {" "}
+                      {customerDiscount.type === "fixed"
+                        ? `(−${formatCents(toCents(customerDiscount.value))} €)`
+                        : `(−${customerDiscount.value}%)`}
+                    </span>
+                    <span className="v">−{formatCents(customerDiscountCents)} €</span>
+                  </div>
+                )}
                 <div className="co-rail-row">
                   <span>{t("createOrder.fields.deliveryFee")}</span>
                   <span className="v">{formatCents(toCents(safeDeliveryFee))} €</span>

@@ -4,12 +4,13 @@ import {
   Save, Upload, Image as ImageIcon, Plus, Edit, Trash2,
   Search, Percent, Package, Users, Shield, Phone, Mail,
   BadgeCheck, X, ChevronDown, ChevronUp, Map as MapIcon, FileText,
-  MapPin, Clock, Globe, Building2, Info
+  MapPin, Clock, Globe, Building2, Info, UserCog
 } from "lucide-react";
 import "./ownerSettings.css";
 import Header from "../../components/Header/Header.jsx";
 import DeliveryZonesEditor from "./DeliveryZonesEditor.jsx";
 import InvoiceSettingsTab from "./InvoiceSettingsTab.jsx";
+import CustomersTab from "./CustomersTab.jsx";
 import { useTranslation } from "react-i18next";
 import { formatCents, toCents } from "../../utils/money.js";
 
@@ -492,6 +493,17 @@ export default function OwnerSettings() {
         <button
           type="button"
           role="tab"
+          aria-selected={activeTab === "customers"}
+          className={`owner-nav-tab ${activeTab === "customers" ? "active" : ""}`}
+          onClick={() => setActiveTab("customers")}
+        >
+          <UserCog size={18} />
+          <span>{t("ownerSettings.sections.customers", { defaultValue: "Клиенты" })}</span>
+        </button>
+
+        <button
+          type="button"
+          role="tab"
           aria-selected={activeTab === "zones"}
           className={`owner-nav-tab ${activeTab === "zones" ? "active" : ""}`}
           onClick={() => setActiveTab("zones")}
@@ -911,6 +923,10 @@ export default function OwnerSettings() {
         )}
 
         {/* Delivery zones */}
+        {activeTab === "customers" && (
+          <CustomersTab API={API} authHeaders={authHeaders} t={t} />
+        )}
+
         {activeTab === "zones" && (
           <DeliveryZonesEditor API={API} authHeaders={authHeaders} t={t} />
         )}

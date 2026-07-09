@@ -130,6 +130,32 @@ const CreateOrder = () => {
     t,
   });
 
+  // ---- персональная скидка клиента (по телефону) ----
+  const [customerDiscount, setCustomerDiscount] = useState(null);
+
+  useEffect(() => {
+    const raw = (formData.phone || "").replace(/\s/g, "");
+    if (!/^\+?\d{8,15}$/.test(raw)) {
+      setCustomerDiscount(null);
+      return;
+    }
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `${API}/customers/discount-by-phone?phone=${encodeURIComponent(raw)}`,
+          { headers: authHeaders }
+        );
+        if (res.status === 401) return handleUnauthorized();
+        const data = await res.json();
+        if (!cancelled) setCustomerDiscount(data?.ok ? data.discount || null : null);
+      } catch {
+        if (!cancelled) setCustomerDiscount(null);
+      }
+    }, 350);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [formData.phone, API, authHeaders, handleUnauthorized]);
+
   // ---- поиск по меню ----
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -159,8 +185,19 @@ const CreateOrder = () => {
 
   const calculateItemsTotalCents = itemsTotalCents;
 
+  // Персональная скидка клиента (подставляется по телефону, применяется сервером)
+  const customerDiscountCents = useMemo(() => {
+    if (!customerDiscount || !(Number(customerDiscount.value) > 0)) return 0;
+    const items = itemsTotalCents();
+    if (customerDiscount.type === "fixed") {
+      return Math.min(toCents(customerDiscount.value), items);
+    }
+    return Math.round((items * Math.min(Number(customerDiscount.value), 100)) / 100);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customerDiscount, selectedItems]);
+
   const calculateGrandTotalCents = () =>
-    itemsTotalCents() + toCents(safeDeliveryFee);
+    Math.max(0, itemsTotalCents() - customerDiscountCents) + toCents(safeDeliveryFee);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => {
@@ -567,6 +604,19 @@ const CreateOrder = () => {
                 <span>{t("createOrder.fields.itemsPrice")}</span>
                 <span className="v">{formatCents(calculateItemsTotalCents())} €</span>
               </div>
+              {customerDiscount && customerDiscountCents > 0 && (
+                <div className="co-rail-row co-rail-discount">
+                  <span>
+                    {t("createOrder.summary.customerDiscount", { defaultValue: "Скидка клиента" })}
+                    {" "}
+                    {customerDiscount.type === "fixed"
+                      ? `(−${formatCents(toCents(customerDiscount.value))} €)`
+                      : `(−${customerDiscount.value}%)`}
+                  </span>
+                  <span className="v">−{formatCents(customerDiscountCents)} €</span>
+                </div>
+              )}
+
               <div className="co-rail-row">
                 <span>{t("createOrder.fields.deliveryFee")}</span>
                 <span className="v">{formatCents(toCents(safeDeliveryFee))} €</span>
