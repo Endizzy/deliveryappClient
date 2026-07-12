@@ -307,6 +307,41 @@ const EditOrder = () => {
     setShowSearchResults(false);
   };
 
+  // ── навигация по списку поиска с клавиатуры ──
+  const [activeIndex, setActiveIndex] = useState(0);
+  const resultsRef = useRef(null);
+  const listOpen = showSearchResults && searchResults.length > 0;
+
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [searchTerm, searchResults.length]);
+
+  useEffect(() => {
+    if (!listOpen || !resultsRef.current) return;
+    const el = resultsRef.current.querySelector(".search-result-item.active");
+    if (el) el.scrollIntoView({ block: "nearest" });
+  }, [activeIndex, listOpen]);
+
+  const handleSearchKeyDown = (e) => {
+    if (e.key === "Escape") {
+      setShowSearchResults(false);
+      return;
+    }
+    if (!listOpen) return;
+    const len = searchResults.length;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex((i) => (i + 1) % len);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex((i) => (i - 1 + len) % len);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const item = searchResults[Math.min(activeIndex, len - 1)];
+      if (item) addItemToOrder(item);
+    }
+  };
+
   const updateItemQuantity = (id2, qty) => {
     if (qty <= 0) return removeItem(id2);
     setSelectedItems((prev) => prev.map((i) => (i.id === id2 ? { ...i, quantity: qty } : i)));
@@ -757,18 +792,27 @@ const EditOrder = () => {
                           setShowSearchResults(e.target.value.length > 0);
                         }}
                         onFocus={() => setShowSearchResults(searchTerm.length > 0)}
+                        onKeyDown={handleSearchKeyDown}
                         className={errors.items ? "error" : ""}
                         placeholder={t("createOrder.placeholders.search")}
+                        role="combobox"
+                        aria-expanded={listOpen}
+                        aria-activedescendant={listOpen ? `edit-search-result-${activeIndex}` : undefined}
+                        autoComplete="off"
                       />
                     </div>
 
                     {showSearchResults && searchResults.length > 0 && (
-                      <div className="search-results">
-                        {searchResults.map((item) => (
+                      <div className="search-results" role="listbox" ref={resultsRef}>
+                        {searchResults.map((item, idx) => (
                           <div
                             key={item.id}
-                            className="search-result-item"
+                            id={`edit-search-result-${idx}`}
+                            role="option"
+                            aria-selected={idx === activeIndex}
+                            className={`search-result-item ${idx === activeIndex ? "active" : ""}`}
                             onClick={() => addItemToOrder(item)}
+                            onMouseEnter={() => setActiveIndex(idx)}
                           >
                             <div className="item-info">
                               <span className="item-name">{item.name}</span>

@@ -385,6 +385,11 @@
     background: #f8fafc;
 }
 
+.search-result-item.active {
+    background: #eff6ff;
+    box-shadow: inset 3px 0 0 #2f8cff;
+}
+
 .search-result-item:last-child {
     border-bottom: none;
 }

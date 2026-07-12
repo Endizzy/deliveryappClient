@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Package, Search, Plus, Minus, X } from "lucide-react";
 import { discountedUnitCents, formatCents, toCents } from "../../utils/money.js";
 import AddressMapField from "./AddressMapField.jsx";
@@ -35,6 +35,44 @@ const ItemsSection = ({
   zones,
   currentZone,
 }) => {
+  // ── навигация по списку с клавиатуры ──
+  const [activeIndex, setActiveIndex] = useState(0);
+  const resultsRef = useRef(null);
+
+  const listOpen = showSearchResults && searchResults.length > 0;
+
+  // сброс активного элемента при изменении запроса/результатов
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [searchTerm, searchResults.length]);
+
+  // подскролл активного элемента в зону видимости
+  useEffect(() => {
+    if (!listOpen || !resultsRef.current) return;
+    const el = resultsRef.current.querySelector(".search-result-item.active");
+    if (el) el.scrollIntoView({ block: "nearest" });
+  }, [activeIndex, listOpen]);
+
+  const handleSearchKeyDown = (e) => {
+    if (e.key === "Escape") {
+      setShowSearchResults(false);
+      return;
+    }
+    if (!listOpen) return;
+    const len = searchResults.length;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex((i) => (i + 1) % len);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex((i) => (i - 1 + len) % len);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const item = searchResults[Math.min(activeIndex, len - 1)];
+      if (item) addItemToOrder(item);
+    }
+  };
+
   return (
     <div className="form-section">
       <div className="section-header">
@@ -56,18 +94,28 @@ const ItemsSection = ({
                 setShowSearchResults(e.target.value.length > 0);
               }}
               onFocus={() => setShowSearchResults(searchTerm.length > 0)}
+              onKeyDown={handleSearchKeyDown}
               className={errors.items ? "error" : ""}
               placeholder={t("createOrder.placeholders.search")}
+              role="combobox"
+              aria-expanded={listOpen}
+              aria-controls="search-results-list"
+              aria-activedescendant={listOpen ? `search-result-${activeIndex}` : undefined}
+              autoComplete="off"
             />
           </div>
 
           {showSearchResults && searchResults.length > 0 && (
-            <div className="search-results">
-              {searchResults.map((item) => (
+            <div className="search-results" id="search-results-list" role="listbox" ref={resultsRef}>
+              {searchResults.map((item, idx) => (
                 <div
                   key={item.id}
-                  className="search-result-item"
+                  id={`search-result-${idx}`}
+                  role="option"
+                  aria-selected={idx === activeIndex}
+                  className={`search-result-item ${idx === activeIndex ? "active" : ""}`}
                   onClick={() => addItemToOrder(item)}
+                  onMouseEnter={() => setActiveIndex(idx)}
                 >
                   <div className="item-info">
                     <span className="item-name">{item.name}</span>
