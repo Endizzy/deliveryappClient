@@ -62,6 +62,10 @@ export default function DeliveryMap() {
 
   // orders
   const orderMarkersRef = useRef(new Map()); // orderId -> marker
+  const orderDataRef = useRef(new Map()); // orderId -> последние данные заказа (для перерисовки)
+
+  // ETA: orderId -> { courierId, totalSec, distanceM, etaAt }
+  const etaRef = useRef(new Map());
 
   // цвета курьеров (задаются админом), id -> hex
   const courierColorsRef = useRef(new Map());
@@ -158,6 +162,25 @@ export default function DeliveryMap() {
 
         if (msg.type === "order_deleted" && msg.orderId != null) {
           removeOrderMarker(msg.orderId);
+        }
+
+        // ETA курьера до адреса заказа (считает сервер через osrm-eta-service)
+        if (msg.type === "eta" && msg.orderId != null) {
+          const key = String(msg.orderId);
+          etaRef.current.set(key, {
+            courierId: msg.courierId != null ? String(msg.courierId) : null,
+            totalSec: Number(msg.totalSec),
+            distanceM: Number(msg.distanceM),
+            etaAt: msg.etaAt || null,
+          });
+          const o = orderDataRef.current.get(key);
+          if (o) upsertOrderMarker(o); // перерисовать пин с бейджем ETA
+        }
+        if (msg.type === "eta_clear" && msg.orderId != null) {
+          const key = String(msg.orderId);
+          etaRef.current.delete(key);
+          const o = orderDataRef.current.get(key);
+          if (o) upsertOrderMarker(o);
         }
       } catch (e) {
         console.warn("WS message handler error", e);
@@ -385,9 +408,34 @@ export default function DeliveryMap() {
     } catch (e) { }
   }
 
-  function createOrderPinHTML(color, status) {
+  // «≈ 12 мин · 15:42»
+  function formatEta(eta) {
+    if (!eta || !Number.isFinite(eta.totalSec)) return null;
+    const min = Math.max(1, Math.round(eta.totalSec / 60));
+    let at = "";
+    if (eta.etaAt) {
+      try {
+        at = new Date(eta.etaAt).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      } catch (e) { }
+    }
+    return t("map.eta", { defaultValue: "≈ {{min}} мин", min }) + (at ? ` · ${at}` : "");
+  }
+
+  function createOrderPinHTML(color, status, etaText) {
     const s = String(status || "").toLowerCase();
     const enroute = s === "enroute";
+
+    const etaBadge = etaText
+      ? `<div style="
+            position:absolute;left:50%;top:${PIN_H + 2}px;transform:translateX(-50%);
+            background:rgba(15,23,42,.75);border-bottom:3px solid ${color};
+            padding:1px 6px;border-radius:4px;font-size:11px;font-weight:600;
+            color:#fff;white-space:nowrap;pointer-events:none;
+        ">${etaText}</div>`
+      : "";
 
     const pulse = enroute
       ? `<span style="position:absolute;left:50%;top:14px;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;background:${color};opacity:.45;animation:mapPulse 1.5s ease-out infinite;"></span>`
@@ -405,6 +453,7 @@ export default function DeliveryMap() {
           <circle cx="14" cy="14" r="7" fill="#ffffff"/>
           ${inner}
         </svg>
+        ${etaBadge}
       </div>
     `;
   }
@@ -418,6 +467,7 @@ export default function DeliveryMap() {
     if (!map) return;
 
     const key = String(order.orderId);
+    orderDataRef.current.set(key, order); // для перерисовки при eta/eta_clear
 
     const addrLine =
       order.address ||
@@ -435,6 +485,10 @@ export default function DeliveryMap() {
     const statusLc = String(order.status || "").toLowerCase();
     const color = colorForCourier(order.courierId);
 
+    // ETA показываем только пока заказ назначен курьеру и не завершён
+    const eta = order.courierId != null ? etaRef.current.get(key) : null;
+    const etaText = formatEta(eta);
+
     const statusText =
       statusLc === "enroute"
         ? t("map.orderStatus.enroute", { defaultValue: "В пути" })
@@ -444,13 +498,22 @@ export default function DeliveryMap() {
 
     const courierLine = order.courierName ? `  ·  ${order.courierName}` : "";
 
+    const etaLine = etaText
+      ? `<span style="font-weight:600;">⏱ ${etaText}</span>` +
+        (eta && Number.isFinite(eta.distanceM)
+          ? ` · ${(eta.distanceM / 1000).toFixed(1)} км`
+          : "") +
+        `<br/>`
+      : "";
+
     const popupHtml =
       `<b>Заказ #${key}</b><br/>` +
       `<span style="color:${color};font-weight:600;">${statusText}</span>${courierLine}<br/>` +
+      etaLine +
       `${addrLine || ""}<br/>${order.customer || ""} ${order.phone || ""}`;
 
     const icon = L.divIcon({
-      html: createOrderPinHTML(color, order.status),
+      html: createOrderPinHTML(color, order.status, etaText),
       className: "",
       iconSize: [PIN_W, PIN_H],
       iconAnchor: [Math.round(PIN_W / 2), PIN_H],
@@ -493,6 +556,8 @@ export default function DeliveryMap() {
       } catch (e) { }
     }
     orderMarkersRef.current.delete(key);
+    orderDataRef.current.delete(key);
+    etaRef.current.delete(key);
     setOrders((prev) => {
       const next = new Map(prev);
       next.delete(key);

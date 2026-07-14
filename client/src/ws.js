@@ -16,7 +16,9 @@
 //     return ws;
 // }
 
-export const WS_URL = "wss://deliveryappserver-eu.onrender.com";
+// VITE_WS_URL позволяет переключиться на локальный сервер (ws://localhost:4000)
+export const WS_URL =
+  import.meta.env.VITE_WS_URL || "wss://deliveryappserver-eu.onrender.com";
 
 function getToken() {
   return localStorage.getItem("token") || sessionStorage.getItem("token");
