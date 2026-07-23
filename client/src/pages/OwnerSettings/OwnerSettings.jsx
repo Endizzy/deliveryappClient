@@ -28,7 +28,6 @@ export default function OwnerSettings() {
   const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;
 
-  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -98,14 +97,6 @@ export default function OwnerSettings() {
     }
   };
 
-  const fetchProfile = async () => {
-    const res = await fetch(`${API}/user/me`, { headers: authHeaders });
-    if (res.status === 401) throw new Error("unauthorized");
-    const data = await res.json();
-    if (!data.ok) throw new Error(data.error || t("ownerSettings.errors.profileFetchFailed"));
-    setUser(data.user);
-  };
-
   const fetchMenu = async () => {
     const res = await fetch(`${API}/menu`, { headers: authHeaders });
     const data = await res.json();
@@ -131,7 +122,6 @@ export default function OwnerSettings() {
     (async () => {
       try {
         await fetchCompany();
-        await fetchProfile();
         await fetchMenu();
         await fetchStaff();
       } catch (e) {
@@ -431,11 +421,9 @@ export default function OwnerSettings() {
       </div>
     );
   }
-  if (!user) return null;
-
   return (
     <div className="owner-page">
-      <Header user={user} />
+      <Header />
 
       {/* Title + (menu) stats */}
       <nav className="owner-tabs">

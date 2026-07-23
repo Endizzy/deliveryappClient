@@ -1,21 +1,46 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./Header.module.css";
 import { Map as MapIcon, Settings, MonitorCog, User, Box, Menu, X, BarChart2 } from "lucide-react";
 import { useTheme } from "../../provider/ThemeContext.jsx";
 import { useNavigate } from "react-router-dom";
 import LanguageSelector from "./../LanguageSelect/LanguageSelect.jsx";
 import { useTranslation } from "react-i18next";
+import useUserStore from "../../store/userStore.js";
 
-const Header = ({ user = null }) => {
+// user-проп больше не нужен: имя берём из общего store.
+// Пропс оставлен опциональным ради обратной совместимости со старыми вызовами.
+const Header = () => {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { openSettings } = useTheme();
   const { t } = useTranslation();
 
+  const user = useUserStore((s) => s.user);
+  const fetchUser = useUserStore((s) => s.fetchUser);
+  const logout = useUserStore((s) => s.logout);
+
+  // Гидрация: если токен есть, а профиль в store пуст
+  // (первый заход после деплоя, очищенный persist) — догружаем с сервера.
+  useEffect(() => {
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+    if (token && !user) fetchUser();
+  }, [user, fetchUser]);
+
   const handleNavigation = (path) => {
     navigate(path);
     setIsMobileMenuOpen(false);
   };
+
+  const handleLogout = () => {
+    logout();
+    setIsMobileMenuOpen(false);
+    navigate("/login", { replace: true });
+  };
+
+  const displayName =
+    user && (user.firstName || user.lastName)
+      ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()
+      : t("header.guest", { defaultValue: "—" });
 
   return (
     <header className={styles.header_section}>
@@ -105,10 +130,10 @@ const Header = ({ user = null }) => {
           </div>
 
           <div className={styles.user_info}>
-            <span className={styles.user_name}>
-              {user?.firstName ?? "undefined"} {user?.lastName ?? "undefined"}
-            </span>
-            <button className={styles.logout_btn}>{t("header.logout")}</button>
+            <span className={styles.user_name}>{displayName}</span>
+            <button className={styles.logout_btn} onClick={handleLogout}>
+              {t("header.logout")}
+            </button>
           </div>
         </div>
       </nav>
@@ -169,10 +194,10 @@ const Header = ({ user = null }) => {
             </button>
 
             <div className={styles.mobile_user_section}>
-              <span className={styles.mobile_user_name}>
-                {user?.firstName ?? "undefined"} {user?.lastName ?? "undefined"}
-              </span>
-              <button className={styles.mobile_logout_btn}>{t("header.logout")}</button>
+              <span className={styles.mobile_user_name}>{displayName}</span>
+              <button className={styles.mobile_logout_btn} onClick={handleLogout}>
+                {t("header.logout")}
+              </button>
             </div>
           </div>
         </nav>

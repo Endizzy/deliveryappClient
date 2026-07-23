@@ -4,10 +4,12 @@ import styles from "./userProfile.module.css";
 import Header from "../../components/Header/Header.jsx";
 import TwoFactorSection from "../../components/TwoFactorSection/TwoFactorSection.jsx";
 import { useTranslation } from "react-i18next";
+import useUserStore from "../../store/userStore.js";
 
 export default function UserProfile() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const updateUser = useUserStore((s) => s.updateUser);
 
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
@@ -34,7 +36,16 @@ export default function UserProfile() {
 
         setUser(data.user);
         setCompany(data.company ?? null);
-        localStorage.setItem("companyId", data.user.companyId || ""); console.log(user)
+        // синхронизируем общий store — свежие данные профиля попадут и в шапку
+        updateUser({
+          id: data.user.id,
+          companyId: data.user.companyId,
+          email: data.user.email,
+          phone: data.user.phone,
+          firstName: data.user.firstName,
+          lastName: data.user.lastName,
+          role: data.user.role,
+        });
       } catch (e) {
         setErr(e.message);
       } finally {
@@ -88,7 +99,7 @@ export default function UserProfile() {
 
   return (
     <div className={styles.page}>
-      <Header user={user} />
+      <Header />
 
       <main className={styles.container}>
         {/* User card */}

@@ -20,18 +20,23 @@
 export const WS_URL =
   import.meta.env.VITE_WS_URL || "wss://deliveryappserver-eu.onrender.com";
 
+import useUserStore from "./store/userStore.js";
+import { jwtDecode } from "jwt-decode";
+
 function getToken() {
   return localStorage.getItem("token") || sessionStorage.getItem("token");
 }
 
-// если у тебя в localStorage есть user/companyId — можно взять оттуда.
-// самый надёжный вариант: прокинуть companyId параметром из UI.
-function getCompanyIdFromStorage() {
+// companyId: сначала из общего store (единый источник),
+// иначе — фолбэк на декодирование JWT (на случай, если store ещё не гидратирован).
+function getCompanyId() {
+  const fromStore = useUserStore.getState().user?.companyId;
+  if (Number.isFinite(Number(fromStore))) return Number(fromStore);
   try {
-    const raw = localStorage.getItem("user") || sessionStorage.getItem("user");
-    if (!raw) return null;
-    const u = JSON.parse(raw);
-    const cid = Number(u.companyId ?? u.company_id);
+    const token = getToken();
+    if (!token) return null;
+    const p = jwtDecode(token);
+    const cid = Number(p?.companyId ?? p?.company_id);
     return Number.isFinite(cid) ? cid : null;
   } catch {
     return null;
@@ -42,7 +47,7 @@ export function createAdminSocket(onMessage, { companyId } = {}) {
   const ws = new WebSocket(WS_URL);
 
   ws.onopen = () => {
-    const cid = Number(companyId ?? getCompanyIdFromStorage());
+    const cid = Number(companyId ?? getCompanyId());
     ws.send(JSON.stringify({
       type: "hello",
       role: "admin",

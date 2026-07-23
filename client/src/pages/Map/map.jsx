@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import { createAdminSocket } from "../../ws.js";
 import { jwtDecode } from "jwt-decode";
+import useUserStore from "../../store/userStore.js";
 import { Info, Navigation2, Package } from "lucide-react";
 import styles from "./map.module.css";
 import Header from "../../components/Header/Header.jsx";
@@ -42,8 +43,11 @@ export default function DeliveryMap() {
     [token]
   );
 
-  // companyId нужен сокету, иначе серверные рассылки (фильтр по компании) не дойдут
+  // companyId нужен сокету, иначе серверные рассылки (фильтр по компании) не дойдут.
+  // Источник — общий store; фолбэк на JWT, если store ещё не гидратирован.
+  const companyIdFromStore = useUserStore((s) => s.user?.companyId);
   const companyId = useMemo(() => {
+    if (Number.isFinite(Number(companyIdFromStore))) return Number(companyIdFromStore);
     try {
       if (!token) return null;
       const p = jwtDecode(token);
@@ -52,7 +56,7 @@ export default function DeliveryMap() {
     } catch {
       return null;
     }
-  }, [token]);
+  }, [companyIdFromStore, token]);
 
   const mapRef = useRef(null);
 

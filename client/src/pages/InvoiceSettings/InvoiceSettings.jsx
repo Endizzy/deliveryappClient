@@ -11,7 +11,6 @@ export default function InvoiceSettings() {
   const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;
 
-  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -34,14 +33,6 @@ export default function InvoiceSettings() {
     [token]
   );
 
-  const fetchProfile = async () => {
-    const res = await fetch(`${API}/user/me`, { headers: authHeaders });
-    if (res.status === 401) throw new Error("unauthorized");
-    const data = await res.json();
-    if (!data.ok) throw new Error(data.error || "Ошибка загрузки профиля");
-    setUser(data.user);
-  };
-
   const fetchInvoiceSettings = async () => {
     try {
       const res = await fetch(`${API}/invoice-settings`, { headers: authHeaders });
@@ -63,7 +54,6 @@ export default function InvoiceSettings() {
     }
     (async () => {
       try {
-        await fetchProfile();
         await fetchInvoiceSettings();
       } catch (e) {
         if (String(e.message) === "unauthorized") {
@@ -118,11 +108,9 @@ export default function InvoiceSettings() {
     );
   }
 
-  if (!user) return null;
-
   return (
     <div className="owner-page">
-      <Header user={user} />
+      <Header />
 
 
       <nav className="owner-tabs">

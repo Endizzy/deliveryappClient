@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import styles from "./login.module.css";
 import { RefreshCcw, Shield, Loader2, ArrowLeft } from 'lucide-react';
 import useNotification from "../../hooks/useNotification.jsx";
+import useUserStore from "../../store/userStore.js";
 
 const Login = () => {
     const { t } = useTranslation();
@@ -20,6 +21,7 @@ const Login = () => {
     const twoFAInputRefs = useRef([]);
 
     const notify = useNotification();
+    const fetchUser = useUserStore((s) => s.fetchUser);
 
     const [formData, setFormData] = useState({
         email: "",
@@ -85,11 +87,13 @@ const Login = () => {
             } else {
                 // Normal login without 2FA
                 localStorage.setItem("token", data.token);
-                
+
 
                 if (!formData.remember) {
                     sessionStorage.setItem("token", data.token);
                 }
+
+                await fetchUser(); // наполнить store профилем (имя, роль, companyId)
 
                 notify({ type: 'success', title: t('login.successTitle'), message: t('login.successMessage'), duration: 2500 });
                 navigate("/orderPanel"); // редиректим в панель заказов
@@ -160,6 +164,8 @@ const Login = () => {
                 if (!formData.remember) {
                     sessionStorage.setItem("token", data.token);
                 }
+
+                await fetchUser(); // наполнить store профилем (имя, роль, companyId)
 
                 notify({ type: 'success', title: t('login.successTitle'), message: t('login.successMessage'), duration: 2500 });
                 navigate("/orderPanel");
