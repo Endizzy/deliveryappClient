@@ -1,7 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import App from "./App.jsx";
+import Landing from "./pages/Landing/Landing.jsx";
 import Map from "./pages/Map/map.jsx";
 import "./index.css";
 import OrderPanel from "./orderPanel.jsx";
@@ -30,7 +30,7 @@ createRoot(document.getElementById("root")).render(
                 <ThemeProvider>
                     <Routes>
                         {/* общедоступные */}
-                        <Route path="/" element={<App />} />
+                        <Route path="/" element={<Landing />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/registration" element={<Registration />} />
                         <Route path="/unauthorized" element={<Unauthorized />} />

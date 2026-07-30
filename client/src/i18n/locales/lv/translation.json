@@ -13,7 +13,32 @@
   "app": {
     "ownerEntry": "Īpašnieka ieeja",
     "staffEntry": "Darbinieka ieeja",
-    "reports": "Pārskati"
+    "reports": "Pārskati",
+    "brand": "DeliveryApp",
+    "heroBadge": "Piegādes platforma restorāniem",
+    "heroTitle": "Piegādes tavā kontrolē —",
+    "heroTitleAccent": "no virtuves līdz durvīm",
+    "heroSubtitle": "Dzīva kurjeru karte, precīzs ierašanās laiks un pasūtījumu pārvaldība — vienā ekrānā.",
+    "loginCta": "Pieteikties",
+    "registerCta": "Izveidot kontu",
+    "features": {
+      "tracking": {
+        "title": "Izsekošana reāllaikā",
+        "desc": "Katrs kurjers redzams kartē dzīvajā."
+      },
+      "eta": {
+        "title": "Precīzs ierašanās laiks",
+        "desc": "ETA aprēķināts pa reāliem ceļiem, nevis taisnā līnijā."
+      },
+      "control": {
+        "title": "Viss vienuviet",
+        "desc": "Pasūtījumi, kurjeri un statusi vienā ekrānā."
+      }
+    },
+    "footerRights": "© {{year}} DeliveryApp. Visas tiesības aizsargātas.",
+    "links": {
+      "landing": "Vietne"
+    }
   },
   "report": {
     "back": "Atpakaļ",
@@ -413,7 +438,8 @@
       "ready": "Gatavs",
       "enroute": "Ceļā",
       "paused": "Pauzēts",
-      "cancelled": "Pabeigts"
+      "completed": "Pabeigts",
+      "cancelled": "Atcelts"
     },
     "payment": {
       "cash": "Skaidrā naudā",

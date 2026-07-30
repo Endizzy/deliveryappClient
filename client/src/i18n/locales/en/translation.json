@@ -13,7 +13,32 @@
   "app": {
     "ownerEntry": "Owner Login",
     "staffEntry": "Staff Login",
-    "reports": "Reports"
+    "reports": "Reports",
+    "brand": "DeliveryApp",
+    "heroBadge": "Delivery platform for restaurants",
+    "heroTitle": "Your deliveries under control —",
+    "heroTitleAccent": "from kitchen to doorstep",
+    "heroSubtitle": "A live courier map, accurate arrival times and order management — all in one screen.",
+    "loginCta": "Log in",
+    "registerCta": "Create account",
+    "features": {
+      "tracking": {
+        "title": "Real-time tracking",
+        "desc": "See every courier moving on the map, live."
+      },
+      "eta": {
+        "title": "Accurate arrival time",
+        "desc": "ETA calculated over real roads, not straight lines."
+      },
+      "control": {
+        "title": "Everything in one place",
+        "desc": "Orders, couriers and statuses on a single screen."
+      }
+    },
+    "footerRights": "© {{year}} DeliveryApp. All rights reserved.",
+    "links": {
+      "landing": "Website"
+    }
   },
   "report": {
     "back": "Back",
@@ -413,7 +438,7 @@
       "ready": "Ready",
       "enroute": "On the way",
       "paused": "Paused",
-      "cancelled": "Completed"
+      "cancelled": "Cancelled"
     },
     "payment": {
       "cash": "Cash",

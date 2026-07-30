@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { ChevronDown } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { ChevronDown, Trash2 } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import "./orderPanel.css";
 import Header from "./components/Header/Header.jsx";
@@ -27,6 +28,9 @@ function mergeById(oldArr = [], newArr = []) {
   return Array.from(map.values()).sort(byNewest);
 }
 
+// Допустимые статусы заказа (совпадают с EditOrder и серверным PATCH)
+const ORDER_STATUSES = ["new", "ready", "enroute", "completed", "cancelled"];
+
 const isValidCurrentOrder = (o) =>
   o && typeof o === "object" &&
   typeof o.id !== "undefined" &&
@@ -40,6 +44,25 @@ const OrderPanel = () => {
   const [activeTab, setActiveTab] = useState("active");
   const [companyId, setCompanyId] = useState(null);
   const [openFilterColumn, setOpenFilterColumn] = useState(null);
+
+  // id заказа, у которого открыт дропдаун смены статуса, и позиция меню (fixed)
+  const [statusMenuFor, setStatusMenuFor] = useState(null);
+  const [menuPos, setMenuPos] = useState(null); // { top, left, width }
+  // id заказов, по которым сейчас идёт запрос смены статуса (блокируем повторные клики)
+  const [statusSaving, setStatusSaving] = useState(() => new Set());
+  const menuRef = useRef(null);
+
+  // Открыть/закрыть меню статуса; позицию считаем от кнопки (для fixed-портала)
+  const toggleStatusMenu = (e, orderId) => {
+    e.stopPropagation();
+    if (statusMenuFor === orderId) {
+      setStatusMenuFor(null);
+      return;
+    }
+    const r = e.currentTarget.getBoundingClientRect();
+    setMenuPos({ top: r.bottom + 4, left: r.left, width: r.width });
+    setStatusMenuFor(orderId);
+  };
 
   // Получить фильтры из Zustand store
   const filters = useFilterStore((state) => state.filters);
@@ -174,6 +197,103 @@ const OrderPanel = () => {
     }));
   }
 
+  // Быстрая смена статуса прямо из таблицы (без захода в EditOrder).
+  // Сервер не трогаем: используем те же методы, что и EditOrder — GET полного
+  // заказа, затем PUT с изменённым статусом (PATCH запрещён CORS-политикой сервера).
+  // Оптимистично обновляем UI, при ошибке — откат перезагрузкой вкладки.
+  async function changeStatus(order, newStatus) {
+    setStatusMenuFor(null);
+    if (!newStatus || newStatus === order.status) return;
+
+    setStatusSaving((prev) => new Set(prev).add(order.id));
+
+    // оптимистичное обновление: cancelled/completed уедут в нужную вкладку сами
+    upsertOrderToTabs({ ...order, status: newStatus });
+
+    try {
+      // 1) подтягиваем полный заказ (товары, адрес, оплата) — чтобы PUT ничего не затёр
+      const gr = await fetch(`${API}/current-orders/${order.id}`, { headers: authHeaders });
+      const gd = await gr.json();
+      if (!gr.ok || !gd.ok) throw new Error(gd.error || "load failed");
+      const o = gd.item;
+
+      // 2) собираем payload как в EditOrder, меняем только статус.
+      //    applyCustomerDiscount:false — смена статуса не должна пересчитывать цены.
+      const payload = {
+        orderType: o.orderType,
+        status: newStatus,
+        scheduledAt: o.scheduledAt || null,
+        courierId: o.courierId || null,
+        pickupId: o.pickupId || null,
+        payment: o.paymentMethod,
+        deliveryFee: o.deliveryFee ?? 0,
+        customer: o.customer,
+        phone: o.phone,
+        street: o.addressStreet || null,
+        house: o.addressHouse || null,
+        building: o.addressBuilding || null,
+        apart: o.addressApartment || null,
+        floor: o.addressFloor || null,
+        code: o.addressCode || null,
+        numOfPeople: o.numOfPeople || null,
+        addressLat: o.addressLat ?? null,
+        addressLng: o.addressLng ?? null,
+        notes: o.notes || null,
+        applyCustomerDiscount: false,
+        selectedItems: (o.items || []).map((i) => ({
+          id: i.id,
+          name: i.name,
+          price: Number(i.price || 0),
+          discount: Number(i.discount || 0),
+          quantity: Number(i.quantity || 1),
+        })),
+      };
+
+      const res = await fetch(`${API}/current-orders/${order.id}`, {
+        method: "PUT",
+        headers: { ...authHeaders, "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "status update failed");
+      // сервер вернёт свежий item и разошлёт order_updated — WS подтвердит состояние
+    } catch (e) {
+      console.error("changeStatus", e);
+      // откат: перезагружаем текущую вкладку
+      loadTab(activeTab).catch(() => {});
+      alert(t("orderPanel.errors.statusUpdateFailed", { defaultValue: "Не удалось изменить статус" }));
+    } finally {
+      setStatusSaving((prev) => {
+        const next = new Set(prev);
+        next.delete(order.id);
+        return next;
+      });
+    }
+  }
+
+  // Закрытие меню статуса: клик вне (кнопки и самого меню), Escape, скролл, ресайз.
+  useEffect(() => {
+    if (statusMenuFor == null) return;
+    const onDocClick = (e) => {
+      const onButton = e.target.closest?.(".status-badge-btn");
+      const inMenu = menuRef.current && menuRef.current.contains(e.target);
+      if (!onButton && !inMenu) setStatusMenuFor(null);
+    };
+    const onKey = (e) => e.key === "Escape" && setStatusMenuFor(null);
+    const close = () => setStatusMenuFor(null);
+    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("keydown", onKey);
+    // fixed-меню не «поедет» за таблицей при скролле — просто закрываем
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("resize", close);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("resize", close);
+    };
+  }, [statusMenuFor]);
+
   // когда есть companyId — грузим данные и подключаем WS
   useEffect(() => {
     if (!token || !companyId) return;
@@ -227,6 +347,7 @@ const OrderPanel = () => {
       case "new": return "status-new";
       case "enroute": return "status-inprogress";
       case "ready": return "status-ready";
+      case "cancelled": return "status-cancelled"; // красный — необратимое закрытие заказа
       default: return "status-default";
     }
   };
@@ -427,10 +548,17 @@ const OrderPanel = () => {
                   <span className="order-id">{order.orderSeq ?? order.orderNo ?? order.id}</span>
                 </div>
 
-                <div className="cell">
-                  <span className={`status-badge ${getStatusColor(order.status)}`}>
+                <div className="cell status-cell" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    className={`status-badge status-badge-btn ${getStatusColor(order.status)}`}
+                    disabled={statusSaving.has(order.id)}
+                    onClick={(e) => toggleStatusMenu(e, order.id)}
+                  >
+                    {order.status === "cancelled" && <Trash2 size={13} />}
                     {formatOrderStatus(order.status)}
-                  </span>
+                    <ChevronDown size={14} />
+                  </button>
                 </div>
 
                 <div className="cell time-cell">
@@ -499,6 +627,43 @@ const OrderPanel = () => {
           onClose={() => setOpenFilterColumn(null)}
         />
       )}
+
+      {/* Меню смены статуса — в портале с position:fixed, чтобы не обрезалось
+          overflow таблицы и не перекрывалось соседними строками */}
+      {statusMenuFor != null && menuPos && (() => {
+        const menuOrder = orders.find((o) => o.id === statusMenuFor);
+        if (!menuOrder) return null;
+        return createPortal(
+          <div
+            ref={menuRef}
+            className="status-menu"
+            role="listbox"
+            style={{ top: menuPos.top, left: menuPos.left, minWidth: Math.max(menuPos.width, 160) }}
+          >
+            {ORDER_STATUSES.map((s) => (
+              <button
+                key={s}
+                type="button"
+                role="option"
+                aria-selected={s === menuOrder.status}
+                className={`status-menu-item ${s === menuOrder.status ? "current" : ""} ${s === "cancelled" ? "danger" : ""}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  changeStatus(menuOrder, s);
+                }}
+              >
+                {s === "cancelled" ? (
+                  <Trash2 size={14} className="status-menu-ico" />
+                ) : (
+                  <span className={`status-dot ${getStatusColor(s)}`} />
+                )}
+                {formatOrderStatus(s)}
+              </button>
+            ))}
+          </div>,
+          document.body
+        );
+      })()}
     </div>
   );
 };
