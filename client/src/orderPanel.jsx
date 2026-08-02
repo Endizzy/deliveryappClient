@@ -11,8 +11,13 @@ import { useTranslation } from "react-i18next";
 import FilterPanel from "./components/FilterPanel/FilterPanel.jsx";
 import { useFilterStore } from "./store/filterStore";
 
+import {
+  connect as wsConnect,
+  subscribe as wsSubscribe,
+  onOpen as wsOnOpen,
+} from "./wsClient.js";
+
 const API = import.meta.env.VITE_API_URL;
-const WS_URL = (API || "").replace(/^http/, "ws");
 
 // утилиты
 const byNewest = (a, b) => {
@@ -294,32 +299,20 @@ const OrderPanel = () => {
     };
   }, [statusMenuFor]);
 
-  // когда есть companyId — грузим данные и подключаем WS
+  // когда есть companyId — подключаем общий WS-клиент.
+  // Ресинк (loadTab × 3) выполняется на КАЖДЫЙ (ре)коннект сокета — так
+  // пропущенные за время разрыва события перекрываются свежим снапшотом.
   useEffect(() => {
     if (!token || !companyId) return;
 
-    loadTab("active").catch(console.error);
-    loadTab("preorders").catch(console.error);
-    loadTab("completed").catch(console.error);
+    const resync = () => {
+      loadTab("active").catch(console.error);
+      loadTab("preorders").catch(console.error);
+      loadTab("completed").catch(console.error);
+    };
 
-    const ws = new WebSocket(`${WS_URL.replace(/\/$/, "")}`);
-    ws.addEventListener("open", () => {
-      ws.send(JSON.stringify({ type: "hello", role: "admin", companyId }));
-    });
-
-    ws.addEventListener("message", (ev) => {
-      let msg;
-      try { msg = JSON.parse(ev.data); } catch { return; }
-
+    const offMessage = wsSubscribe((msg) => {
       if (typeof msg.companyId === "number" && msg.companyId !== companyId) return;
-
-      if (
-        msg.type === "orders_snapshot" ||
-        msg.type === "demo_orders_snapshot" ||
-        msg.type === "demo_order_created" ||
-        msg.type === "demo_order_updated" ||
-        msg.type === "demo_order_deleted"
-      ) return;
 
       if ((msg.type === "order_created" || msg.type === "order_updated") && msg.order) {
         if (isValidCurrentOrder(msg.order)) {
@@ -339,7 +332,20 @@ const OrderPanel = () => {
       }
     });
 
-    return () => ws.close();
+    // onOpen вызовется сразу, если сокет уже открыт, и на каждый реконнект
+    const offOpen = wsOnOpen(resync);
+    resync(); // первичная загрузка, не дожидаясь установления WS
+    wsConnect();
+
+    const onUnauthorized = () => navigate("/login");
+    window.addEventListener("ws-unauthorized", onUnauthorized);
+
+    return () => {
+      offMessage();
+      offOpen();
+      window.removeEventListener("ws-unauthorized", onUnauthorized);
+      // сокет НЕ закрываем: он общий для всего приложения (карта и др.)
+    };
   }, [token, companyId]); // eslint-disable-line
 
   const getStatusColor = (status) => {

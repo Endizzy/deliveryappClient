@@ -1,6 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
-import { createAdminSocket } from "../../ws.js";
+import {
+  connect as wsConnect,
+  subscribe as wsSubscribe,
+  onOpen as wsOnOpen,
+} from "../../wsClient.js";
 import { jwtDecode } from "jwt-decode";
 import useUserStore from "../../store/userStore.js";
 import { Info, Navigation2, Package } from "lucide-react";
@@ -97,7 +101,10 @@ export default function DeliveryMap() {
       document.head.appendChild(st);
     }
 
-    (async () => {
+    // Полный REST-ресинк карты. Вызывается при монтировании и на каждый
+    // (ре)коннект WS — так пропущенные события (удалённые/завершённые заказы)
+    // перекрываются свежим снапшотом.
+    const resync = async () => {
       try {
         // сначала подтягиваем цвета курьеров (заданные админом)
         try {
@@ -114,19 +121,29 @@ export default function DeliveryMap() {
         if (res.status === 401) return;
         const data = await res.json();
         if (data?.ok && Array.isArray(data.items)) {
+          // убрать маркеры заказов, которых больше нет (удалены/завершены за время разрыва)
+          const seen = new Set(data.items.map((o) => String(o.orderId ?? o.id)));
+          for (const key of Array.from(orderMarkersRef.current.keys())) {
+            if (!seen.has(String(key))) removeOrderMarker(key);
+          }
           data.items.forEach((o) => upsertOrderMarker(o));
         }
       } catch (e) {
         console.warn("Failed to load orders for map", e);
       }
-    })();
+    };
 
-    const ws = createAdminSocket((msg) => {
+    const offMessage = wsSubscribe((msg) => {
       try {
         if (!msg) return;
 
         // couriers
         if (msg.type === "snapshot" && Array.isArray(msg.items)) {
+          // снапшот — источник истины: убрать курьеров, пропавших за время разрыва
+          const seen = new Set(msg.items.map((it) => String(it.courierId)));
+          for (const key of Array.from(courierMarkersRef.current.keys())) {
+            if (!seen.has(String(key))) removeCourierMarker(key);
+          }
           for (const it of msg.items) upsertCourierMarker(it);
         }
         if (msg.type === "location") upsertCourierMarker(msg);
@@ -189,12 +206,17 @@ export default function DeliveryMap() {
       } catch (e) {
         console.warn("WS message handler error", e);
       }
-    }, { companyId });
+    });
+
+    // ресинк на каждый (ре)коннект; если сокет уже открыт — вызовется сразу
+    const offOpen = wsOnOpen(resync);
+    resync(); // первичная загрузка, не дожидаясь установления WS
+    wsConnect();
 
     return () => {
-      try {
-        ws.close();
-      } catch (e) { }
+      offMessage();
+      offOpen();
+      // общий сокет НЕ закрываем — им пользуются другие страницы
 
       for (const { rafId } of animRef.current.values()) {
         if (rafId) cancelAnimationFrame(rafId);
