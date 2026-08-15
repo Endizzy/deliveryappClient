@@ -57,6 +57,9 @@ const EditOrder = () => {
   const printRef = useRef(null);
   const [orderCreatedAt, setOrderCreatedAt] = useState("");
 
+  // Реквизиты накладной компании (для печати) — тянутся с сервера по company_id
+  const [invoiceSettings, setInvoiceSettings] = useState(null);
+
   const token = useMemo(
     () => localStorage.getItem("token") || sessionStorage.getItem("token"),
     []
@@ -65,6 +68,20 @@ const EditOrder = () => {
     () => ({ "Content-Type": "application/json", Authorization: `Bearer ${token}` }),
     [token]
   );
+
+  // Загрузка реквизитов накладной компании (для печати)
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(`${API}/invoice-settings`, { headers: authHeaders });
+        if (res.status === 401) return;
+        const data = await res.json();
+        if (data?.ok && data.settings) setInvoiceSettings(data.settings);
+      } catch {
+        // при ошибке шаблон использует значения по умолчанию
+      }
+    })();
+  }, [authHeaders]);
 
   // справочники
   const [couriers, setCouriers] = useState([]);
@@ -532,7 +549,7 @@ const EditOrder = () => {
     <div className="create-order-page">
       {/* Hidden invoice for printing */}
       <div style={{ display: "none" }}>
-        <InvoiceTemplate ref={printRef} order={invoiceOrder} />
+        <InvoiceTemplate ref={printRef} order={invoiceOrder} settings={invoiceSettings || {}} />
       </div>
 
       <header className="header">
