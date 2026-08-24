@@ -1,16 +1,16 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import {
   connect as wsConnect,
   subscribe as wsSubscribe,
   onOpen as wsOnOpen,
 } from "../../wsClient.js";
-import { jwtDecode } from "jwt-decode";
-import useUserStore from "../../store/userStore.js";
-import { Info, Navigation2, Package } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Navigation, Package, GripVertical, Minimize2, Car, Maximize2 } from "lucide-react";
 import styles from "./map.module.css";
 import Header from "../../components/Header/Header.jsx";
 import { useTranslation } from "react-i18next";
+import { formatClockTime } from "../../utils/time/time.js";
 
 const defaultCenter = [56.94937, 24.10525]; // Riga
 const ORDER_FOCUS_ZOOM = 16;
@@ -35,7 +35,8 @@ const PIN_W = 30;
 const PIN_H = 40;
 
 export default function DeliveryMap() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;
 
   const token = useMemo(
@@ -47,22 +48,68 @@ export default function DeliveryMap() {
     [token]
   );
 
-  // companyId нужен сокету, иначе серверные рассылки (фильтр по компании) не дойдут.
-  // Источник — общий store; фолбэк на JWT, если store ещё не гидратирован.
-  const companyIdFromStore = useUserStore((s) => s.user?.companyId);
-  const companyId = useMemo(() => {
-    if (Number.isFinite(Number(companyIdFromStore))) return Number(companyIdFromStore);
-    try {
-      if (!token) return null;
-      const p = jwtDecode(token);
-      const cid = Number(p?.companyId ?? p?.company_id);
-      return Number.isFinite(cid) ? cid : null;
-    } catch {
-      return null;
-    }
-  }, [companyIdFromStore, token]);
-
   const mapRef = useRef(null);
+
+  // ── Glass Dock: сворачивание + drag (позиция НЕ сохраняется) ────────────
+  const [dockMin, setDockMin] = useState(false);
+  const [dockTab, setDockTab] = useState("couriers"); // couriers | orders
+  const dockRef = useRef(null);
+  const dockDragRef = useRef(null); // { sx, sy, ox, oy }
+
+  const onDockPointerMove = useCallback((e) => {
+    const d = dockDragRef.current;
+    const dock = dockRef.current;
+    if (!d || !dock) return;
+    const parent = dock.offsetParent;
+    if (!parent) return;
+    const pr = parent.getBoundingClientRect();
+    const r = dock.getBoundingClientRect();
+    const nx = Math.min(Math.max(0, d.ox + e.clientX - d.sx), Math.max(0, pr.width - r.width));
+    const ny = Math.min(Math.max(0, d.oy + e.clientY - d.sy), Math.max(0, pr.height - r.height));
+    dock.style.left = `${nx}px`;
+    dock.style.top = `${ny}px`;
+    dock.style.right = "auto";
+    dock.style.bottom = "auto";
+  }, []);
+
+  const onDockPointerUp = useCallback(() => {
+    dockDragRef.current = null;
+    window.removeEventListener("pointermove", onDockPointerMove);
+    window.removeEventListener("pointerup", onDockPointerUp);
+  }, [onDockPointerMove]);
+
+  const onDockPointerDown = useCallback((e) => {
+    if (e.target.closest("button")) return; // клики по кнопкам шапки — не drag
+    const dock = dockRef.current;
+    if (!dock) return;
+    const parent = dock.offsetParent;
+    if (!parent) return;
+    e.preventDefault();
+    const r = dock.getBoundingClientRect();
+    const pr = parent.getBoundingClientRect();
+    dockDragRef.current = { sx: e.clientX, sy: e.clientY, ox: r.left - pr.left, oy: r.top - pr.top };
+    window.addEventListener("pointermove", onDockPointerMove);
+    window.addEventListener("pointerup", onDockPointerUp);
+  }, [onDockPointerMove, onDockPointerUp]);
+
+  // снять глобальные слушатели, если размонтировались посреди drag
+  useEffect(() => () => {
+    window.removeEventListener("pointermove", onDockPointerMove);
+    window.removeEventListener("pointerup", onDockPointerUp);
+  }, [onDockPointerMove, onDockPointerUp]);
+
+  // при разворачивании у края — вернуть панель в пределы контейнера
+  useEffect(() => {
+    const dock = dockRef.current;
+    const parent = dock?.offsetParent;
+    if (!dock || !parent || !dock.style.left) return; // не двигали — позиция из CSS
+    const pr = parent.getBoundingClientRect();
+    const r = dock.getBoundingClientRect();
+    const nx = Math.min(Math.max(0, r.left - pr.left), Math.max(0, pr.width - r.width));
+    const ny = Math.min(Math.max(0, r.top - pr.top), Math.max(0, pr.height - r.height));
+    dock.style.left = `${nx}px`;
+    dock.style.top = `${ny}px`;
+  }, [dockMin]);
 
   // couriers
   const courierMarkersRef = useRef(new Map()); // courierId -> marker
@@ -213,9 +260,15 @@ export default function DeliveryMap() {
     resync(); // первичная загрузка, не дожидаясь установления WS
     wsConnect();
 
+    // Токен протух/невалиден: сокет закрыт с 4401 и реконнекта не будет —
+    // отправляем на логин, иначе карта молча замирает.
+    const onUnauthorized = () => navigate("/login");
+    window.addEventListener("ws-unauthorized", onUnauthorized);
+
     return () => {
       offMessage();
       offOpen();
+      window.removeEventListener("ws-unauthorized", onUnauthorized);
       // общий сокет НЕ закрываем — им пользуются другие страницы
 
       for (const { rafId } of animRef.current.values()) {
@@ -226,6 +279,14 @@ export default function DeliveryMap() {
       try {
         map.remove();
       } catch (e) { }
+
+      // Карта уничтожена — её маркеры больше ни к чему не привязаны.
+      // Чистим кэши, иначе при повторной инициализации (HMR / ремонт)
+      // upsert найдёт «мёртвый» маркер и пин не появится на новой карте.
+      courierMarkersRef.current.clear();
+      orderMarkersRef.current.clear();
+      orderDataRef.current.clear();
+      etaRef.current.clear();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -358,7 +419,7 @@ export default function DeliveryMap() {
     } catch (e) { }
   }
 
-  function upsertCourierMarker({ courierId, lat, lng, speedKmh, status, courierNickname }) {
+  function upsertCourierMarker({ courierId, lat, lng, speedKmh, status, courierNickname, orderId }) {
     if (typeof lat !== "number" || typeof lng !== "number") return;
 
     const key = String(courierId);
@@ -369,6 +430,16 @@ export default function DeliveryMap() {
     const html = createCourierIconHTML(key, speedKmh, courierNickname, color);
 
     let marker = courierMarkersRef.current.get(key);
+
+    // Маркер мог «осиротеть»: карта была пересоздана (перезапуск эффекта / HMR),
+    // а ref пережил пересоздание. Тогда setIcon на нём ничего не покажет —
+    // такой маркер выбрасываем и создаём заново на актуальной карте.
+    if (marker && !map.hasLayer(marker)) {
+      courierMarkersRef.current.delete(key);
+      animRef.current.delete(key);
+      marker = null;
+    }
+
     if (!marker) {
       const icon = L.divIcon({
         html,
@@ -413,6 +484,7 @@ export default function DeliveryMap() {
         speedKmh: speedKmh ?? null,
         status: status ?? "unknown",
         courierNickname: courierNickname ?? null,
+        orderId: orderId ?? null,
       });
       return next;
     });
@@ -434,19 +506,11 @@ export default function DeliveryMap() {
     } catch (e) { }
   }
 
-  // «≈ 12 мин · 15:42»
+  // «≈ 12 мин · 15:42» — время прибытия в 24-часовом формате
   function formatEta(eta) {
     if (!eta || !Number.isFinite(eta.totalSec)) return null;
     const min = Math.max(1, Math.round(eta.totalSec / 60));
-    let at = "";
-    if (eta.etaAt) {
-      try {
-        at = new Date(eta.etaAt).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-      } catch (e) { }
-    }
+    const at = formatClockTime(eta.etaAt, i18n.language);
     return t("map.eta", { defaultValue: "≈ {{min}} мин", min }) + (at ? ` · ${at}` : "");
   }
 
@@ -526,10 +590,10 @@ export default function DeliveryMap() {
 
     const etaLine = etaText
       ? `<span style="font-weight:600;">⏱ ${etaText}</span>` +
-        (eta && Number.isFinite(eta.distanceM)
-          ? ` · ${(eta.distanceM / 1000).toFixed(1)} км`
-          : "") +
-        `<br/>`
+      (eta && Number.isFinite(eta.distanceM)
+        ? ` · ${(eta.distanceM / 1000).toFixed(1)} км`
+        : "") +
+      `<br/>`
       : "";
 
     const popupHtml =
@@ -547,6 +611,13 @@ export default function DeliveryMap() {
     });
 
     let marker = orderMarkersRef.current.get(key);
+
+    // Осиротевший маркер (карта пересоздана, ref пережил) — пересоздаём,
+    // иначе пин заказа молча исчезает с карты до перезагрузки страницы.
+    if (marker && !map.hasLayer(marker)) {
+      orderMarkersRef.current.delete(key);
+      marker = null;
+    }
 
     if (!marker) {
       marker = L.marker([lat, lng], { icon }).addTo(map);
@@ -594,123 +665,273 @@ export default function DeliveryMap() {
   const couriersList = Array.from(couriers.values());
   const ordersList = Array.from(orders.values());
 
+  // Занятость курьера — свойство заказа (courier_unit_id), а не геолокации:
+  // мобильное приложение шлёт в /api/location только координаты и on_shift.
+  // Поэтому считаем её из активных заказов карты — они приходят из БД
+  // (REST /current-orders/map) и обновляются теми же WS-событиями.
+  const courierWorkload = useMemo(() => {
+    const byCourier = new Map();
+    for (const o of orders.values()) {
+      if (o.courierId == null) continue;
+      const key = String(o.courierId);
+      let entry = byCourier.get(key);
+      if (!entry) {
+        entry = { enroute: [], assigned: [] };
+        byCourier.set(key, entry);
+      }
+      // enroute — курьер уже везёт; new/ready — заказ за ним закреплён, но он ещё на точке
+      if (String(o.status || "").toLowerCase() === "enroute") entry.enroute.push(o);
+      else entry.assigned.push(o);
+    }
+    return byCourier;
+  }, [orders]);
+
+  // Состояние курьера для списка: что показать в чипе и в подписи
+  const courierStateInfo = (courierId) => {
+    const w = courierWorkload.get(String(courierId));
+    const enroute = w?.enroute ?? [];
+    const assigned = w?.assigned ?? [];
+
+    if (enroute.length) {
+      return {
+        cls: styles.chipEnroute,
+        label: t("map.courierState.enroute", { defaultValue: "В пути" }),
+        orders: enroute,
+      };
+    }
+    if (assigned.length) {
+      return {
+        cls: styles.chipReady,
+        label: t("map.courierState.assigned", { defaultValue: "Назначен" }),
+        orders: assigned,
+      };
+    }
+    return {
+      cls: styles.chipFree,
+      label: t("map.courierState.free", { defaultValue: "Свободен" }),
+      orders: [],
+    };
+  };
+
   const statusLabel = (status) =>
     t(`map.status.${String(status || "unknown").toLowerCase()}`, {
       defaultValue: status || "unknown",
     });
 
+  // Чип статуса заказа: цвет + подпись
+  const orderChipInfo = (o) => {
+    const s = String(o.status || "").toLowerCase();
+    if (s === "enroute")
+      return { cls: styles.chipEnroute, label: t("map.orderStatus.enroute", { defaultValue: "В пути" }) };
+    if (s === "ready")
+      return { cls: styles.chipReady, label: t("map.orderStatus.ready", { defaultValue: "Готов" }) };
+    if (s === "new")
+      return { cls: styles.chipNew, label: t("map.orderStatus.new", { defaultValue: "Новый" }) };
+    return o.courierId != null
+      ? { cls: styles.chipEnroute, label: t("map.orderStatus.taken", { defaultValue: "Взят" }) }
+      : { cls: styles.chipFree, label: t("map.orderStatus.free", { defaultValue: "Свободен" }) };
+  };
+
+  const orderAddrShort = (o) =>
+    [o.addressStreet, o.addressHouse].filter(Boolean).join(" ") || o.address || "";
+
   return (
     <div className={styles.container}>
       <Header />
 
-      <div className={styles.courierPanel}>
-        <div className={styles.courierPanelHeader}>
-          <div className={styles.courierPanelTitle}>
-            <Navigation2 className={styles.titleIcon} />
-            <span>{t("map.activeCouriers")}</span>
-          </div>
-          <span className={styles.courierBadge}>{couriersList.length}</span>
-        </div>
+      {/* ── Glass Dock: курьеры + заказы (drag за шапку, сворачивается в пилюлю) ── */}
+      <div ref={dockRef} className={`${styles.dock} ${dockMin ? styles.dockMin : ""}`}>
+        <div className={styles.dockHeader} onPointerDown={onDockPointerDown}>
+          <GripVertical className={styles.dockGrip} />
 
-        {couriersList.length === 0 && (
-          <div className={styles.emptyText}>{t("map.noActiveCouriers")}</div>
-        )}
-
-        <div className={styles.courierList}>
-          {couriersList.map((c) => (
-            <div
-              key={c.courierId}
-              className={styles.courierItem}
-              role="button"
-              tabIndex={0}
-              onClick={() => focusCourier(c.courierId)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  focusCourier(c.courierId);
-                }
-              }}
-            >
-              <div className={styles.courierMain}>
-                <span className={styles.courierId}>
-                  {c.courierNickname ?? `#${c.courierId}`}
-                </span>
-                <span className={styles.courierMeta}>
-                  {statusLabel(c.status)} · {formatSpeed(c.speedKmh)}
-                </span>
-              </div>
-
-              <div className={styles.courierActions}>
-                <button
-                  type="button"
-                  className={styles.iconButton}
-                  title={t("map.actions.focus")}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    focusCourier(c.courierId);
-                  }}
-                >
-                  <Navigation2 className={styles.icon} />
-                </button>
-
-                <button
-                  type="button"
-                  className={styles.iconButton}
-                  title={t("map.actions.info")}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Info className={styles.icon} />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Список заказов */}
-        <div
-          style={{
-            marginTop: 10,
-            borderTop: "1px solid rgba(148,163,184,0.2)",
-            paddingTop: 8,
-          }}
-        >
-          <div className={styles.courierPanelHeader}>
-            <div className={styles.courierPanelTitle}>
-              <Package className={styles.titleIcon} />
-              <span>Заказы</span>
-            </div>
-            <span className={styles.courierBadge}>{ordersList.length}</span>
-          </div>
-
-          {ordersList.length === 0 && (
-            <div className={styles.emptyText}>Нет заказов с координатами</div>
+          {!dockMin && (
+            <span className={styles.dockTitle}>
+              {t("map.dockTitle", { defaultValue: "Live-map" })}
+            </span>
           )}
 
-          <div className={styles.courierList}>
-            {ordersList.slice(0, 30).map((o) => (
-              <div
-                key={String(o.orderId)}
-                className={styles.courierItem}
-                role="button"
-                tabIndex={0}
-                onClick={() => focusOrder(o.orderId)}
+          {dockMin && (
+            <span className={styles.dockPillInfo}>
+              <span className={styles.dockPillItem}>
+                <Car className={styles.dockPillIcon} />
+                {couriersList.length}
+              </span>
+              <span className={`${styles.dockPillItem} ${styles.dockPillOrders}`}>
+                <Package className={styles.dockPillIcon} />
+                {ordersList.length}
+              </span>
+            </span>
+          )}
+
+          <button
+            type="button"
+            className={styles.dockWinBtn}
+            onClick={() => setDockMin((v) => !v)}
+            title={
+              dockMin
+                ? t("map.dock.expand", { defaultValue: "Развернуть" })
+                : t("map.dock.collapse", { defaultValue: "Свернуть" })
+            }
+          >
+            {dockMin ? <Maximize2 className={styles.dockWinIcon} /> : <Minimize2 className={styles.dockWinIcon} />}
+          </button>
+        </div>
+
+        {!dockMin && (
+          <>
+            <div className={styles.dockTabs}>
+              <button
+                type="button"
+                className={`${styles.dockTab} ${dockTab === "couriers" ? styles.dockTabOn : ""}`}
+                onClick={() => setDockTab("couriers")}
               >
-                <div className={styles.courierMain}>
-                  <span className={styles.courierId}>
-                    #{o.orderId} {o.customer ? `· ${o.customer}` : ""}
-                  </span>
-                  <span className={styles.courierMeta}>{o.status || "-"}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {ordersList.length > 30 && (
-            <div className={styles.emptyText} style={{ marginTop: 6 }}>
-              Показаны первые 30 заказов
+                {t("map.dock.couriers", { defaultValue: "Курьеры" })}
+                <span className={styles.dockTabCount}>{couriersList.length}</span>
+              </button>
+              <button
+                type="button"
+                className={`${styles.dockTab} ${dockTab === "orders" ? styles.dockTabOn : ""}`}
+                onClick={() => setDockTab("orders")}
+              >
+                {t("map.dock.orders", { defaultValue: "Заказы" })}
+                <span className={styles.dockTabCount}>{ordersList.length}</span>
+              </button>
             </div>
-          )}
-        </div>
+
+            <div className={styles.dockBody}>
+              {dockTab === "couriers" && (
+                <>
+                  {couriersList.length === 0 && (
+                    <div className={styles.dockEmpty}>{t("map.noActiveCouriers")}</div>
+                  )}
+                  {couriersList.map((c) => {
+                    const state = courierStateInfo(c.courierId);
+                    const busy = state.orders.length > 0;
+                    const firstOrder = state.orders[0];
+                    const extra = state.orders.length - 1;
+
+                    return (
+                      <div
+                        key={c.courierId}
+                        className={styles.dockRow}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => focusCourier(c.courierId)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            focusCourier(c.courierId);
+                          }
+                        }}
+                      >
+                        <span
+                          className={styles.dockDot}
+                          style={{ background: colorForCourier(c.courierId) }}
+                        />
+                        <div className={styles.dockRowMain}>
+                          <div className={styles.dockRowName}>
+                            {c.courierNickname ?? `#${c.courierId}`}
+                          </div>
+                          <div className={styles.dockRowMeta}>
+                            {/* занят — пишем, что делает; свободен — присутствие на смене */}
+                            {busy ? state.label : statusLabel(c.status)} · {formatSpeed(c.speedKmh)}
+                          </div>
+                        </div>
+
+                        {busy ? (
+                          <span
+                            className={`${styles.dockChip} ${state.cls}`}
+                            title={state.orders.map((o) => `#${o.orderId}`).join(", ")}
+                          >
+                            #{firstOrder.orderId}
+                            {extra > 0 ? ` +${extra}` : ""}
+                          </span>
+                        ) : (
+                          <span className={`${styles.dockChip} ${state.cls}`}>{state.label}</span>
+                        )}
+
+                        <button
+                          type="button"
+                          className={styles.dockAim}
+                          title={
+                            busy
+                              ? t("map.actions.focusOrder", { defaultValue: "К заказу" })
+                              : t("map.actions.focus")
+                          }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // у занятого курьера полезнее прыгнуть на адрес доставки
+                            if (busy) focusOrder(firstOrder.orderId);
+                            else focusCourier(c.courierId);
+                          }}
+                        >
+                          <Navigation className={styles.dockAimIcon} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+
+              {dockTab === "orders" && (
+                <>
+                  {ordersList.length === 0 && (
+                    <div className={styles.dockEmpty}>
+                      {t("map.noOrdersWithCoords", { defaultValue: "Нет заказов с координатами" })}
+                    </div>
+                  )}
+                  {ordersList.slice(0, 30).map((o) => {
+                    const chip = orderChipInfo(o);
+                    const etaText = formatEta(
+                      o.courierId != null ? etaRef.current.get(String(o.orderId)) : null
+                    );
+                    return (
+                      <div
+                        key={String(o.orderId)}
+                        className={styles.dockRow}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => focusOrder(o.orderId)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            focusOrder(o.orderId);
+                          }
+                        }}
+                      >
+                        <span
+                          className={styles.dockDot}
+                          style={{ background: colorForCourier(o.courierId) }}
+                        />
+                        <div className={styles.dockRowMain}>
+                          <div className={styles.dockRowName}>
+                            #{o.orderId}
+                            {o.customer ? ` · ${o.customer}` : ""}
+                          </div>
+                          <div className={styles.dockRowMeta}>
+                            {orderAddrShort(o)}
+                            {/* {etaText ? ` ${etaText}` : ""} */}
+                            {etaText && (
+                              <div className={styles.etaText}>
+                                {etaText}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <span className={`${styles.dockChip} ${chip.cls}`}>{chip.label}</span>
+                      </div>
+                    );
+                  })}
+                  {ordersList.length > 30 && (
+                    <div className={styles.dockEmpty}>
+                      {t("map.first30", { defaultValue: "Показаны первые 30 заказов" })}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       <div id="map" className={styles.map} />

@@ -6,7 +6,7 @@ import "./orderPanel.css";
 import Header from "./components/Header/Header.jsx";
 import { useSound } from "./provider/SoundContext.jsx";
 import { useNow } from "./provider/TimeContext";
-import { formatDuration } from "./utils/time/time.js";
+import { formatDuration, formatClockTime } from "./utils/time/time.js";
 import { useTranslation } from "react-i18next";
 import FilterPanel from "./components/FilterPanel/FilterPanel.jsx";
 import { useFilterStore } from "./store/filterStore";
@@ -104,12 +104,8 @@ const OrderPanel = () => {
     
   ];
 
-  const safeTime = (iso) => {
-    if (!iso) return "";
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return "";
-    return d.toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit", hour12: false });
-  };
+  // 24-часовой формат из общей утилиты (h23: без AM/PM и без "24:15" в en-US)
+  const safeTime = (iso) => formatClockTime(iso, i18n.language);
 
   // localized month/day only
   const safeDate = (iso) => {

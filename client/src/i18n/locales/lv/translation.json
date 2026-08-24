@@ -263,11 +263,11 @@
       "accounts": "Konti (administratori un kurjeri)"
     },
     "invoice": {
-        "title": "Rēķina priekšskatījums",
-        "editTemplate": "Rediģēt veidni",
-        "notConfigured": "Veidne nav konfigurēta",
-        "configured": "Veidne ir konfigurēta"
-      },
+      "title": "Rēķina priekšskatījums",
+      "editTemplate": "Rediģēt veidni",
+      "notConfigured": "Veidne nav konfigurēta",
+      "configured": "Veidne ir konfigurēta"
+    },
     "stats": {
       "items": "Pozīcijas: {{total}}",
       "active": "Aktīvs: {{active}}",
@@ -459,7 +459,8 @@
     "noActiveCouriers": "Nav aktīvu kurjeru",
     "actions": {
       "focus": "Centrēt karti uz kurjeru",
-      "info": "Informācija"
+      "info": "Informācija",
+      "focusOrder": "Uz pasūtījumu"
     },
     "speedValue": "{{value}} km/h",
     "speedUnknown": "ātrums —",
@@ -467,19 +468,42 @@
     "markerTitle": "#{{id}}",
     "markerTitleWithNickname": "{{nickname}} (ID {{id}})",
     "status": {
-      "unknown": "unknown",
-      "online": "online",
-      "offline": "online",
-      "busy": "busy"
-    }
+      "unknown": "Nav datu",
+      "online": "Tiešsaistē",
+      "offline": "Bezsaistē",
+      "busy": "Aizņemts",
+      "on_shift": "Maiņā",
+      "off_shift": "Ārpus maiņas"
+    },
+    "courierState": {
+      "enroute": "Ceļā",
+      "assigned": "Piešķirts",
+      "free": "Brīvs"
+    },
+    "orderStatus": {
+      "enroute": "Ceļā",
+      "ready": "Gatavs",
+      "new": "Jauns",
+      "taken": "Paņemts",
+      "free": "Nepiešķirts"
+    },
+    "dock": {
+      "couriers": "Kurjeri",
+      "orders": "Pasūtījumi",
+      "expand": "Izvērst",
+      "collapse": "Sakļaut"
+    },
+    "dockTitle": "Live karte",
+    "noOrdersWithCoords": "Nav pasūtījumu ar koordinātām",
+    "first30": "Rādīti pirmie 30 pasūtījumi",
+    "eta": "≈ {{min}} min"
   },
   "modalSettings": {
     "title": "Iestatījumi",
     "appearance": {
       "title": "Izskats",
       "selectAria": "Izvēlēties tēmu",
-      "themes": {
-      }
+      "themes": {}
     },
     "sound": {
       "title": "Paziņojumu skaņa",
@@ -503,13 +527,13 @@
     "title": "Ielādē…",
     "desc": "Lūdzu, uzgaidiet"
   },
-  "orderPrediction" : {
-    "title" : "Pasūtījumu prognozēšana",
-    "subtitle" : "Izmantojot mūsu mašīnmācīšanās algoritmus prognozēt pasūtījumu skaitu, kas būs šodien",
-    "timeslot" : "Laika intervals",
-    "weather" :  "Gaisa temperatūra",
-    "orders" : "Pasūtījumu skaits",
-    "orders_exp" : "pasūtījumu plānot saņemt"
+  "orderPrediction": {
+    "title": "Pasūtījumu prognozēšana",
+    "subtitle": "Izmantojot mūsu mašīnmācīšanās algoritmus prognozēt pasūtījumu skaitu, kas būs šodien",
+    "timeslot": "Laika intervals",
+    "weather": "Gaisa temperatūra",
+    "orders": "Pasūtījumu skaits",
+    "orders_exp": "pasūtījumu plānot saņemt"
   },
   "invoiceSettings": {
     "buttons": {

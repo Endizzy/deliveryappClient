@@ -130,7 +130,7 @@
     "back": "Back",
     "title": "Create a new order",
     "subtitle": "Fill in all required fields to create an order",
-    "customerFound": "Customer data found",  
+    "customerFound": "Customer data found",
     "sections": {
       "customerInfo": "Customer information",
       "delivery": "Delivery",
@@ -263,11 +263,11 @@
       "accounts": "Accounts (admins and couriers)"
     },
     "invoice": {
-        "title": "Invoice preview",
-        "editTemplate": "Edit template",
-        "notConfigured": "Template not configured",
-        "configured": "Template configured"
-      },
+      "title": "Invoice preview",
+      "editTemplate": "Edit template",
+      "notConfigured": "Template not configured",
+      "configured": "Template configured"
+    },
     "stats": {
       "items": "Items: {{total}}",
       "active": "Active: {{active}}",
@@ -458,7 +458,8 @@
     "noActiveCouriers": "No active couriers",
     "actions": {
       "focus": "Center map on courier",
-      "info": "Information"
+      "info": "Information",
+      "focusOrder": "Go to order"
     },
     "speedValue": "{{value}} km/h",
     "speedUnknown": "speed —",
@@ -466,19 +467,42 @@
     "markerTitle": "#{{id}}",
     "markerTitleWithNickname": "{{nickname}} (ID {{id}})",
     "status": {
-      "unknown": "unknown",
-      "online": "online",
-      "offline": "offline",
-      "busy": "busy"
-    }
+      "unknown": "No data",
+      "online": "Online",
+      "offline": "Offline",
+      "busy": "Busy",
+      "on_shift": "On shift",
+      "off_shift": "Off shift"
+    },
+    "courierState": {
+      "enroute": "En route",
+      "assigned": "Assigned",
+      "free": "Available"
+    },
+    "orderStatus": {
+      "enroute": "En route",
+      "ready": "Ready",
+      "new": "New",
+      "taken": "Taken",
+      "free": "Unassigned"
+    },
+    "dock": {
+      "couriers": "Couriers",
+      "orders": "Orders",
+      "expand": "Expand",
+      "collapse": "Collapse"
+    },
+    "dockTitle": "Live map",
+    "noOrdersWithCoords": "No orders with coordinates",
+    "first30": "Showing first 30 orders",
+    "eta": "≈ {{min}} min"
   },
   "modalSettings": {
     "title": "Settings",
     "appearance": {
       "title": "Appearance",
       "selectAria": "Select theme",
-      "themes": {
-      }
+      "themes": {}
     },
     "sound": {
       "title": "Notification sound",
@@ -502,13 +526,13 @@
     "title": "Loading…",
     "desc": "Please wait"
   },
-  "orderPrediction" : {
-    "title" : "Order prediction",
-    "subtitle" : "Using our ML algorithm predict order count for today",
-    "timeslot" : "Time Slot",
-    "weather" :  "Weather (Hourly)",
-    "orders" : "Predicted Order Volume",
-    "orders_exp" : "orders expected"
+  "orderPrediction": {
+    "title": "Order prediction",
+    "subtitle": "Using our ML algorithm predict order count for today",
+    "timeslot": "Time Slot",
+    "weather": "Weather (Hourly)",
+    "orders": "Predicted Order Volume",
+    "orders_exp": "orders expected"
   },
   "invoiceSettings": {
     "buttons": {

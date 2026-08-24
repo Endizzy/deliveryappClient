@@ -67,6 +67,11 @@ const useUserStore = create(
           localStorage.removeItem('token')
           sessionStorage.removeItem('token')
         } catch {}
+        // Рвём общий WS: иначе сокет, авторизованный прошлым токеном,
+        // продолжает получать заказы прежней компании после смены аккаунта.
+        import('../wsClient.js')
+          .then((m) => m.disconnect())
+          .catch(() => {})
         set({ user: null })
       },
 

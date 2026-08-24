@@ -76,156 +76,268 @@
     box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
 }
 
-/* Панель с курьерами */
+/* ═══ Glass Dock: панель курьеров/заказов ═══ */
 
-.courierPanel {
+.dock {
     position: absolute;
     top: 80px;
     left: 12px;
     z-index: 1200;
-    /*background: rgba(15, 23, 42, 0.96);*/
-    background: var(--app-gradient);
+    width: 272px;
+    background: rgba(10, 16, 32, 0.78);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 14px;
+    box-shadow: 0 16px 40px rgba(2, 6, 23, 0.5);
     color: #e5e7eb;
-    /*color: var(--app-fontColor);*/
-    padding: 10px;
-    border-radius: 10px;
-    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.6);
-    max-height: 70vh;
-    overflow-y: auto;
-    min-width: 210px;
     font-size: 13px;
-    border: 1px solid rgba(148, 163, 184, 0.2);
+    overflow: hidden;
+    user-select: none;
 }
 
-.courierPanelHeader {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 6px;
-}
-
-.courierPanelTitle {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 600;
-}
-
-.titleIcon {
-    width: 16px;
-    height: 16px;
-    color: #38bdf8;
-}
-
-.courierBadge {
-    min-width: 22px;
-    height: 22px;
+/* свёрнутое состояние — пилюля со счётчиками */
+.dockMin {
+    width: auto;
     border-radius: 999px;
-    background: rgba(56, 189, 248, 0.12);
-    border: 1px solid rgba(56, 189, 248, 0.5);
+}
+
+.dockHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    cursor: grab;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+    touch-action: none; /* drag пальцем без скролла страницы */
+}
+
+.dockHeader:active {
+    cursor: grabbing;
+}
+
+.dockMin .dockHeader {
+    border-bottom: none;
+    padding: 8px 12px;
+}
+
+.dockGrip {
+    width: 15px;
+    height: 15px;
+    color: #475569;
+    flex-shrink: 0;
+}
+
+.dockTitle {
+    flex: 1;
+    font-weight: 600;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.dockPillInfo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+    font-size: 12.5px;
+    padding: 0 2px;
+}
+
+.dockPillItem {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #7dd3fc;
+}
+
+.dockPillOrders {
+    color: #fdba74;
+}
+
+.dockPillIcon {
+    width: 14px;
+    height: 14px;
+}
+
+.dockWinBtn {
+    /* width: 24px;
+    height: 24px; */
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    background: rgba(148, 163, 184, 0.12);
+    color: #cbd5e1;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    flex-shrink: 0;
+    transition: background 0.12s ease;
+}
+
+.dockWinBtn:hover {
+    background: rgba(148, 163, 184, 0.28);
+}
+
+.dockWinIcon {
+    width: 13px;
+    height: 13px;
+}
+
+/* вкладки */
+
+.dockTabs {
+    display: flex;
+    gap: 6px;
+    padding: 8px 10px 0;
+}
+
+.dockTab {
+    flex: 1;
+    border: none;
+    cursor: pointer;
+    padding: 7px 0;
+    font-size: 12.5px;
     font-weight: 600;
+    border-radius: 8px;
+    background: transparent;
+    color: #94a3b8;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.dockTab:hover {
+    color: #cbd5e1;
+}
+
+.dockTabOn,
+.dockTabOn:hover {
+    background: rgba(56, 189, 248, 0.14);
+    color: #7dd3fc;
+}
+
+.dockTabCount {
+    display: inline-block;
+    min-width: 18px;
+    padding: 0 5px;
+    margin-left: 6px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.15);
+    font-size: 11px;
+    line-height: 18px;
+}
+
+.dockTabOn .dockTabCount {
+    background: rgba(56, 189, 248, 0.25);
     color: #e0f2fe;
 }
 
-.emptyText {
+/* список */
+
+.dockBody {
+    padding: 8px 10px 10px;
+    max-height: 58vh;
+    overflow-y: auto;
+}
+
+.dockEmpty {
     opacity: 0.6;
     font-size: 12px;
-    padding: 4px 0;
+    padding: 6px 4px;
 }
 
-.courierList {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-top: 4px;
-}
-
-/* Карточка курьера */
-
-.courierItem {
+.dockRow {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    color: white;
-    text-align: left;
-    padding: 6px 8px;
-    border-radius: 8px;
-    border: 1px solid rgba(148, 163, 184, 0.4);
-    background: radial-gradient(
-            circle at top left,
-            rgba(56, 189, 248, 0.15),
-            rgba(15, 23, 42, 0.95)
-    );
+    gap: 9px;
+    padding: 8px 9px;
+    border-radius: 9px;
     cursor: pointer;
-    transition: transform 0.08s ease, box-shadow 0.08s ease,
-    border-color 0.1s ease, background 0.1s ease;
-    gap: 8px;
+    transition: background 0.12s ease;
 }
 
-.courierItem:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.7);
-    border-color: rgba(59, 130, 246, 0.8);
+.dockRow:hover {
+    background: rgba(148, 163, 184, 0.1);
 }
 
-.courierItem:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.6);
+.dockDot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
 }
 
-.courierMain {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+.dockRowMain {
+    flex: 1;
+    min-width: 0;
 }
 
-.courierId {
+.dockRowName {
     font-weight: 600;
     font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.courierMeta {
+.dockRowMeta {
     font-size: 11px;
-    opacity: 0.8;
+    color: #8fa3bd;
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.courierActions {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.iconButton {
-    border: none;
-    padding: 2px;
+.dockChip {
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 2px 7px;
     border-radius: 999px;
-    background: transparent;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.chipEnroute {
+    background: rgba(56, 189, 248, 0.15);
+    color: #7dd3fc;
+}
+
+.chipReady {
+    background: rgba(250, 204, 21, 0.15);
+    color: #facc15;
+}
+
+.chipNew {
+    background: rgba(251, 146, 60, 0.2);
+    color: #fdba74;
+}
+
+.chipFree {
+    background: rgba(148, 163, 184, 0.15);
+    color: #94a3b8;
+}
+
+.dockAim {
+    opacity: 0;
+    border: none;
+    background: none;
+    color: #7dd3fc;
+    cursor: pointer;
+    padding: 2px;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.1s ease, transform 0.08s ease;
+    transition: opacity 0.12s ease;
 }
 
-.iconButton:hover {
-    background: rgba(15, 23, 42, 0.9);
-    transform: translateY(-0.5px);
+.dockRow:hover .dockAim,
+.dockRow:focus-within .dockAim {
+    opacity: 1;
 }
 
-.iconButton:active {
-    transform: translateY(0);
-}
-
-.icon {
-    width: 15px;
-    height: 15px;
-    color: #e5e7eb;
-    opacity: 0.85;
+.dockAimIcon {
+    width: 14px;
+    height: 14px;
 }
 
 /* Карта */

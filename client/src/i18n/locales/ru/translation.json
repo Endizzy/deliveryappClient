@@ -263,11 +263,11 @@
       "accounts": "Аккаунты (админы и курьеры)"
     },
     "invoice": {
-        "title": "Превью накладной",
-        "editTemplate": "Редактировать шаблон",
-        "notConfigured": "Шаблон не настроен",
-        "configured": "Шаблон настроен"
-       },
+      "title": "Превью накладной",
+      "editTemplate": "Редактировать шаблон",
+      "notConfigured": "Шаблон не настроен",
+      "configured": "Шаблон настроен"
+    },
     "stats": {
       "items": "Позиции: {{total}}",
       "active": "Активно: {{active}}",
@@ -459,7 +459,8 @@
     "noActiveCouriers": "Нет активных курьеров",
     "actions": {
       "focus": "Навести карту на курьера",
-      "info": "Информация"
+      "info": "Информация",
+      "focusOrder": "К заказу"
     },
     "speedValue": "{{value}} км/ч",
     "speedUnknown": "скорость —",
@@ -467,19 +468,42 @@
     "markerTitle": "#{{id}}",
     "markerTitleWithNickname": "{{nickname}} (ID {{id}})",
     "status": {
-      "unknown": "unknown",
-      "online": "online",
-      "offline": "offline",
-      "busy": "busy"
-    }
+      "unknown": "Нет данных",
+      "online": "На связи",
+      "offline": "Не в сети",
+      "busy": "Занят",
+      "on_shift": "На смене",
+      "off_shift": "Не на смене"
+    },
+    "courierState": {
+      "enroute": "В пути",
+      "assigned": "Назначен",
+      "free": "Свободен"
+    },
+    "orderStatus": {
+      "enroute": "В пути",
+      "ready": "Готов",
+      "new": "Новый",
+      "taken": "Взят",
+      "free": "Свободен"
+    },
+    "dock": {
+      "couriers": "Курьеры",
+      "orders": "Заказы",
+      "expand": "Развернуть",
+      "collapse": "Свернуть"
+    },
+    "dockTitle": "Live-карта",
+    "noOrdersWithCoords": "Нет заказов с координатами",
+    "first30": "Показаны первые 30 заказов",
+    "eta": "≈ {{min}} мин"
   },
   "modalSettings": {
     "title": "Настройки",
     "appearance": {
       "title": "Внешний вид",
       "selectAria": "Выбор темы",
-      "themes": {
-      }
+      "themes": {}
     },
     "sound": {
       "title": "Звук оповещения",
@@ -503,13 +527,13 @@
     "title": "Загрузка…",
     "desc": "Пожалуйста, подождите"
   },
-  "orderPrediction" : {
-    "title" : "Прогноз количества заказов",
-    "subtitle" : "Используя алгоримты машинного обучения предсказать количество заказов сегодня",
-    "timeslot" : "Временной промежуток",
-    "weather" :  "Погода",
-    "orders" : "Количество заказов",
-    "orders_exp" : "заказов ожидается"
+  "orderPrediction": {
+    "title": "Прогноз количества заказов",
+    "subtitle": "Используя алгоримты машинного обучения предсказать количество заказов сегодня",
+    "timeslot": "Временной промежуток",
+    "weather": "Погода",
+    "orders": "Количество заказов",
+    "orders_exp": "заказов ожидается"
   },
   "invoiceSettings": {
     "buttons": {
