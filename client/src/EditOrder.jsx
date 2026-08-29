@@ -18,6 +18,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useReactToPrint } from "react-to-print";
 import { discountedUnitCents, formatCents, lineTotalCents, toCents } from "./utils/money.js";
+import TimeSelect24 from "./components/CreateOrder/TimeSelect24.jsx";
+import { pad2, toLocalDateInput, toLocalTimeInput, localInputsToISO } from "./utils/datetime.js";
 import Loader from "./components/Loader/Loader.jsx";
 import InvoiceTemplate from "./pages/InvoiceSettings/InvoiceTemplate.jsx";
 import AddressMapField from "./components/CreateOrder/AddressMapField.jsx";
@@ -41,10 +43,6 @@ const PAYMENT_LABELS = {
   wire: "Pārskaitījums",
 };
 
-// хелперы для дат/времени
-const pad2 = (n) => String(n).padStart(2, "0");
-const toLocalDateInput = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-const toLocalTimeInput = (d) => `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 const PREORDER_MIN_OFFSET_MIN = 15;
 
 const EditOrder = () => {
@@ -493,9 +491,11 @@ const EditOrder = () => {
     if (!validateForm()) return;
     setIsSaving(true);
     try {
+      // ISO с зоной, как и в CreateOrder: «наивная» строка без Z трактовалась
+      // сервером (TZ=UTC) как UTC, из-за чего предзаказ уезжал на +3 часа.
       const scheduledAt =
-        formData.orderType === "preorder" && formData.scheduledDate && formData.scheduledTime
-          ? `${formData.scheduledDate}T${formData.scheduledTime}`
+        formData.orderType === "preorder"
+          ? localInputsToISO(formData.scheduledDate, formData.scheduledTime)
           : null;
 
       const payload = {
@@ -772,12 +772,14 @@ const EditOrder = () => {
 
                       <div className="form-group">
                         <label>{t("createOrder.fields.scheduledTime")} *</label>
-                        <input
-                          type="time"
+                        {/* 24-часовой формат независимо от локали браузера */}
+                        <TimeSelect24
                           value={formData.scheduledTime}
-                          onChange={(e) => handleInputChange("scheduledTime", e.target.value)}
+                          onChange={(v) => handleInputChange("scheduledTime", v)}
                           className={errors.scheduledTime ? "error" : ""}
                           min={formData.scheduledDate === minDate ? minTimeToday : undefined}
+                          hourLabel={t("createOrder.time.hours", { defaultValue: "Часы" })}
+                          minuteLabel={t("createOrder.time.minutes", { defaultValue: "Минуты" })}
                         />
                         {errors.scheduledTime && <span className="error-text">{errors.scheduledTime}</span>}
                       </div>

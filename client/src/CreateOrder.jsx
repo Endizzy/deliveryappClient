@@ -6,7 +6,7 @@ import useNotification from "./hooks/useNotification.jsx";
 import { useTranslation } from "react-i18next";
 import { toCents, formatCents } from "./utils/money.js";
 import { normalizePhoneForLookup } from "./utils/phone.js";
-import { toLocalDateInput, toLocalTimeInput } from "./utils/datetime.js";
+import { toLocalDateInput, toLocalTimeInput, localInputsToISO } from "./utils/datetime.js";
 import useOrderResources from "./hooks/useOrderResources.js";
 import useCustomerLookup from "./hooks/useCustomerLookup.js";
 import useOrderItems from "./hooks/useOrderItems.js";
@@ -353,9 +353,9 @@ const CreateOrder = () => {
       e.items = t("createOrder.validation.itemsRequired");
     }
 
-    if (!formData.pickupId) {
-      e.restaurant = t("createOrder.validation.pickupRequired");
-    }
+    // if (!formData.pickupId) {
+    //   e.restaurant = t("createOrder.validation.pickupRequired");
+    // }
 
     if (!formData.payment) {
       e.payment = t("createOrder.validation.paymentRequired");
@@ -413,10 +413,8 @@ const CreateOrder = () => {
 
     try {
       const scheduledAt =
-        formData.orderType === "preorder" &&
-          formData.scheduledDate &&
-          formData.scheduledTime
-          ? new Date(`${formData.scheduledDate}T${formData.scheduledTime}`).toISOString()
+        formData.orderType === "preorder"
+          ? localInputsToISO(formData.scheduledDate, formData.scheduledTime)
           : null;
 
       const payload = {

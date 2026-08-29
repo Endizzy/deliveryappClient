@@ -805,3 +805,29 @@
 .map-preview .map-iframe {
   pointer-events: none;
 }
+/* ── Выбор времени предзаказа (TimeSelect24) ─────────────────────────────────
+   Свой компонент вместо <input type="time">: у нативного поля формат
+   (24 ч или AM/PM) задаёт локаль браузера, и переопределить её нельзя. */
+.time24 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.time24 .time24-select {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+    /* остальное наследуется от .form-group select */
+}
+
+.time24-sep {
+    font-weight: 700;
+    font-size: 16px;
+    color: #64748b;
+    user-select: none;
+}
+
+.time24.error .time24-select {
+    border-color: #ef4444;
+}

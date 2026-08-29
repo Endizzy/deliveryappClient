@@ -1,6 +1,7 @@
 import React from "react";
 import { User, Phone, Truck, Eraser } from "lucide-react";
 import { formatPhoneNumber } from "../../utils/phone.js";
+import TimeSelect24 from "./TimeSelect24.jsx";
 
 // Секция «Данные клиента + доставка» формы создания заказа.
 const CustomerSection = ({
@@ -292,15 +293,15 @@ const CustomerSection = ({
               <label htmlFor="scheduledTime">
                 {t("createOrder.fields.scheduledTime")} *
               </label>
-              <input
+              {/* 24-часовой формат независимо от локали браузера (см. TimeSelect24) */}
+              <TimeSelect24
                 id="scheduledTime"
-                type="time"
                 value={formData.scheduledTime}
-                onChange={(e) =>
-                  handleInputChange("scheduledTime", e.target.value)
-                }
+                onChange={(v) => handleInputChange("scheduledTime", v)}
                 className={errors.scheduledTime ? "error" : ""}
                 min={formData.scheduledDate === minDate ? minTimeToday : undefined}
+                hourLabel={t("createOrder.time.hours", { defaultValue: "Часы" })}
+                minuteLabel={t("createOrder.time.minutes", { defaultValue: "Минуты" })}
               />
               {errors.scheduledTime && (
                 <span className="error-text">{errors.scheduledTime}</span>
