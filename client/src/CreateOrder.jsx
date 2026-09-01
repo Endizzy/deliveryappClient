@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Save } from "lucide-react";
 import "./CreateOrder.css";
 import { useNavigate } from "react-router-dom";
@@ -14,7 +14,7 @@ import CustomerSection from "./components/CreateOrder/CustomerSection.jsx";
 import ItemsSection from "./components/CreateOrder/ItemsSection.jsx";
 import NotesSection from "./components/CreateOrder/NotesSection.jsx";
 import DeliveryMapModal from "./components/CreateOrder/DeliveryMapModal.jsx";
-import { findZoneForPoint } from "./utils/zones.js";
+import { findZoneForPoint, getZoneDeliveryRules } from "./utils/zones.js";
 
 const PREORDER_MIN_OFFSET_MIN = 15;
 
@@ -199,7 +199,41 @@ const CreateOrder = () => {
   const calculateGrandTotalCents = () =>
     Math.max(0, itemsTotalCents() - customerDiscountCents) + toCents(safeDeliveryFee);
 
+  // ── Правила зоны по сумме заказа ──────────────────────────────────────────
+  // База — товары со скидкой, без доставки: сама доставка не должна влиять на
+  // то, бесплатна ли она.
+  const itemsWithDiscount = useMemo(
+    () => Math.max(0, itemsTotalCents() - customerDiscountCents) / 100,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedItems, customerDiscountCents]
+  );
+
+  const zoneRules = useMemo(
+    () => getZoneDeliveryRules(currentZone, itemsWithDiscount),
+    [currentZone, itemsWithDiscount]
+  );
+
+  // Подставляем стоимость доставки из зоны: при попадании в зону, смене суммы
+  // (перешли порог бесплатной доставки) — но не затираем ручную правку оператора.
+  const feeTouchedRef = useRef(false);
+  const lastAutoFeeRef = useRef(null);
+
+  useEffect(() => {
+    if (!currentZone) return;
+    const next = zoneRules.fee.toFixed(2);
+    // оператор менял поле вручную и значение отличается от прошлого авто — не трогаем
+    if (feeTouchedRef.current && formData.deliveryFee !== lastAutoFeeRef.current) return;
+    if (formData.deliveryFee === next) return;
+    lastAutoFeeRef.current = next;
+    setFormData((prev) => ({ ...prev, deliveryFee: next }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentZone, zoneRules.fee]);
+
   const handleInputChange = (field, value) => {
+    // Ручная правка стоимости доставки отключает автоподстановку из зоны:
+    // оператор мог согласовать особые условия, и перезаписывать их нельзя.
+    if (field === "deliveryFee") feeTouchedRef.current = true;
+
     setFormData((prev) => {
       const next = { ...prev, [field]: value };
 
@@ -617,8 +651,26 @@ const CreateOrder = () => {
 
               <div className="co-rail-row">
                 <span>{t("createOrder.fields.deliveryFee")}</span>
-                <span className="v">{formatCents(toCents(safeDeliveryFee))} €</span>
+                <span className="v">
+                  {formatCents(toCents(safeDeliveryFee))} €
+                  {zoneRules.isFree && safeDeliveryFee === 0 && (
+                    <span className="co-zone-free">
+                      {" "}{t("createOrder.zone.free", { defaultValue: "бесплатно" })}
+                    </span>
+                  )}
+                </span>
               </div>
+
+              {/* Сколько не хватает до бесплатной доставки — оператор может
+                  предложить клиенту добрать заказ */}
+              {currentZone && !zoneRules.isFree && zoneRules.missingToFree > 0 && (
+                <div className="co-rail-hint">
+                  {t("createOrder.zone.missingToFree", {
+                    defaultValue: "До бесплатной доставки не хватает {{sum}} €",
+                    sum: zoneRules.missingToFree.toFixed(2),
+                  })}
+                </div>
+              )}
 
               <div className="co-rail-divider" />
 
@@ -626,6 +678,20 @@ const CreateOrder = () => {
                 <span className="lbl">{t("createOrder.fields.totalPrice")}</span>
                 <span className="amt">{formatCents(calculateGrandTotalCents())} €</span>
               </div>
+
+              {/* Заказ ниже минимума зоны — предупреждаем, но создать разрешаем:
+                  бывают постоянные клиенты и согласованные исключения */}
+              {currentZone && zoneRules.belowMin && (
+                <div className="co-rail-status warn">
+                  {t("createOrder.zone.belowMin", {
+                    defaultValue:
+                      "Минимальный заказ в зоне «{{zone}}» — {{min}} €. Не хватает {{missing}} €",
+                    zone: currentZone.name,
+                    min: zoneRules.minOrder.toFixed(2),
+                    missing: zoneRules.missingToMin.toFixed(2),
+                  })}
+                </div>
+              )}
 
               {formData.street.trim() &&
                 (geoConfirmed ? (

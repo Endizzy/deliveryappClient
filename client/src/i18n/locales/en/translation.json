@@ -224,6 +224,11 @@
       "pickupPointsLoadFailed": "Failed to load pickup points",
       "menuLoadFailed": "Failed to load menu",
       "createOrderFailed": "Failed to create order"
+    },
+    "zone": {
+      "free": "free",
+      "missingToFree": "{{sum}} € more for free delivery",
+      "belowMin": "Minimum order in zone “{{zone}}” is {{min}} €. {{missing}} € short"
     }
   },
   "userProfile": {
@@ -384,6 +389,31 @@
       "staffCreateFailed": "Failed to create account",
       "staffUpdateFailed": "Failed to update account",
       "staffDeleteFailed": "Failed to delete account"
+    },
+    "zones": {
+      "minOrder": "Minimum order (€)",
+      "freeFrom": "Free from (€)",
+      "ruleFee": "delivery",
+      "ruleFreeFrom": "free from",
+      "ruleMin": "minimum order",
+      "ruleFreeAlways": "delivery is free",
+      "feeShort": "Delivery, €",
+      "minOrderShort": "Minimum, €",
+      "freeFromShort": "Free from, €",
+      "emptyTitle": "No zones yet",
+      "title": "Delivery zones",
+      "listTitle": "Zone list",
+      "color": "Zone colour",
+      "namePlaceholder": "Zone name",
+      "help": "Draw zones on the map using the tools on the left (polygon or rectangle). Zones can be moved, reshaped and deleted. Do not forget to save.",
+      "empty": "Draw a zone on the map or import a KML from Google MyMaps.",
+      "importKml": "Import from Google MyMaps (KML)",
+      "imported": "Zones imported: ",
+      "importEmpty": "No polygons found in the file",
+      "importError": "Could not read the KML file",
+      "saved": "Zones saved",
+      "saveError": "Failed to save zones",
+      "saving": "Saving…"
     }
   },
   "orderPanel": {

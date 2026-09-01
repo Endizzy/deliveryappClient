@@ -224,6 +224,11 @@
       "pickupPointsLoadFailed": "Neizdevās ielādēt komplektēšanas punktus",
       "menuLoadFailed": "Neizdevās ielādēt ēdienkarti",
       "createOrderFailed": "Neizdevās izveidot pasūtījumu"
+    },
+    "zone": {
+      "free": "bez maksas",
+      "missingToFree": "Līdz bezmaksas piegādei trūkst {{sum}} €",
+      "belowMin": "Minimālais pasūtījums zonā «{{zone}}» — {{min}} €. Trūkst {{missing}} €"
     }
   },
   "userProfile": {
@@ -384,6 +389,31 @@
       "staffCreateFailed": "Neizdevās izveidot kontu",
       "staffUpdateFailed": "Neizdevās atjaunināt kontu",
       "staffDeleteFailed": "Neizdevās dzēst kontu"
+    },
+    "zones": {
+      "minOrder": "Minimālais pasūtījums (€)",
+      "freeFrom": "Bez maksas no (€)",
+      "ruleFee": "piegāde",
+      "ruleFreeFrom": "bez maksas no",
+      "ruleMin": "minimālais pasūtījums",
+      "ruleFreeAlways": "piegāde ir bez maksas",
+      "feeShort": "Piegāde, €",
+      "minOrderShort": "Minimums, €",
+      "freeFromShort": "Bez maksas no, €",
+      "emptyTitle": "Zonu vēl nav",
+      "title": "Piegādes zonas",
+      "listTitle": "Zonu saraksts",
+      "color": "Zonas krāsa",
+      "namePlaceholder": "Zonas nosaukums",
+      "help": "Uzzīmējiet zonas kartē ar rīkiem pa kreisi (daudzstūris vai taisnstūris). Zonas var pārvietot, rediģēt un dzēst. Neaizmirstiet saglabāt.",
+      "empty": "Uzzīmējiet zonu kartē vai importējiet KML no Google MyMaps.",
+      "importKml": "Importēt no Google MyMaps (KML)",
+      "imported": "Importētas zonas: ",
+      "importEmpty": "Failā nav atrasts neviens daudzstūris",
+      "importError": "Neizdevās nolasīt KML",
+      "saved": "Zonas saglabātas",
+      "saveError": "Kļūda, saglabājot zonas",
+      "saving": "Saglabājam…"
     }
   },
   "orderPanel": {

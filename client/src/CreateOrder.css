@@ -831,3 +831,18 @@
 .time24.error .time24-select {
     border-color: #ef4444;
 }
+
+/* ── Правила зоны доставки в сводке заказа ────────────────────────────────── */
+.co-rail-hint {
+    margin-top: 4px;
+    font-size: 12px;
+    opacity: 0.75;
+    line-height: 1.4;
+}
+
+.co-zone-free {
+    font-size: 11px;
+    font-weight: 700;
+    color: #16a34a;
+    text-transform: lowercase;
+}
