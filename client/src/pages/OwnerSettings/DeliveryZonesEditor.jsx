@@ -354,7 +354,11 @@ export default function DeliveryZonesEditor({ API, authHeaders, t }) {
       rebuildFromZones(data.zones);
       setStatusIsError(false); setStatus(tr("ownerSettings.zones.saved", "Зоны сохранены"));
     } catch (e) {
-      setStatusIsError(true); setStatus(tr("ownerSettings.zones.saveError", "Ошибка сохранения зон"));
+      // Показываем причину с сервера: без неё «Ошибка сохранения зон» ничего
+      // не объясняет, а там может быть, например, не применённая миграция.
+      const reason = e?.message && e.message !== "save failed" ? `: ${e.message}` : "";
+      setStatusIsError(true);
+      setStatus(tr("ownerSettings.zones.saveError", "Ошибка сохранения зон") + reason);
     } finally {
       setSaving(false);
     }
