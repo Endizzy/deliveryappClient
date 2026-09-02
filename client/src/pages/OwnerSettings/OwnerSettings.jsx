@@ -4,7 +4,7 @@ import {
   Save, Upload, Image as ImageIcon, Plus, Edit, Trash2,
   Search, Percent, Package, Users, Shield, Phone, Mail,
   BadgeCheck, X, ChevronDown, ChevronUp, Map as MapIcon, FileText,
-  MapPin, Clock, Globe, Building2, Info, UserCog
+  MapPin, Clock, Globe, Building2, Info, UserCog, Pencil
 } from "lucide-react";
 import "./ownerSettings.css";
 import Header from "../../components/Header/Header.jsx";
@@ -15,6 +15,10 @@ import { useTranslation } from "react-i18next";
 import { formatCents, toCents } from "../../utils/money.js";
 
 const toEUR = (n) => `€${formatCents(toCents(n))}`;
+
+// Служебный ключ вкладки «Без категории»: отличает её от обычного названия
+// и от значения null, которым обозначается вкладка «Все».
+const NO_CATEGORY = "__none__";
 
 // Палитра цветов курьеров (для маркеров на карте)
 const STAFF_COLORS = [
@@ -58,6 +62,10 @@ export default function OwnerSettings() {
 
   // --- Меню (из API) ---
   const [menu, setMenu] = useState([]);
+  const [categories, setCategories] = useState([]);
+  // Выбранная вкладка категории: null — «Все», "__none__" — без категории
+  const [activeCategory, setActiveCategory] = useState(null);
+  const [catBusy, setCatBusy] = useState(false);
   const [menuSearch, setMenuSearch] = useState("");
   const [menuSortBy, setMenuSortBy] = useState({ field: "name", dir: "asc" });
 
@@ -104,6 +112,21 @@ export default function OwnerSettings() {
     setMenu(data.items);
   };
 
+  // Категории — отдельная сущность: задают порядок вкладок и живут даже
+  // тогда, когда позиций в них пока нет.
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch(`${API}/menu/categories`, { headers: authHeaders });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "categories load failed");
+      setCategories(data.categories || []);
+    } catch (e) {
+      // Не роняем всю страницу: меню должно открыться и без категорий
+      console.warn("categories load failed", e);
+      setCategories([]);
+    }
+  };
+
   const fetchStaff = async (q = "") => {
     setStaffLoading(true);
     try {
@@ -123,6 +146,7 @@ export default function OwnerSettings() {
       try {
         await fetchCompany();
         await fetchMenu();
+        await fetchCategories();
         await fetchStaff();
       } catch (e) {
         if (String(e.message) === "unauthorized") {
@@ -144,6 +168,16 @@ export default function OwnerSettings() {
       (m.name || "").toLowerCase().includes(q) ||
       (m.category || "").toLowerCase().includes(q)
     );
+
+    // Фильтр по вкладке категории: null — показываем всё
+    if (activeCategory === NO_CATEGORY) {
+      list = list.filter((m) => !String(m.category || "").trim());
+    } else if (activeCategory) {
+      list = list.filter(
+        (m) => String(m.category || "").trim().toLowerCase() === activeCategory.toLowerCase()
+      );
+    }
+
     const { field, dir } = menuSortBy;
     list.sort((a, b) => {
       const va = field === "price" || field === "discount"
@@ -157,7 +191,29 @@ export default function OwnerSettings() {
       return 0;
     });
     return list;
-  }, [menu, menuSearch, menuSortBy]);
+  }, [menu, menuSearch, menuSortBy, activeCategory]);
+
+  // Вкладки категорий: справочник + счётчики позиций из текущего меню.
+  // Позиции без категории показываем отдельной вкладкой, чтобы их не потерять.
+  const categoryTabs = useMemo(() => {
+    const countFor = (name) =>
+      menu.filter(
+        (m) => String(m.category || "").trim().toLowerCase() === name.toLowerCase()
+      ).length;
+
+    const tabs = categories.map((c) => ({
+      key: c.name,
+      id: c.id,
+      label: c.name,
+      count: countFor(c.name),
+    }));
+
+    const withoutCategory = menu.filter((m) => !String(m.category || "").trim()).length;
+    if (withoutCategory > 0) {
+      tabs.push({ key: NO_CATEGORY, id: null, label: null, count: withoutCategory });
+    }
+    return tabs;
+  }, [categories, menu]);
 
   const stats = useMemo(() => {
     const total = menu.length;
@@ -249,6 +305,80 @@ export default function OwnerSettings() {
   const toggleAvailable = async (item) => {
     const updated = await updateMenuItem(item.id, { available: !item.available });
     setMenu(list => list.map(m => (m.id === item.id ? updated : m)));
+  };
+
+  // ── Категории ────────────────────────────────────────────────────────────
+  const addCategory = async () => {
+    const name = window.prompt(
+      t("ownerSettings.menu.categories.addPrompt", { defaultValue: "Название категории" })
+    );
+    if (!name || !name.trim()) return;
+    setCatBusy(true);
+    try {
+      const res = await fetch(`${API}/menu/categories`, {
+        method: "POST",
+        headers: authHeaders,
+        body: JSON.stringify({ name: name.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "create failed");
+      await fetchCategories();
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setCatBusy(false);
+    }
+  };
+
+  const renameCategory = async (cat) => {
+    const name = window.prompt(
+      t("ownerSettings.menu.categories.renamePrompt", { defaultValue: "Новое название категории" }),
+      cat.label
+    );
+    if (!name || !name.trim() || name.trim() === cat.label) return;
+    setCatBusy(true);
+    try {
+      const res = await fetch(`${API}/menu/categories/${cat.id}`, {
+        method: "PUT",
+        headers: authHeaders,
+        body: JSON.stringify({ name: name.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "rename failed");
+      // Переименование меняет и категорию у позиций — перечитываем оба списка
+      await Promise.all([fetchCategories(), fetchMenu()]);
+      setActiveCategory((prev) => (prev === cat.label ? name.trim() : prev));
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setCatBusy(false);
+    }
+  };
+
+  const removeCategory = async (cat) => {
+    const ok = window.confirm(
+      t("ownerSettings.menu.categories.deleteConfirm", {
+        defaultValue:
+          "Удалить категорию «{{name}}»? Позиции останутся, но потеряют категорию.",
+        name: cat.label,
+      })
+    );
+    if (!ok) return;
+    setCatBusy(true);
+    try {
+      const res = await fetch(`${API}/menu/categories/${cat.id}`, {
+        method: "DELETE",
+        headers: authHeaders,
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "delete failed");
+      await Promise.all([fetchCategories(), fetchMenu()]);
+      setActiveCategory((prev) => (prev === cat.label ? null : prev));
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setCatBusy(false);
+    }
   };
 
   const saveMenu = async () => {
@@ -741,6 +871,69 @@ export default function OwnerSettings() {
             </div>
           </div>
 
+          {/* Вкладки категорий: фильтр списка + управление справочником */}
+          <div className="mc-tabs">
+            <button
+              type="button"
+              className={`mc-tab ${activeCategory === null ? "is-active" : ""}`}
+              onClick={() => setActiveCategory(null)}
+            >
+              {t("ownerSettings.menu.categories.all", { defaultValue: "Все" })}
+              <span className="mc-tab-count">{menu.length}</span>
+            </button>
+
+            {categoryTabs.map((cat) => (
+              <div
+                key={cat.key}
+                className={`mc-tab-wrap ${activeCategory === cat.key ? "is-active" : ""}`}
+              >
+                <button
+                  type="button"
+                  className={`mc-tab ${activeCategory === cat.key ? "is-active" : ""}`}
+                  onClick={() => setActiveCategory(cat.key)}
+                >
+                  {cat.key === NO_CATEGORY
+                    ? t("ownerSettings.menu.categories.none", { defaultValue: "Без категории" })
+                    : cat.label}
+                  <span className="mc-tab-count">{cat.count}</span>
+                </button>
+
+                {/* Переименовать/удалить можно только настоящую категорию */}
+                {cat.id != null && activeCategory === cat.key && (
+                  <span className="mc-tab-actions">
+                    <button
+                      type="button"
+                      title={t("ownerSettings.menu.categories.rename", { defaultValue: "Переименовать" })}
+                      onClick={() => renameCategory(cat)}
+                      disabled={catBusy}
+                    >
+                      <Pencil size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      className="danger"
+                      title={t("ownerSettings.actions.delete", { defaultValue: "Удалить" })}
+                      onClick={() => removeCategory(cat)}
+                      disabled={catBusy}
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </span>
+                )}
+              </div>
+            ))}
+
+            <button
+              type="button"
+              className="mc-tab mc-tab-add"
+              onClick={addCategory}
+              disabled={catBusy}
+            >
+              <Plus size={14} />
+              {t("ownerSettings.menu.categories.add", { defaultValue: "Категория" })}
+            </button>
+          </div>
+
           <div className="owner-table">
             <div className="owner-thead owner-grid-6">
               <div>#</div>
@@ -950,11 +1143,32 @@ export default function OwnerSettings() {
 
               <div className="owner-field">
                 <label>{t("ownerSettings.menuModal.fields.category")}</label>
-                <input
-                  value={menuModal.form.category}
+                {/* Выбор из справочника: свободный ввод плодил категории-дубли
+                    с опечатками, из-за чего вкладок становилось больше, чем нужно.
+                    Категория из старых данных, которой нет в справочнике, всё
+                    равно показывается — позиция не должна её терять. */}
+                <select
+                  value={menuModal.form.category || ""}
                   onChange={(e) => setMenuModal(m => ({ ...m, form: { ...m.form, category: e.target.value } }))}
-                  placeholder={t("ownerSettings.menuModal.placeholders.category")}
-                />
+                >
+                  <option value="">
+                    {t("ownerSettings.menu.categories.none", { defaultValue: "Без категории" })}
+                  </option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.name}>{c.name}</option>
+                  ))}
+                  {menuModal.form.category &&
+                    !categories.some((c) => c.name === menuModal.form.category) && (
+                      <option value={menuModal.form.category}>{menuModal.form.category}</option>
+                    )}
+                </select>
+                {categories.length === 0 && (
+                  <span className="hint muted" style={{ fontSize: 12 }}>
+                    {t("ownerSettings.menu.categories.emptyHint", {
+                      defaultValue: "Категорий пока нет — создайте их на вкладке меню",
+                    })}
+                  </span>
+                )}
               </div>
 
               <div className="owner-field">

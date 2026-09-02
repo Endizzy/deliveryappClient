@@ -311,6 +311,16 @@
         "price": "Cena",
         "discount": "Atlaide",
         "actions": "Darbības"
+      },
+      "categories": {
+        "all": "Visi",
+        "none": "Bez kategorijas",
+        "add": "Kategorija",
+        "rename": "Pārdēvēt",
+        "addPrompt": "Kategorijas nosaukums",
+        "renamePrompt": "Jauns kategorijas nosaukums",
+        "deleteConfirm": "Dzēst kategoriju «{{name}}»? Pozīcijas paliks, bet zaudēs kategoriju.",
+        "emptyHint": "Kategoriju vēl nav — izveidojiet tās izvēlnes cilnē"
       }
     },
     "menuModal": {

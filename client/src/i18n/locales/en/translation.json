@@ -311,6 +311,16 @@
         "price": "Price",
         "discount": "Discount",
         "actions": "Actions"
+      },
+      "categories": {
+        "all": "All",
+        "none": "No category",
+        "add": "Category",
+        "rename": "Rename",
+        "addPrompt": "Category name",
+        "renamePrompt": "New category name",
+        "deleteConfirm": "Delete category “{{name}}”? Items will stay but lose their category.",
+        "emptyHint": "No categories yet — create them on the menu tab"
       }
     },
     "menuModal": {
