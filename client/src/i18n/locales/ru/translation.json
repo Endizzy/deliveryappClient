@@ -265,7 +265,10 @@
     "sections": {
       "general": "Общие сведения",
       "menu": "Меню ресторана",
-      "accounts": "Аккаунты (админы и курьеры)"
+      "accounts": "Аккаунты (админы и курьеры)",
+      "customers": "Клиенты",
+      "invoice": "Накладная",
+      "zones": "Зоны доставки"
     },
     "invoice": {
       "title": "Превью накладной",
@@ -283,13 +286,37 @@
       "cancel": "Отмена",
       "upload": "Загрузить",
       "delete": "Удалить",
-      "edit": "Редактировать"
+      "edit": "Редактировать",
+      "confirm": "Подтвердить",
+      "add": "Добавить"
     },
     "general": {
       "restaurantName": "Название ресторана",
       "restaurantNamePlaceholder": "Например, Briana Sushi",
       "logo": "Логотип",
-      "noLogo": "Нет логотипа"
+      "noLogo": "Нет логотипа",
+      "address": "Адрес ресторана",
+      "addressPlaceholder": "Улица, дом, город",
+      "brandHint": "Название и логотип ресторана",
+      "brandTitle": "Бренд",
+      "contactsHint": "Для клиентов и накладной",
+      "contactsTitle": "Контакты",
+      "currency": "Валюта",
+      "defaultDeliveryFee": "Доставка по умолчанию, €",
+      "email": "Email",
+      "freeDeliveryFrom": "Бесплатная доставка от, €",
+      "logoDropHint": "или нажмите, чтобы выбрать · PNG, JPG, SVG до 2 МБ",
+      "logoDropTitle": "Перетащите логотип сюда",
+      "logoReplace": "Заменить",
+      "minOrder": "Мин. сумма заказа, €",
+      "opsHint": "Часы, валюта и параметры доставки",
+      "opsTitle": "Доставка и работа",
+      "phone": "Контактный телефон",
+      "prepTime": "Время приготовления, мин",
+      "stubNote": "Эти настройки пока не сохраняются — заглушки для будущей логики.",
+      "timezone": "Часовой пояс",
+      "website": "Сайт",
+      "workingHours": "Часы работы"
     },
     "menu": {
       "searchPlaceholder": "Поиск по названию/категории…",
@@ -320,7 +347,8 @@
         "addPrompt": "Название категории",
         "renamePrompt": "Новое название категории",
         "deleteConfirm": "Удалить категорию «{{name}}»? Позиции останутся, но потеряют категорию.",
-        "emptyHint": "Категорий пока нет — создайте их на вкладке меню"
+        "emptyHint": "Категорий пока нет — создайте их на вкладке меню",
+        "deleteTitle": "Удалить категорию?"
       }
     },
     "menuModal": {
@@ -364,7 +392,8 @@
         "nickname": "Никнейм",
         "phone": "Телефон",
         "email": "Email (необязательно)",
-        "password": "Пароль"
+        "password": "Пароль",
+        "color": "Цвет на карте"
       },
       "passwordEditHint": "(оставь пустым — не менять)",
       "placeholders": {
@@ -374,7 +403,8 @@
         "password": "Сгенерировать или ввести"
       },
       "actions": {
-        "generate": "Сгенерировать"
+        "generate": "Сгенерировать",
+        "randomColor": "Случайный"
       }
     },
     "confirm": {
@@ -384,7 +414,9 @@
     "alerts": {
       "enterNameAndPrice": "Введите название и цену",
       "staffRequiredFields": "Укажите роль, никнейм и телефон",
-      "todoSaveCompany": "Здесь будет PATCH /api/company/:id"
+      "todoSaveCompany": "Здесь будет PATCH /api/company/:id",
+      "invalidPrice": "Некорректная цена",
+      "invalidDiscount": "Скидка должна быть от 0 до 100"
     },
     "errors": {
       "unauthorized": "Не авторизован",
@@ -424,6 +456,12 @@
       "saved": "Зоны сохранены",
       "saveError": "Ошибка сохранения зон",
       "saving": "Сохраняем…"
+    },
+    "dialog": {
+      "confirmTitle": "Подтвердите действие",
+      "promptTitle": "Введите значение",
+      "alertTitle": "Сообщение",
+      "ok": "Понятно"
     }
   },
   "orderPanel": {

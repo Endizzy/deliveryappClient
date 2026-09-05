@@ -26,7 +26,11 @@ const STATUS_LABEL = {
 
 const PAYMENT_LABEL = { cash: "Наличные", card: "Карта" };
 
-export default function CustomersTab({ API, authHeaders, t }) {
+export default function CustomersTab({ API, authHeaders, t, ui }) {
+  // Диалоги страницы приходят из OwnerSettings; системное окно оставлено
+  // запасным вариантом на случай отдельного рендера вкладки.
+  const notify = (opts) => (ui ? ui.alert(opts) : window.alert(opts.message));
+
   const [items, setItems] = useState([]);
   const [summary, setSummary] = useState({ customers: 0, orders: 0, revenue: 0 });
   const [loading, setLoading] = useState(true);
@@ -112,7 +116,7 @@ export default function CustomersTab({ API, authHeaders, t }) {
       setDiscountModal(null);
       await load();
     } catch (e) {
-      alert(e.message);
+      notify({ message: e.message, tone: "danger" });
     }
   };
 
@@ -127,7 +131,7 @@ export default function CustomersTab({ API, authHeaders, t }) {
       setDiscountModal(null);
       await load();
     } catch (e) {
-      alert(e.message);
+      notify({ message: e.message, tone: "danger" });
     }
   };
 

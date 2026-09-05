@@ -918,8 +918,8 @@
 }
 
 .mc-tab-actions button {
-    width: 26px;
-    height: 26px;
+    /* width: 26px;
+    height: 26px; */
     border-radius: 8px;
     border: 1px solid #e2e8f0;
     background: #fff;
@@ -956,4 +956,76 @@
 .mc-tab-add:hover {
     background: #eff6ff;
     border-color: #93c5fd;
+}
+
+/* ── Диалоги настроек (замена системных alert/confirm/prompt) ─────────────── */
+.od-card {
+    max-width: 420px;
+    width: 100%;
+}
+
+.od-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.od-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #2563eb;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.od-icon.is-danger {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #dc2626;
+}
+
+.od-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.od-message {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.55;
+    color: #475569;
+}
+
+.od-input {
+    width: 100%;
+    padding: 11px 13px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #f8fafc;
+}
+
+.od-input:focus {
+    outline: none;
+    background: #fff;
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, .12);
+}
+
+/* Необратимое действие — кнопка подтверждения красная */
+.owner-primary-btn.od-danger {
+    background: #dc2626;
+    border-color: #dc2626;
+}
+
+.owner-primary-btn.od-danger:hover {
+    background: #b91c1c;
+    border-color: #b91c1c;
 }

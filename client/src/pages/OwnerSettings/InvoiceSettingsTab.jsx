@@ -4,7 +4,12 @@ import styles from "../InvoiceSettings/InvoiceSettings.module.css";
 import InvoiceTemplate from "../InvoiceSettings/InvoiceTemplate.jsx";
 
 // Настройка накладной как вкладка OwnerSettings (форма слева + превью справа).
-export default function InvoiceSettingsTab({ API, authHeaders, t }) {
+export default function InvoiceSettingsTab({ API, authHeaders, t, ui }) {
+  // Диалоги страницы: приходят из OwnerSettings. Запасной вариант нужен на
+  // случай, если вкладку когда-нибудь отрендерят отдельно — тогда сообщение
+  // всё равно покажется, пусть и системным окном.
+  const notify = (opts) => (ui ? ui.alert(opts) : window.alert(opts.message));
+
   const [invoiceSettings, setInvoiceSettings] = useState({
     companyName: "BENTO SUSHI",
     regNumber: "20405660",
@@ -40,9 +45,9 @@ export default function InvoiceSettingsTab({ API, authHeaders, t }) {
       if (!res.ok || !data.ok) {
         throw new Error(data.error || t("invoiceSettings.errors.saveFailed", { defaultValue: "Ошибка сохранения настроек" }));
       }
-      alert(t("invoiceSettings.saved", { defaultValue: "Настройки накладной сохранены успешно!" }));
+      notify({ message: t("invoiceSettings.saved", { defaultValue: "Настройки накладной сохранены успешно!" }) });
     } catch (e) {
-      alert(e.message);
+      notify({ message: e.message, tone: "danger" });
     } finally {
       setSaving(false);
     }

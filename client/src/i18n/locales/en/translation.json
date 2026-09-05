@@ -265,7 +265,10 @@
     "sections": {
       "general": "General information",
       "menu": "Restaurant menu",
-      "accounts": "Accounts (admins and couriers)"
+      "accounts": "Accounts (admins and couriers)",
+      "customers": "Customers",
+      "invoice": "Invoice",
+      "zones": "Delivery zones"
     },
     "invoice": {
       "title": "Invoice preview",
@@ -283,13 +286,37 @@
       "cancel": "Cancel",
       "upload": "Upload",
       "delete": "Delete",
-      "edit": "Edit"
+      "edit": "Edit",
+      "confirm": "Confirm",
+      "add": "Add"
     },
     "general": {
       "restaurantName": "Restaurant name",
       "restaurantNamePlaceholder": "For example, Briana Sushi",
       "logo": "Logo",
-      "noLogo": "No logo"
+      "noLogo": "No logo",
+      "address": "Restaurant address",
+      "addressPlaceholder": "Street, building, city",
+      "brandHint": "Restaurant name and logo",
+      "brandTitle": "Brand",
+      "contactsHint": "For customers and invoices",
+      "contactsTitle": "Contacts",
+      "currency": "Currency",
+      "defaultDeliveryFee": "Default delivery fee, €",
+      "email": "Email",
+      "freeDeliveryFrom": "Free delivery from, €",
+      "logoDropHint": "or click to choose · PNG, JPG, SVG up to 2 MB",
+      "logoDropTitle": "Drop the logo here",
+      "logoReplace": "Replace",
+      "minOrder": "Minimum order, €",
+      "opsHint": "Hours, currency and delivery settings",
+      "opsTitle": "Delivery and operations",
+      "phone": "Contact phone",
+      "prepTime": "Preparation time, min",
+      "stubNote": "These settings are not saved yet — placeholders for upcoming logic.",
+      "timezone": "Time zone",
+      "website": "Website",
+      "workingHours": "Working hours"
     },
     "menu": {
       "searchPlaceholder": "Search by name/category…",
@@ -320,7 +347,8 @@
         "addPrompt": "Category name",
         "renamePrompt": "New category name",
         "deleteConfirm": "Delete category “{{name}}”? Items will stay but lose their category.",
-        "emptyHint": "No categories yet — create them on the menu tab"
+        "emptyHint": "No categories yet — create them on the menu tab",
+        "deleteTitle": "Delete category?"
       }
     },
     "menuModal": {
@@ -364,7 +392,8 @@
         "nickname": "Nickname",
         "phone": "Phone",
         "email": "Email (optional)",
-        "password": "Password"
+        "password": "Password",
+        "color": "Map colour"
       },
       "passwordEditHint": "(leave empty — don't change)",
       "placeholders": {
@@ -374,7 +403,8 @@
         "password": "Generate or enter"
       },
       "actions": {
-        "generate": "Generate"
+        "generate": "Generate",
+        "randomColor": "Random"
       }
     },
     "confirm": {
@@ -384,7 +414,9 @@
     "alerts": {
       "enterNameAndPrice": "Enter name and price",
       "staffRequiredFields": "Specify role, nickname and phone",
-      "todoSaveCompany": "Here will be PATCH /api/company/:id"
+      "todoSaveCompany": "Here will be PATCH /api/company/:id",
+      "invalidPrice": "Invalid price",
+      "invalidDiscount": "Discount must be between 0 and 100"
     },
     "errors": {
       "unauthorized": "Not authorized",
@@ -424,6 +456,12 @@
       "saved": "Zones saved",
       "saveError": "Failed to save zones",
       "saving": "Saving…"
+    },
+    "dialog": {
+      "confirmTitle": "Confirm action",
+      "promptTitle": "Enter a value",
+      "alertTitle": "Message",
+      "ok": "Got it"
     }
   },
   "orderPanel": {

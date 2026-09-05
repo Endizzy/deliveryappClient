@@ -11,6 +11,7 @@ import Header from "../../components/Header/Header.jsx";
 import DeliveryZonesEditor from "./DeliveryZonesEditor.jsx";
 import InvoiceSettingsTab from "./InvoiceSettingsTab.jsx";
 import CustomersTab from "./CustomersTab.jsx";
+import OwnerDialog, { useOwnerDialog } from "./OwnerDialog.jsx";
 import { useTranslation } from "react-i18next";
 import { formatCents, toCents } from "../../utils/money.js";
 
@@ -34,6 +35,9 @@ export default function OwnerSettings() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Диалоги страницы вместо системных alert/confirm/prompt
+  const { dialog, close: closeDialog, ui } = useOwnerDialog();
 
   const [invoice, setInvoice] = useState(false);
 
@@ -309,9 +313,12 @@ export default function OwnerSettings() {
 
   // ── Категории ────────────────────────────────────────────────────────────
   const addCategory = async () => {
-    const name = window.prompt(
-      t("ownerSettings.menu.categories.addPrompt", { defaultValue: "Название категории" })
-    );
+    const name = await ui.prompt({
+      title: t("ownerSettings.menu.categories.add", { defaultValue: "Категория" }),
+      message: t("ownerSettings.menu.categories.addPrompt", { defaultValue: "Название категории" }),
+      placeholder: t("ownerSettings.menuModal.placeholders.category", { defaultValue: "Например: Пицца" }),
+      confirmText: t("ownerSettings.actions.add", { defaultValue: "Добавить" }),
+    });
     if (!name || !name.trim()) return;
     setCatBusy(true);
     try {
@@ -324,17 +331,19 @@ export default function OwnerSettings() {
       if (!res.ok || !data.ok) throw new Error(data.error || "create failed");
       await fetchCategories();
     } catch (e) {
-      alert(e.message);
+      ui.alert({ message: e.message, tone: "danger" });
     } finally {
       setCatBusy(false);
     }
   };
 
   const renameCategory = async (cat) => {
-    const name = window.prompt(
-      t("ownerSettings.menu.categories.renamePrompt", { defaultValue: "Новое название категории" }),
-      cat.label
-    );
+    const name = await ui.prompt({
+      title: t("ownerSettings.menu.categories.rename", { defaultValue: "Переименовать" }),
+      message: t("ownerSettings.menu.categories.renamePrompt", { defaultValue: "Новое название категории" }),
+      defaultValue: cat.label,
+      confirmText: t("ownerSettings.actions.save", { defaultValue: "Сохранить" }),
+    });
     if (!name || !name.trim() || name.trim() === cat.label) return;
     setCatBusy(true);
     try {
@@ -349,20 +358,23 @@ export default function OwnerSettings() {
       await Promise.all([fetchCategories(), fetchMenu()]);
       setActiveCategory((prev) => (prev === cat.label ? name.trim() : prev));
     } catch (e) {
-      alert(e.message);
+      ui.alert({ message: e.message, tone: "danger" });
     } finally {
       setCatBusy(false);
     }
   };
 
   const removeCategory = async (cat) => {
-    const ok = window.confirm(
-      t("ownerSettings.menu.categories.deleteConfirm", {
+    const ok = await ui.confirm({
+      tone: "danger",
+      title: t("ownerSettings.menu.categories.deleteTitle", { defaultValue: "Удалить категорию?" }),
+      message: t("ownerSettings.menu.categories.deleteConfirm", {
         defaultValue:
           "Удалить категорию «{{name}}»? Позиции останутся, но потеряют категорию.",
         name: cat.label,
-      })
-    );
+      }),
+      confirmText: t("ownerSettings.actions.delete", { defaultValue: "Удалить" }),
+    });
     if (!ok) return;
     setCatBusy(true);
     try {
@@ -375,7 +387,7 @@ export default function OwnerSettings() {
       await Promise.all([fetchCategories(), fetchMenu()]);
       setActiveCategory((prev) => (prev === cat.label ? null : prev));
     } catch (e) {
-      alert(e.message);
+      ui.alert({ message: e.message, tone: "danger" });
     } finally {
       setCatBusy(false);
     }
@@ -385,14 +397,14 @@ export default function OwnerSettings() {
     try {
       const f = menuModal.form;
       if (!f.name || f.price === "") {
-        alert(t("ownerSettings.alerts.enterNameAndPrice"));
+        ui.alert({ message: t("ownerSettings.alerts.enterNameAndPrice") });
         return;
       }
 
       const priceRaw = String(f.price ?? "").trim().replace(",", ".");
       const priceNum = Number(priceRaw);
       if (!Number.isFinite(priceNum) || priceNum < 0) {
-        alert(t("ownerSettings.alerts.invalidPrice", { defaultValue: "Некорректная цена" }));
+        ui.alert({ message: t("ownerSettings.alerts.invalidPrice", { defaultValue: "Некорректная цена" }) });
         return;
       }
       const priceCents = toCents(priceNum);
@@ -400,7 +412,7 @@ export default function OwnerSettings() {
       const discountRaw = String(f.discount ?? "").trim().replace(",", ".");
       const discountNum = discountRaw === "" ? 0 : Number(discountRaw);
       if (!Number.isFinite(discountNum) || discountNum < 0 || discountNum > 100) {
-        alert(t("ownerSettings.alerts.invalidDiscount", { defaultValue: "Скидка 0..100" }));
+        ui.alert({ message: t("ownerSettings.alerts.invalidDiscount", { defaultValue: "Скидка 0..100" }) });
         return;
       }
 
@@ -425,17 +437,22 @@ export default function OwnerSettings() {
       }
       closeMenuModal();
     } catch (e) {
-      alert(e.message);
+      ui.alert({ message: e.message, tone: "danger" });
     }
   };
 
   const deleteMenu = async (id) => {
-    if (!window.confirm(t("ownerSettings.confirm.deleteMenuItem"))) return;
+    const okDel = await ui.confirm({
+      tone: "danger",
+      message: t("ownerSettings.confirm.deleteMenuItem"),
+      confirmText: t("ownerSettings.actions.delete", { defaultValue: "Удалить" }),
+    });
+    if (!okDel) return;
     try {
       await deleteMenuItem(id);
       setMenu(list => list.filter(it => it.id !== id));
     } catch (e) {
-      alert(e.message);
+      ui.alert({ message: e.message, tone: "danger" });
     }
   };
 
@@ -490,7 +507,7 @@ export default function OwnerSettings() {
   const saveStaff = async () => {
     const f = staffModal.form;
     if (!f.nickname || !f.role || !f.phone) {
-      alert(t("ownerSettings.alerts.staffRequiredFields"));
+      ui.alert({ message: t("ownerSettings.alerts.staffRequiredFields") });
       return;
     }
     try {
@@ -513,7 +530,7 @@ export default function OwnerSettings() {
       }
       closeStaffModal();
     } catch (e) {
-      alert(e.message);
+      ui.alert({ message: e.message, tone: "danger" });
     }
   };
 
@@ -522,17 +539,22 @@ export default function OwnerSettings() {
       const updated = await updateStaff(u.id, { active: !u.active });
       setStaff(list => list.map(x => (x.id === u.id ? updated : x)));
     } catch (e) {
-      alert(e.message);
+      ui.alert({ message: e.message, tone: "danger" });
     }
   };
 
   const deleteStaff = async (id) => {
-    if (!window.confirm(t("ownerSettings.confirm.deleteAccount"))) return;
+    const okAcc = await ui.confirm({
+      tone: "danger",
+      message: t("ownerSettings.confirm.deleteAccount"),
+      confirmText: t("ownerSettings.actions.delete", { defaultValue: "Удалить" }),
+    });
+    if (!okAcc) return;
     try {
       await deleteStaffApi(id);
       setStaff(list => list.filter(u => u.id !== id));
     } catch (e) {
-      alert(e.message);
+      ui.alert({ message: e.message, tone: "danger" });
     }
   };
 
@@ -654,7 +676,7 @@ export default function OwnerSettings() {
 
             <button
               className="owner-primary-btn"
-              onClick={() => alert(t("ownerSettings.alerts.todoSaveCompany"))}
+              onClick={() => ui.alert({ message: t("ownerSettings.alerts.todoSaveCompany") })}
             >
               <Save size={16} /> {t("ownerSettings.actions.save")}
             </button>
@@ -1105,7 +1127,7 @@ export default function OwnerSettings() {
 
         {/* Delivery zones */}
         {activeTab === "customers" && (
-          <CustomersTab API={API} authHeaders={authHeaders} t={t} />
+          <CustomersTab API={API} authHeaders={authHeaders} t={t} ui={ui} />
         )}
 
         {activeTab === "zones" && (
@@ -1114,7 +1136,7 @@ export default function OwnerSettings() {
 
         {/* Invoice settings */}
         {activeTab === "invoice" && (
-          <InvoiceSettingsTab API={API} authHeaders={authHeaders} t={t} />
+          <InvoiceSettingsTab API={API} authHeaders={authHeaders} t={t} ui={ui} />
         )}
       </div>
 
@@ -1321,6 +1343,9 @@ export default function OwnerSettings() {
           </div>
         </div>
       )}
+
+      {/* Диалоги страницы: alert / confirm / prompt в общем стиле */}
+      <OwnerDialog dialog={dialog} onClose={closeDialog} t={t} />
     </div>
   );
 }

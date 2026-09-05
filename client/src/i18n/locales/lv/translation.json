@@ -265,7 +265,10 @@
     "sections": {
       "general": "Vispārīga informācija",
       "menu": "Restorāna ēdienkarte",
-      "accounts": "Konti (administratori un kurjeri)"
+      "accounts": "Konti (administratori un kurjeri)",
+      "customers": "Klienti",
+      "invoice": "Pavadzīme",
+      "zones": "Piegādes zonas"
     },
     "invoice": {
       "title": "Rēķina priekšskatījums",
@@ -283,13 +286,37 @@
       "cancel": "Atcelt",
       "upload": "Augšupielādēt",
       "delete": "Dzēst",
-      "edit": "Rediģēt"
+      "edit": "Rediģēt",
+      "confirm": "Apstiprināt",
+      "add": "Pievienot"
     },
     "general": {
       "restaurantName": "Restorāna nosaukums",
       "restaurantNamePlaceholder": "Piemēram, Briana Sushi",
       "logo": "Logo",
-      "noLogo": "Nav logo"
+      "noLogo": "Nav logo",
+      "address": "Restorāna adrese",
+      "addressPlaceholder": "Iela, māja, pilsēta",
+      "brandHint": "Restorāna nosaukums un logotips",
+      "brandTitle": "Zīmols",
+      "contactsHint": "Klientiem un pavadzīmei",
+      "contactsTitle": "Kontakti",
+      "currency": "Valūta",
+      "defaultDeliveryFee": "Piegāde pēc noklusējuma, €",
+      "email": "E-pasts",
+      "freeDeliveryFrom": "Bezmaksas piegāde no, €",
+      "logoDropHint": "vai noklikšķiniet, lai izvēlētos · PNG, JPG, SVG līdz 2 MB",
+      "logoDropTitle": "Ievelciet logotipu šeit",
+      "logoReplace": "Aizstāt",
+      "minOrder": "Minimālā pasūtījuma summa, €",
+      "opsHint": "Darba laiks, valūta un piegādes parametri",
+      "opsTitle": "Piegāde un darbība",
+      "phone": "Kontakttālrunis",
+      "prepTime": "Gatavošanas laiks, min",
+      "stubNote": "Šie iestatījumi vēl netiek saglabāti — sagatave nākotnes loģikai.",
+      "timezone": "Laika josla",
+      "website": "Mājaslapa",
+      "workingHours": "Darba laiks"
     },
     "menu": {
       "searchPlaceholder": "Meklēt pēc nosaukuma/kategorijas…",
@@ -320,7 +347,8 @@
         "addPrompt": "Kategorijas nosaukums",
         "renamePrompt": "Jauns kategorijas nosaukums",
         "deleteConfirm": "Dzēst kategoriju «{{name}}»? Pozīcijas paliks, bet zaudēs kategoriju.",
-        "emptyHint": "Kategoriju vēl nav — izveidojiet tās izvēlnes cilnē"
+        "emptyHint": "Kategoriju vēl nav — izveidojiet tās izvēlnes cilnē",
+        "deleteTitle": "Dzēst kategoriju?"
       }
     },
     "menuModal": {
@@ -364,7 +392,8 @@
         "nickname": "Segvārds",
         "phone": "Tālrunis",
         "email": "E-pasts (nav obligāti)",
-        "password": "Parole"
+        "password": "Parole",
+        "color": "Krāsa kartē"
       },
       "passwordEditHint": "(atstāj tukšu — nemainīt)",
       "placeholders": {
@@ -374,7 +403,8 @@
         "password": "Ģenerēt vai ievadīt"
       },
       "actions": {
-        "generate": "Ģenerēt"
+        "generate": "Ģenerēt",
+        "randomColor": "Nejaušs"
       }
     },
     "confirm": {
@@ -384,7 +414,9 @@
     "alerts": {
       "enterNameAndPrice": "Ievadiet nosaukumu un cenu",
       "staffRequiredFields": "Norādiet lomu, segvārdu un tālruni",
-      "todoSaveCompany": "Šeit būs PATCH /api/company/:id"
+      "todoSaveCompany": "Šeit būs PATCH /api/company/:id",
+      "invalidPrice": "Nederīga cena",
+      "invalidDiscount": "Atlaidei jābūt no 0 līdz 100"
     },
     "errors": {
       "unauthorized": "Nav autorizēts",
@@ -424,6 +456,12 @@
       "saved": "Zonas saglabātas",
       "saveError": "Kļūda, saglabājot zonas",
       "saving": "Saglabājam…"
+    },
+    "dialog": {
+      "confirmTitle": "Apstipriniet darbību",
+      "promptTitle": "Ievadiet vērtību",
+      "alertTitle": "Paziņojums",
+      "ok": "Sapratu"
     }
   },
   "orderPanel": {
