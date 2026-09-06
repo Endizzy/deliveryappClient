@@ -559,6 +559,12 @@ const CreateOrder = () => {
               preorderMinOffset={PREORDER_MIN_OFFSET_MIN}
             />
 
+            <NotesSection
+              t={t}
+              formData={formData}
+              handleInputChange={handleInputChange}
+            />
+
             <DeliverySection
               t={t}
               formData={formData}
@@ -598,11 +604,11 @@ const CreateOrder = () => {
               currentZone={currentZone}
             />
 
-            <NotesSection
+            {/* <NotesSection
               t={t}
               formData={formData}
               handleInputChange={handleInputChange}
-            />
+            /> */}
           </div>
 
           <aside className="co-rail">
