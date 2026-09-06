@@ -55,6 +55,8 @@ const EditOrder = () => {
   // ref for printing
   const printRef = useRef(null);
   const [orderCreatedAt, setOrderCreatedAt] = useState("");
+  // Отображаемый номер заказа (как в OrderPanel: orderSeq → orderNo → id)
+  const [orderNumber, setOrderNumber] = useState("");
 
   // Реквизиты накладной компании (для печати) — тянутся с сервера по company_id
   const [invoiceSettings, setInvoiceSettings] = useState(null);
@@ -155,7 +157,7 @@ const EditOrder = () => {
         : "—";
 
     return {
-      number: id,
+      number: orderNumber || id,
       createdAt: orderCreatedAt,
       deliveryDate,
       customerPhone: formData.phone,
@@ -176,7 +178,7 @@ const EditOrder = () => {
       deliveryFee: safeDeliveryFee,
       discount: 0,
     };
-  }, [formData, selectedItems, id, orderCreatedAt, safeDeliveryFee, t]);
+  }, [formData, selectedItems, id, orderNumber, orderCreatedAt, safeDeliveryFee, t]);
 
   // react-to-print hook
   const handlePrint = useReactToPrint({
@@ -227,6 +229,9 @@ const EditOrder = () => {
       throw new Error(d.error || t("createOrder.errors.getOrderFailed", { defaultValue: "Не удалось получить заказ" }));
 
     const o = d.item;
+
+    // Номер заказа для накладной — тот же, что в OrderPanel
+    setOrderNumber(String(o.orderSeq ?? o.orderNo ?? id));
 
     // Save original createdAt for the invoice
     if (o.createdAt) {

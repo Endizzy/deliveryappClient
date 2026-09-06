@@ -34,7 +34,7 @@ function mergeById(oldArr = [], newArr = []) {
 }
 
 // Допустимые статусы заказа (совпадают с EditOrder и серверным PATCH)
-const ORDER_STATUSES = ["new", "ready", "enroute", "completed", "cancelled"];
+const ORDER_STATUSES = ["new", "preparing", "ready", "enroute", "completed", "cancelled"];
 
 const isValidCurrentOrder = (o) =>
   o && typeof o === "object" &&
@@ -350,6 +350,7 @@ const OrderPanel = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case "new": return "status-new";
+      case "preparing": return "status-preparing";
       case "enroute": return "status-inprogress";
       case "ready": return "status-ready";
       case "cancelled": return "status-cancelled"; // красный — необратимое закрытие заказа

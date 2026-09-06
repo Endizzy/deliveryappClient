@@ -515,6 +515,7 @@
     },
     "status": {
       "new": "Jauns",
+      "preparing": "Gatavojas",
       "ready": "Gatavs",
       "enroute": "Ceļā",
       "paused": "Pauzēts",

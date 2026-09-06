@@ -2,7 +2,7 @@ import React from "react";
 import { Truck } from "lucide-react";
 
 // Статусы заказа — только для редактирования (при создании заказ всегда новый)
-const ORDER_STATUSES = ["new", "ready", "enroute", "completed", "cancelled"];
+const ORDER_STATUSES = ["new", "preparing", "ready", "enroute", "completed", "cancelled"];
 
 // Секция «Доставка»: стоимость доставки и назначенный курьер.
 // Раньше жила внутри CustomerSection — вынесена отдельно, чтобы секция
