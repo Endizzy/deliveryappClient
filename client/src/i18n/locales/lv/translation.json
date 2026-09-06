@@ -54,6 +54,7 @@
       "cash": "Skaidrā (€)",
       "card": "Karte (€)",
       "wire": "Pārskaitījums (€)",
+      "paid": "Apmaksāts (€)",
       "totalItems": "Kopā preces"
     }
   },
@@ -186,7 +187,8 @@
     "payment": {
       "cash": "Skaidrā naudā",
       "card": "Ar karti",
-      "wire": "Ar pārskaitījumu"
+      "wire": "Ar pārskaitījumu",
+      "paid": "Apmaksāts"
     },
     "buttons": {
       "cancel": "Atcelt",
@@ -522,7 +524,8 @@
     "payment": {
       "cash": "Skaidrā naudā",
       "card": "Ar karti",
-      "wire": "Ar pārskaitījumu"
+      "wire": "Ar pārskaitījumu",
+      "paid": "Apmaksāts"
     },
     "empty": "Šajā cilnē nav pasūtījumu.",
     "footer": {

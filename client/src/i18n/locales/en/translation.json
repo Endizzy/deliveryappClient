@@ -54,6 +54,7 @@
       "cash": "Cash (€)",
       "card": "Card (€)",
       "wire": "Transfer (€)",
+      "paid": "Paid (€)",
       "totalItems": "Total Items"
     }
   },
@@ -186,7 +187,8 @@
     "payment": {
       "cash": "Cash",
       "card": "Card",
-      "wire": "Bank transfer"
+      "wire": "Bank transfer",
+      "paid": "Paid"
     },
     "buttons": {
       "cancel": "Cancel",
@@ -521,7 +523,8 @@
     "payment": {
       "cash": "Cash",
       "card": "Card",
-      "wire": "Bank transfer"
+      "wire": "Bank transfer",
+      "paid": "Paid"
     },
     "empty": "No orders in this tab.",
     "footer": {

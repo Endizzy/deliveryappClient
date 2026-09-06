@@ -5,7 +5,6 @@ import {
   User,
   Phone,
   Package,
-  Truck,
   Clock,
   Search,
   Plus,
@@ -24,6 +23,7 @@ import Loader from "./components/Loader/Loader.jsx";
 import InvoiceTemplate from "./pages/InvoiceSettings/InvoiceTemplate.jsx";
 import AddressMapField from "./components/CreateOrder/AddressMapField.jsx";
 import DeliveryMapModal from "./components/CreateOrder/DeliveryMapModal.jsx";
+import DeliverySection from "./components/CreateOrder/DeliverySection.jsx";
 import { findZoneForPoint } from "./utils/zones.js";
 
 const API = import.meta.env.VITE_API_URL;
@@ -41,6 +41,7 @@ const PAYMENT_LABELS = {
   cash: "Skaidra nauda",
   card: "Karte",
   wire: "Pārskaitījums",
+  paid: "Apmaksāts",
 };
 
 const PREORDER_MIN_OFFSET_MIN = 15;
@@ -679,79 +680,32 @@ const EditOrder = () => {
                   </div>
                 </div>
 
-                {/* Доставка */}
-                <div className="section-header">
-                  <Truck size={20} />
-                  <h3>{t("createOrder.sections.delivery")}</h3>
-                </div>
-
+                {/* Тип заказа — последний пункт секции: доставка и позиции
+                    ниже зависят от того, текущий это заказ или предзаказ. */}
                 <div className="form-group">
-                  <label htmlFor="deliveryFee">{t("createOrder.fields.deliveryFee")} €</label>
-                  <input
-                    id="deliveryFee"
-                    type="number"
-                    step="0.01"
-                    inputMode="decimal"
-                    value={formData.deliveryFee}
-                    onChange={(e) => handleInputChange("deliveryFee", e.target.value)}
-                    placeholder={t("createOrder.placeholders.deliveryFee")}
-                  />
-                </div>
+                  <label>{t("createOrder.fields.orderType")}</label>
+                  <div className="radio-group">
+                    <label className="radio-option">
+                      <input
+                        type="radio"
+                        name="orderType"
+                        value="active"
+                        checked={formData.orderType === "active"}
+                        onChange={(e) => handleInputChange("orderType", e.target.value)}
+                      />
+                      <span>{t("createOrder.orderType.active")}</span>
+                    </label>
 
-                <div className="form-group">
-                  <label>{t("createOrder.fields.courier")} *</label>
-                  <select
-                    value={formData.courierId}
-                    onChange={(e) => handleInputChange("courierId", e.target.value)}
-                    className={errors.courier ? "error" : ""}
-                  >
-                    <option value="">{t("createOrder.placeholders.courier")}</option>
-                    {couriers.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.nickname}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.courier && <span className="error-text">{errors.courier}</span>}
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>{t("createOrder.fields.orderType")}</label>
-                    <div className="radio-group">
-                      <label className="radio-option">
-                        <input
-                          type="radio"
-                          name="orderType"
-                          value="active"
-                          checked={formData.orderType === "active"}
-                          onChange={(e) => handleInputChange("orderType", e.target.value)}
-                        />
-                        <span>{t("createOrder.orderType.active")}</span>
-                      </label>
-
-                      <label className="radio-option">
-                        <input
-                          type="radio"
-                          name="orderType"
-                          value="preorder"
-                          checked={formData.orderType === "preorder"}
-                          onChange={(e) => handleInputChange("orderType", e.target.value)}
-                        />
-                        <span>{t("createOrder.orderType.preorder")}</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label>{t("createOrder.fields.status", { defaultValue: "Status" })}</label>
-                    <select value={formData.status} onChange={(e) => handleInputChange("status", e.target.value)}>
-                      <option value="new">new</option>
-                      <option value="ready">ready</option>
-                      <option value="enroute">enroute</option>
-                      <option value="completed">completed</option>
-                      <option value="cancelled">cancelled</option>
-                    </select>
+                    <label className="radio-option">
+                      <input
+                        type="radio"
+                        name="orderType"
+                        value="preorder"
+                        checked={formData.orderType === "preorder"}
+                        onChange={(e) => handleInputChange("orderType", e.target.value)}
+                      />
+                      <span>{t("createOrder.orderType.preorder")}</span>
+                    </label>
                   </div>
                 </div>
 
@@ -791,6 +745,33 @@ const EditOrder = () => {
                   </>
                 )}
               </div>
+
+              <div className="form-section full-width">
+                <div className="section-header">
+                  <Clock size={20} />
+                  <h3>{t("createOrder.sections.notes")}</h3>
+                </div>
+
+                <div className="form-group">
+                  <label>{t("createOrder.fields.notes")}</label>
+                  <textarea
+                    rows="3"
+                    value={formData.notes}
+                    onChange={(e) => handleInputChange("notes", e.target.value)}
+                    placeholder={t("createOrder.placeholders.notes")}
+                  />
+                </div>
+              </div>
+
+              {/* Доставка */}
+              <DeliverySection
+                t={t}
+                formData={formData}
+                errors={errors}
+                handleInputChange={handleInputChange}
+                couriers={couriers}
+                showStatus
+              />
 
               {/* Товары */}
               <div className="form-section">
@@ -922,6 +903,7 @@ const EditOrder = () => {
                       <option value="cash">{t("createOrder.payment.cash")}</option>
                       <option value="card">{t("createOrder.payment.card")}</option>
                       <option value="wire">{t("createOrder.payment.wire")}</option>
+                      <option value="paid">{t("createOrder.payment.paid")}</option>
                     </select>
                     {errors.payment && <span className="error-text">{errors.payment}</span>}
                   </div>
@@ -960,7 +942,7 @@ const EditOrder = () => {
                 />
               </div>
 
-              <div className="form-section full-width">
+              {/* <div className="form-section full-width">
                 <div className="section-header">
                   <Clock size={20} />
                   <h3>{t("createOrder.sections.notes")}</h3>
@@ -975,7 +957,7 @@ const EditOrder = () => {
                     placeholder={t("createOrder.placeholders.notes")}
                   />
                 </div>
-              </div>
+              </div> */}
             </div>
 
             <aside className="co-rail">

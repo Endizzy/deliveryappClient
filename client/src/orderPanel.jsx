@@ -125,8 +125,11 @@ const OrderPanel = () => {
   };
 
   const formatPaymentMethod = (v) => {
-    const key = String(v || "").toLowerCase();
-    return t(`orderPanel.payment.${key}`, { defaultValue: v || "" });
+    const key = String(v ?? "").trim().toLowerCase();
+    // Пустая ячейка выглядит так, будто колонки нет вовсе, и скрывает проблему
+    // с данными. Показываем прочерк — сразу видно, что метод не пришёл.
+    if (!key) return "—";
+    return t(`orderPanel.payment.${key}`, { defaultValue: String(v) });
   };
 
   const formatOrderStatus = (v) => {

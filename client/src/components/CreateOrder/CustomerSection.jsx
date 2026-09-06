@@ -1,9 +1,11 @@
 import React from "react";
-import { User, Phone, Truck, Eraser } from "lucide-react";
+import { User, Phone, Eraser } from "lucide-react";
 import { formatPhoneNumber } from "../../utils/phone.js";
 import TimeSelect24 from "./TimeSelect24.jsx";
 
-// Секция «Данные клиента + доставка» формы создания заказа.
+// Секция «Данные клиента»: контакты, адрес и — последним пунктом — тип заказа
+// (текущий / предзаказ) вместе с датой и временем предзаказа.
+// Стоимость доставки и курьер вынесены в DeliverySection.jsx.
 const CustomerSection = ({
   t,
   formData,
@@ -14,7 +16,6 @@ const CustomerSection = ({
   showApplyDataButton,
   applyFoundCustomerData,
   clearCustomerFields,
-  couriers,
   minDate,
   minTimeToday,
   preorderMinOffset,
@@ -200,46 +201,8 @@ const CustomerSection = ({
         </div>
       </div>
 
-      <div className="section-header">
-        <Truck size={20} />
-        <h3>{t("createOrder.sections.delivery")}</h3>
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="deliveryFee">
-          {t("createOrder.fields.deliveryFee")} €
-        </label>
-        <input
-          id="deliveryFee"
-          type="number"
-          step="0.01"
-          inputMode="decimal"
-          value={formData.deliveryFee}
-          onChange={(e) => handleInputChange("deliveryFee", e.target.value)}
-          placeholder={t("createOrder.placeholders.deliveryFee")}
-        />
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="courier">{t("createOrder.fields.courier")} *</label>
-        <select
-          id="courier"
-          value={formData.courierId}
-          onChange={(e) => handleInputChange("courierId", e.target.value)}
-          className={errors.courier ? "error" : ""}
-        >
-          <option value="">{t("createOrder.placeholders.courier")}</option>
-          {couriers.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.nickname}
-            </option>
-          ))}
-        </select>
-        {errors.courier && (
-          <span className="error-text">{errors.courier}</span>
-        )}
-      </div>
-
+      {/* Тип заказа — последний пункт секции: доставка и позиции ниже
+          зависят от того, текущий это заказ или предзаказ. */}
       <div className="form-group">
         <label>{t("createOrder.fields.orderType")}</label>
         <div className="radio-group">

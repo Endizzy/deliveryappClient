@@ -84,16 +84,20 @@ export default function Report() {
               <span>{t("report.columns.cash")}</span>
               <span>{t("report.columns.card")}</span>
               <span>{t("report.columns.wire")}</span>
+              <span>{t("report.columns.paid")}</span>
               <span>{t("report.columns.totalItems")}</span>
             </div>
             {rows.map((row) => (
               <div className={styles.table_row} key={row.unit_id ?? "unassigned"}>
                 <span>{row.unit_id === null ? t("report.nonCouriers") : row.unit_nickname}</span>
                 <span>{row.total_orders}</span>
-                <span>{Number(row.total_sum).toFixed(2)}</span>
-                <span>{Number(row.total_cash_sum).toFixed(2)}</span>
-                <span>{Number(row.total_card_sum).toFixed(2)}</span>
-                <span>{Number(row.total_wire_sum).toFixed(2)}</span>
+                {/* «|| 0» на случай, если сервер ещё не отдаёт новую колонку —
+                    в таблице должен быть ноль, а не NaN */}
+                <span>{Number(row.total_sum || 0).toFixed(2)}</span>
+                <span>{Number(row.total_cash_sum || 0).toFixed(2)}</span>
+                <span>{Number(row.total_card_sum || 0).toFixed(2)}</span>
+                <span>{Number(row.total_wire_sum || 0).toFixed(2)}</span>
+                <span>{Number(row.total_paid_sum || 0).toFixed(2)}</span>
                 <span>{row.total_items}</span>
               </div>
             ))}

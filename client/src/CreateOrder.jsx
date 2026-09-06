@@ -11,6 +11,7 @@ import useOrderResources from "./hooks/useOrderResources.js";
 import useCustomerLookup from "./hooks/useCustomerLookup.js";
 import useOrderItems from "./hooks/useOrderItems.js";
 import CustomerSection from "./components/CreateOrder/CustomerSection.jsx";
+import DeliverySection from "./components/CreateOrder/DeliverySection.jsx";
 import ItemsSection from "./components/CreateOrder/ItemsSection.jsx";
 import NotesSection from "./components/CreateOrder/NotesSection.jsx";
 import DeliveryMapModal from "./components/CreateOrder/DeliveryMapModal.jsx";
@@ -553,10 +554,17 @@ const CreateOrder = () => {
               showApplyDataButton={showApplyDataButton}
               applyFoundCustomerData={applyFoundCustomerData}
               clearCustomerFields={clearCustomerFields}
-              couriers={couriers}
               minDate={minDate}
               minTimeToday={minTimeToday}
               preorderMinOffset={PREORDER_MIN_OFFSET_MIN}
+            />
+
+            <DeliverySection
+              t={t}
+              formData={formData}
+              errors={errors}
+              handleInputChange={handleInputChange}
+              couriers={couriers}
             />
 
             <ItemsSection

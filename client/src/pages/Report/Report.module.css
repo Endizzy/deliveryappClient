@@ -102,7 +102,9 @@
 
 .table_header {
   display: grid;
-  grid-template-columns: 200px 130px 120px 120px 120px 120px 120px;
+  /* Колонок стало больше («Оплачен»), поэтому ширины не фиксированные:
+     имя курьера забирает остаток, числовые колонки делят место поровну. */
+  grid-template-columns: minmax(150px, 2fr) repeat(7, minmax(74px, 1fr));
   background: var(--app-gradient);
   color: white;
   padding: 12px 16px;
@@ -114,7 +116,9 @@
 
 .table_row {
   display: grid;
-  grid-template-columns: 200px 130px 120px 120px 120px 120px 120px;
+  /* Колонок стало больше («Оплачен»), поэтому ширины не фиксированные:
+     имя курьера забирает остаток, числовые колонки делят место поровну. */
+  grid-template-columns: minmax(150px, 2fr) repeat(7, minmax(74px, 1fr));
   padding: 12px 16px;
   font-size: 14px;
   border-bottom: 1px solid #f1f5f9;

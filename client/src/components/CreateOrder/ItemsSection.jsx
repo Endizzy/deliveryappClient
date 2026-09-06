@@ -219,6 +219,7 @@ const ItemsSection = ({
             <option value="cash">{t("createOrder.payment.cash")}</option>
             <option value="card">{t("createOrder.payment.card")}</option>
             <option value="wire">{t("createOrder.payment.wire")}</option>
+            <option value="paid">{t("createOrder.payment.paid")}</option>
           </select>
           {errors.payment && (
             <span className="error-text">{errors.payment}</span>

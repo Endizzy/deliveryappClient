@@ -24,7 +24,7 @@ const STATUS_LABEL = {
   ready: "Готов", completed: "Выполнен", cancelled: "Отменён",
 };
 
-const PAYMENT_LABEL = { cash: "Наличные", card: "Карта" };
+const PAYMENT_LABEL = { cash: "Наличные", card: "Карта", wire: "Перечислением", paid: "Оплачен" };
 
 export default function CustomersTab({ API, authHeaders, t, ui }) {
   // Диалоги страницы приходят из OwnerSettings; системное окно оставлено
@@ -416,9 +416,11 @@ export default function CustomersTab({ API, authHeaders, t, ui }) {
 
                                   <div className="cust-pay-summary">
                                     <div className="cust-pay-method">
-                                      {o.paymentMethod === "card"
-                                        ? <CreditCard size={15} />
-                                        : <Banknote size={15} />}
+                                      {/* «Оплачен» и «Перечислением» — денег на руки нет,
+                                          поэтому иконка не купюра, а карта */}
+                                      {o.paymentMethod === "cash"
+                                        ? <Banknote size={15} />
+                                        : <CreditCard size={15} />}
                                       Оплата: {PAYMENT_LABEL[o.paymentMethod] || o.paymentMethod || "—"}
                                     </div>
                                     <div className="cust-pay-rows">
