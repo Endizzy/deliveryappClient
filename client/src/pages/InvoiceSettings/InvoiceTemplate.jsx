@@ -41,7 +41,7 @@ const InvoiceTemplate = React.forwardRef(function InvoiceTemplate({ settings = {
         </div>
 
         {/* Center: QR code placeholder */}
-        <div className={styles.qrBox}>
+        {/* <div className={styles.qrBox}>
           <svg viewBox="0 0 80 80" className={styles.qrSvg} xmlns="http://www.w3.org/2000/svg">
             <rect x="0" y="0" width="80" height="80" fill="white"/>
             <rect x="2" y="2" width="24" height="24" fill="none" stroke="#000" strokeWidth="3"/>
@@ -95,7 +95,7 @@ const InvoiceTemplate = React.forwardRef(function InvoiceTemplate({ settings = {
             <rect x="38" y="68" width="4" height="4" fill="#000"/>
             <rect x="44" y="74" width="4" height="4" fill="#000"/>
           </svg>
-        </div>
+        </div> */}
 
         {/* Right: order number + customer */}
         <div className={styles.orderInfo}>
