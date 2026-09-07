@@ -654,5 +654,12 @@
     "notifications": {
       "saved": "Rēķins veiksmīgi saglabāts"
     }
+  },
+  "editOrder": {
+    "schedule": {
+      "activatedPreorder": "Iepriekšpasūtījums aktivizēts automātiski. Piegādes laiks saglabājas.",
+      "clear": "Noņemt piegādes laiku",
+      "clearConfirm": "Piegādes laiks {{when}} tiks dzēsts. Turpināt?"
+    }
   }
 }

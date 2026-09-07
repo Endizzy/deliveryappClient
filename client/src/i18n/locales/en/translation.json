@@ -653,5 +653,12 @@
     "notifications": {
       "saved": "Invoice successfully saved"
     }
+  },
+  "editOrder": {
+    "schedule": {
+      "activatedPreorder": "Preorder was activated automatically. The delivery time is kept.",
+      "clear": "Remove delivery time",
+      "clearConfirm": "Delivery time {{when}} will be removed. Continue?"
+    }
   }
 }

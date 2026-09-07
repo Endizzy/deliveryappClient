@@ -122,6 +122,16 @@ const EditOrder = () => {
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
 
+  // Заказ пришёл как активный, но со временем доставки — значит это предзаказ,
+  // активированный автоматикой. Признак нужен только для подписи в интерфейсе.
+  const [wasActivatedPreorder, setWasActivatedPreorder] = useState(false);
+
+  // Время доставки редактируется, если это предзаказ ИЛИ время уже задано.
+  // Раньше блок показывался только для предзаказов, поэтому у активированного
+  // заказа время было не видно — и молча стиралось при сохранении.
+  const hasSchedule = Boolean(formData.scheduledDate || formData.scheduledTime);
+  const showSchedule = formData.orderType === "preorder" || hasSchedule;
+
   // карта адреса (без обязательного подтверждения; точка показывается сразу)
   const [geo, setGeo] = useState(null);
   const [geoLoading, setGeoLoading] = useState(false);
@@ -247,6 +257,11 @@ const EditOrder = () => {
       scheduledDate = toLocalDateInput(dt);
       scheduledTime = toLocalTimeInput(dt);
     }
+
+    // Предзаказ, который автоматика перевела в активные за 2 часа до времени:
+    // тип уже active, но время доставки осталось. Запоминаем это, чтобы
+    // показать время админу — иначе он его не увидит и потеряет при сохранении.
+    setWasActivatedPreorder(Boolean(o.scheduledAt) && (o.orderType || "active") !== "preorder");
 
     setFormData({
       orderType: o.orderType || "active",
@@ -417,13 +432,45 @@ const EditOrder = () => {
   const calculateGrandTotalCents = () =>
     Math.max(0, calculateItemsTotalCents() - customerDiscountCents) + toCents(safeDeliveryFee);
 
+  // Стирание времени доставки — отдельное осознанное действие.
+  // Раньше оно происходило само при переключении типа заказа, и вместе с ним
+  // тихо терялось время, обещанное клиенту.
+  const clearSchedule = () => {
+    setFormData((prev) => ({ ...prev, scheduledDate: "", scheduledTime: "" }));
+    setErrors((prev) => ({ ...prev, scheduledDate: "", scheduledTime: "" }));
+  };
+
+  const confirmClearSchedule = () => {
+    if (!hasSchedule) return true;
+    const when = [formData.scheduledDate, formData.scheduledTime]
+      .filter(Boolean)
+      .join(" ");
+    return window.confirm(
+      t("editOrder.schedule.clearConfirm", {
+        defaultValue: "Время доставки {{when}} будет удалено. Продолжить?",
+        when,
+      })
+    );
+  };
+
   const handleInputChange = (field, value) => {
+    // Переключение на текущий заказ у заказа с временем доставки — спрашиваем.
+    // Отказ оставляет и тип, и время нетронутыми.
+    if (field === "orderType" && value === "active" && hasSchedule) {
+      if (!confirmClearSchedule()) return;
+      setFormData((prev) => ({
+        ...prev,
+        orderType: "active",
+        scheduledDate: "",
+        scheduledTime: "",
+      }));
+      setErrors((prev) => ({ ...prev, scheduledDate: "", scheduledTime: "" }));
+      setWasActivatedPreorder(false);
+      return;
+    }
+
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
-    if (field === "orderType" && value === "active") {
-      setFormData((prev) => ({ ...prev, scheduledDate: "", scheduledTime: "" }));
-      setErrors((prev) => ({ ...prev, scheduledDate: "", scheduledTime: "" }));
-    }
     if (["street", "house", "building", "apart"].includes(field)) {
       setGeoError(null);
     }
@@ -477,6 +524,13 @@ const EditOrder = () => {
     if (selectedItems.length === 0) e.items = t("createOrder.validation.itemsRequired");
     if (!formData.pickupId) e.restaurant = t("createOrder.validation.pickupRequired");
     if (!formData.payment) e.payment = t("createOrder.validation.paymentRequired");
+    // Половина времени доставки хуже, чем его отсутствие: заказ уйдёт с датой
+    // без часа (или наоборот) и в базе окажется NULL. Поэтому для активного
+    // заказа требуем оба поля, если заполнено хоть одно.
+    if (formData.orderType !== "preorder" && hasSchedule) {
+      if (!formData.scheduledDate) e.scheduledDate = t("createOrder.validation.scheduledDateRequired");
+      if (!formData.scheduledTime) e.scheduledTime = t("createOrder.validation.scheduledTimeRequired");
+    }
     if (formData.orderType === "preorder") {
       if (!formData.scheduledDate) e.scheduledDate = t("createOrder.validation.scheduledDateRequired");
       if (!formData.scheduledTime) e.scheduledTime = t("createOrder.validation.scheduledTimeRequired");
@@ -499,8 +553,12 @@ const EditOrder = () => {
     try {
       // ISO с зоной, как и в CreateOrder: «наивная» строка без Z трактовалась
       // сервером (TZ=UTC) как UTC, из-за чего предзаказ уезжал на +3 часа.
+      // Источник правды — заполненные поля, а не тип заказа. Раньше здесь
+      // стояло условие «тип === preorder», и у активированного предзаказа
+      // (тип уже active, время осталось) время доставки уходило в NULL при
+      // любом сохранении — даже если правили телефон.
       const scheduledAt =
-        formData.orderType === "preorder"
+        formData.scheduledDate && formData.scheduledTime
           ? localInputsToISO(formData.scheduledDate, formData.scheduledTime)
           : null;
 
@@ -714,14 +772,45 @@ const EditOrder = () => {
                   </div>
                 </div>
 
-                {formData.orderType === "preorder" && (
+                {showSchedule && (
                   <>
+                    {/* Активированный предзаказ: тип уже «текущий», но время
+                        доставки осталось. Без этой плашки админ его не видит. */}
+                    {wasActivatedPreorder && formData.orderType !== "preorder" && (
+                      <div className="eo-schedule-note">
+                        <Clock size={16} />
+                        <span>
+                          {t("editOrder.schedule.activatedPreorder", {
+                            defaultValue:
+                              "Предзаказ активирован автоматически. Время доставки сохраняется.",
+                          })}
+                        </span>
+                        <button
+                          type="button"
+                          className="eo-schedule-clear"
+                          onClick={() => {
+                            if (confirmClearSchedule()) {
+                              clearSchedule();
+                              setWasActivatedPreorder(false);
+                            }
+                          }}
+                        >
+                          {t("editOrder.schedule.clear", {
+                            defaultValue: "Убрать время доставки",
+                          })}
+                        </button>
+                      </div>
+                    )}
+
                     <div className="form-row">
                       <div className="form-group">
                         <label>{t("createOrder.fields.scheduledDate")} *</label>
+                        {/* Ограничение «не раньше сегодня» — только для новых
+                            предзаказов. У активированного заказа время уже
+                            наступает или прошло, и min мешал бы его править. */}
                         <input
                           type="date"
-                          min={minDate}
+                          min={formData.orderType === "preorder" ? minDate : undefined}
                           value={formData.scheduledDate}
                           onChange={(e) => handleInputChange("scheduledDate", e.target.value)}
                           className={errors.scheduledDate ? "error" : ""}
@@ -736,7 +825,12 @@ const EditOrder = () => {
                           value={formData.scheduledTime}
                           onChange={(v) => handleInputChange("scheduledTime", v)}
                           className={errors.scheduledTime ? "error" : ""}
-                          min={formData.scheduledDate === minDate ? minTimeToday : undefined}
+                          min={
+                            formData.orderType === "preorder" &&
+                            formData.scheduledDate === minDate
+                              ? minTimeToday
+                              : undefined
+                          }
                           hourLabel={t("createOrder.time.hours", { defaultValue: "Часы" })}
                           minuteLabel={t("createOrder.time.minutes", { defaultValue: "Минуты" })}
                         />
@@ -744,9 +838,11 @@ const EditOrder = () => {
                       </div>
                     </div>
 
-                    <div className="hint muted" style={{ marginTop: 4 }}>
-                      {t("createOrder.preorderHint", { min: PREORDER_MIN_OFFSET_MIN })}
-                    </div>
+                    {formData.orderType === "preorder" && (
+                      <div className="hint muted" style={{ marginTop: 4 }}>
+                        {t("createOrder.preorderHint", { min: PREORDER_MIN_OFFSET_MIN })}
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -985,8 +1081,9 @@ const EditOrder = () => {
                   <span className="v">{formData.status}</span>
                 </div>
 
-                {formData.orderType === "preorder" &&
-                  formData.scheduledDate &&
+                {/* Время доставки в итогах — по факту наличия, а не по типу:
+                    у активированного предзаказа тип уже «текущий». */}
+                {formData.scheduledDate &&
                   formData.scheduledTime && (
                     <div className="co-rail-row">
                       <span>{t("createOrder.fields.scheduledTime")}</span>
