@@ -534,6 +534,16 @@
     },
     "errors": {
       "loadOrdersFailed": "Neizdevās ielādēt pasūtījumus"
+    },
+    "history": {
+      "tab": "Vēsture",
+      "tabHint": "Pasūtījumi par pagājušu dienu",
+      "today": "Šodien",
+      "backToToday": "Atgriezties pie šodienas",
+      "banner": "Skatāt {{date}}. Jaunus pasūtījumus izveidot nevar.",
+      "loading": "Ielādējam dienas pasūtījumus…",
+      "empty": "Šajā dienā pasūtījumu nav",
+      "createBlocked": "Vispirms atgriezieties pie šodienas"
     }
   },
   "map": {

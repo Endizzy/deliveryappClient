@@ -533,6 +533,16 @@
     },
     "errors": {
       "loadOrdersFailed": "Failed to load orders"
+    },
+    "history": {
+      "tab": "History",
+      "tabHint": "Orders from a past day",
+      "today": "Today",
+      "backToToday": "Back to today",
+      "banner": "Viewing {{date}}. New orders cannot be created.",
+      "loading": "Loading orders for the day…",
+      "empty": "No orders on this day",
+      "createBlocked": "Return to today first"
     }
   },
   "map": {

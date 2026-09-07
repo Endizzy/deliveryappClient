@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronDown, Trash2 } from 'lucide-react';
+import { ChevronDown, Trash2, History } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import "./orderPanel.css";
 import Header from "./components/Header/Header.jsx";
@@ -9,6 +9,7 @@ import { useNow } from "./provider/TimeContext";
 import { formatDuration, formatClockTime } from "./utils/time/time.js";
 import { useTranslation } from "react-i18next";
 import FilterPanel from "./components/FilterPanel/FilterPanel.jsx";
+import DayPicker, { formatDayKey } from "./components/OrderPanel/DayPicker.jsx";
 import { useFilterStore } from "./store/filterStore";
 
 import {
@@ -97,11 +98,23 @@ const OrderPanel = () => {
     completed: [],
   });
 
+  // ── Режим истории ────────────────────────────────────────────────────────
+  // historyDate = null — обычная работа (три живые вкладки).
+  // Иначе показываем снапшот выбранного операционного дня. Держим его в
+  // отдельном срезе, а не в ordersByTab: живые вкладки продолжают обновляться
+  // по WS в фоне, поэтому возврат к сегодняшнему дню мгновенный, а события
+  // сегодняшних заказов не подмешиваются в архив.
+  const [historyDate, setHistoryDate] = useState(null);
+  const [historyOrders, setHistoryOrders] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState("");
+  const isHistory = historyDate != null;
+
   const tabs = [
     { key: "active", label: t("orderPanel.tabs.active"), count: ordersByTab.active.length },
     { key: "preorders", label: t("orderPanel.tabs.preorders"), count: ordersByTab.preorders.length },
     { key: "completed", label: t("orderPanel.tabs.completed"), count: ordersByTab.completed.length },
-    
+
   ];
 
   // 24-часовой формат из общей утилиты (h23: без AM/PM и без "24:15" в en-US)
@@ -162,6 +175,49 @@ const OrderPanel = () => {
   setOrdersByTab((prev) => ({ ...prev, [tab]: data.items || [] }));
 }
 
+  // Архив за один операционный день. Заказы за прошедший день не меняются
+  // сами по себе, поэтому грузим один раз при выборе даты.
+  useEffect(() => {
+    if (!historyDate || !token) return;
+    let cancelled = false;
+
+    setHistoryLoading(true);
+    setHistoryError("");
+
+    (async () => {
+      try {
+        const res = await fetch(
+          `${API}/current-orders?tab=history&date=${encodeURIComponent(historyDate)}`,
+          { headers: authHeaders }
+        );
+        const data = await res.json();
+        if (cancelled) return;
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || t("orderPanel.errors.loadOrdersFailed"));
+        }
+        setHistoryOrders(data.items || []);
+      } catch (e) {
+        if (cancelled) return;
+        setHistoryOrders([]);
+        setHistoryError(e.message || t("orderPanel.errors.loadOrdersFailed"));
+      } finally {
+        if (!cancelled) setHistoryLoading(false);
+      }
+    })();
+
+    // Быстрое переключение дат не должно оставлять гонку: ответ на устаревший
+    // запрос игнорируем, иначе в таблицу может лечь чужой день.
+    return () => { cancelled = true; };
+  }, [historyDate, token]); // eslint-disable-line
+
+  // Возврат к сегодняшнему дню: чистим снапшот, чтобы при следующем открытии
+  // не мелькнул прошлый день.
+  const exitHistory = () => {
+    setHistoryDate(null);
+    setHistoryOrders([]);
+    setHistoryError("");
+  };
+
   function upsertOrderToTabs(order) {
     const status = String(order.status || "").toLowerCase();
 
@@ -199,6 +255,10 @@ const OrderPanel = () => {
       preorders: (prev.preorders || []).filter((x) => x.id !== orderId),
       completed: (prev.completed || []).filter((x) => x.id !== orderId),
     }));
+    // Удалённый заказ убираем и из архива: он больше не существует, и попытка
+    // открыть его из истории привела бы к 404. Остальные события WS архива
+    // не касаются — это снапшот дня.
+    setHistoryOrders((prev) => prev.filter((x) => x.id !== orderId));
   }
 
   // Быстрая смена статуса прямо из таблицы (без захода в EditOrder).
@@ -211,8 +271,16 @@ const OrderPanel = () => {
 
     setStatusSaving((prev) => new Set(prev).add(order.id));
 
-    // оптимистичное обновление: cancelled/completed уедут в нужную вкладку сами
-    upsertOrderToTabs({ ...order, status: newStatus });
+    // оптимистичное обновление: cancelled/completed уедут в нужную вкладку сами.
+    // В архиве заказ из списка не убираем — день фиксирован, а закрытие
+    // забытого заказа должно быть видно тут же, а не после перезахода.
+    if (isHistory) {
+      setHistoryOrders((prev) =>
+        prev.map((x) => (x.id === order.id ? { ...x, status: newStatus } : x))
+      );
+    } else {
+      upsertOrderToTabs({ ...order, status: newStatus });
+    }
 
     try {
       // 1) подтягиваем полный заказ (товары, адрес, оплата) — чтобы PUT ничего не затёр
@@ -261,10 +329,22 @@ const OrderPanel = () => {
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || "status update failed");
       // сервер вернёт свежий item и разошлёт order_updated — WS подтвердит состояние
+      // для живых вкладок; архив WS не трогает, поэтому кладём ответ вручную
+      if (isHistory && data.item) {
+        setHistoryOrders((prev) =>
+          prev.map((x) => (x.id === data.item.id ? data.item : x))
+        );
+      }
     } catch (e) {
       console.error("changeStatus", e);
-      // откат: перезагружаем текущую вкладку
-      loadTab(activeTab).catch(() => {});
+      // откат: перечитываем то, что сейчас на экране
+      if (isHistory) {
+        setHistoryOrders((prev) =>
+          prev.map((x) => (x.id === order.id ? order : x))
+        );
+      } else {
+        loadTab(activeTab).catch(() => {});
+      }
       alert(t("orderPanel.errors.statusUpdateFailed", { defaultValue: "Не удалось изменить статус" }));
     } finally {
       setStatusSaving((prev) => {
@@ -383,7 +463,8 @@ const OrderPanel = () => {
     });
   };
 
-  const unfilteredOrders = ordersByTab[activeTab] || [];
+  // В режиме истории вкладки не участвуют: показываем снапшот выбранного дня
+  const unfilteredOrders = isHistory ? historyOrders : (ordersByTab[activeTab] || []);
   let orders = applyFilters(unfilteredOrders);
 
   // Сортировка по времени
@@ -410,7 +491,20 @@ const OrderPanel = () => {
 
       <nav className="nav-tabs">
         <div>
-          <button className="nav-tab" onClick={() => navigate("/createOrder")}>
+          {/* В архиве прошедшего дня создавать заказ нельзя: он всё равно
+              попал бы в сегодняшний день и запутал бы отчёт */}
+          <button
+            className="nav-tab"
+            onClick={() => navigate("/createOrder")}
+            disabled={isHistory}
+            title={
+              isHistory
+                ? t("orderPanel.history.createBlocked", {
+                    defaultValue: "Сначала вернитесь к сегодняшнему дню",
+                  })
+                : undefined
+            }
+          >
             {t("orderPanel.actions.createOrder")}
           </button>
         </div>
@@ -418,13 +512,24 @@ const OrderPanel = () => {
         {tabs.map((tab) => (
           <button
             key={tab.key}
-            className={`nav-tab ${activeTab === tab.key ? "active" : ""}`}
-            onClick={() => setActiveTab(tab.key)}
+            className={`nav-tab ${!isHistory && activeTab === tab.key ? "active" : ""}`}
+            onClick={() => {
+              // Клик по обычной вкладке — это и есть выход из архива
+              if (isHistory) exitHistory();
+              setActiveTab(tab.key);
+            }}
           >
             {tab.label}
             {tab.count > 0 && <span className="tab-badge">{tab.count}</span>}
           </button>
         ))}
+
+        <DayPicker
+          value={historyDate}
+          onChange={(key) => (key ? setHistoryDate(key) : exitHistory())}
+          t={t}
+          locale={i18n.language}
+        />
 
         <div className="nav-actions">
           {/* <div className="search-box">
@@ -452,6 +557,29 @@ const OrderPanel = () => {
       </nav>
 
       <div className="orders-container">
+        {isHistory && (
+          <div className="history-bar">
+            <span className="history-bar-text">
+              <History size={16} />
+              {historyLoading
+                ? t("orderPanel.history.loading", { defaultValue: "Загружаем заказы за день…" })
+                : historyError
+                  ? historyError
+                  : t("orderPanel.history.banner", {
+                      defaultValue:
+                        "Просмотр за {{date}}. Новые заказы создавать нельзя.",
+                      date: formatDayKey(historyDate, i18n.language),
+                      count: unfilteredOrders.length,
+                    })}
+            </span>
+            <button type="button" className="history-bar-btn" onClick={exitHistory}>
+              {t("orderPanel.history.backToToday", {
+                defaultValue: "Вернуться к сегодняшнему дню",
+              })}
+            </button>
+          </div>
+        )}
+
         <div className="orders-table">
           <div className="table-header">
             <div className="header-number">№</div>
@@ -613,8 +741,14 @@ const OrderPanel = () => {
               </div>
             ))}
 
-            {orders.length === 0 && (
-              <div className="owner-empty">{t("orderPanel.empty")}</div>
+            {orders.length === 0 && !historyLoading && (
+              <div className="owner-empty">
+                {isHistory
+                  ? t("orderPanel.history.empty", {
+                      defaultValue: "За этот день заказов нет",
+                    })
+                  : t("orderPanel.empty")}
+              </div>
             )}
           </div>
         </div>

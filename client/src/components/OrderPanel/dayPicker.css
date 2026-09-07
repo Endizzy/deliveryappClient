@@ -1,0 +1,214 @@
+/* ── Календарь выбора прошедшего дня в панели заказов ────────────────────── */
+
+.dp-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.dp-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Крестик «вернуться к сегодня» — поверх правого края кнопки */
+.dp-clear {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: #dc2626;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    z-index: 2;
+}
+
+.dp-clear:hover {
+    background: #fee2e2;
+}
+
+/* ── Поповер ── */
+.dp-pop {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 1000;
+    width: 268px;
+    padding: 12px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, .16);
+}
+
+.dp-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.dp-month {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #0f172a;
+    text-transform: capitalize;
+}
+
+.dp-nav {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #475569;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.dp-nav:hover:not(:disabled) {
+    background: #f1f5f9;
+}
+
+.dp-nav:disabled {
+    opacity: .4;
+    cursor: default;
+}
+
+/* ── Сетка дней ── */
+.dp-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+.dp-weekdays {
+    margin-bottom: 4px;
+}
+
+.dp-weekday {
+    text-align: center;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #94a3b8;
+    padding: 2px 0;
+}
+
+.dp-cell {
+    height: 32px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    font-size: 13px;
+    font-family: inherit;
+    color: #0f172a;
+    cursor: pointer;
+    padding: 0;
+}
+
+.dp-cell:hover:not(:disabled):not(.dp-empty) {
+    background: #f1f5f9;
+}
+
+.dp-cell:disabled {
+    color: #cbd5e1;
+    cursor: default;
+}
+
+.dp-empty {
+    cursor: default;
+}
+
+/* Сегодняшний день — обводка, выбранный — заливка */
+.dp-cell.is-today {
+    border-color: #93c5fd;
+    font-weight: 700;
+}
+
+.dp-cell.is-selected {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+    font-weight: 700;
+}
+
+.dp-cell.is-selected:hover {
+    background: #1d4ed8;
+}
+
+.dp-today {
+    width: 100%;
+    margin-top: 10px;
+    padding: 7px 10px;
+    border-radius: 9px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #0f172a;
+    font-size: 12.5px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.dp-today:hover {
+    background: #f1f5f9;
+}
+
+/* ── Полоса режима истории над таблицей ── */
+.history-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 0 0 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    color: #92400e;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.history-bar-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.history-bar-btn {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid #d97706;
+    background: #d97706;
+    color: #fff;
+    font-size: 12.5px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.history-bar-btn:hover {
+    background: #b45309;
+    border-color: #b45309;
+}
+
+/* Кнопка создания заказа, заблокированная в режиме истории */
+.nav-tab:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
