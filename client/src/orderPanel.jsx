@@ -262,9 +262,14 @@ const OrderPanel = () => {
   }
 
   // Быстрая смена статуса прямо из таблицы (без захода в EditOrder).
-  // Сервер не трогаем: используем те же методы, что и EditOrder — GET полного
-  // заказа, затем PUT с изменённым статусом (PATCH запрещён CORS-политикой сервера).
-  // Оптимистично обновляем UI, при ошибке — откат перезагрузкой вкладки.
+  //
+  // Идёт через отдельный маршрут PUT /:id/status, который меняет ТОЛЬКО статус.
+  // Раньше здесь собирался полный payload и отправлялся в PUT /:id, а тот
+  // пересчитывает заказ целиком: заново считает позиции и заново подтягивает
+  // скидку клиента. Из-за applyCustomerDiscount:false скидка обнулялась, и
+  // завершённый заказ показывался по полной цене.
+  //
+  // Оптимистично обновляем UI, при ошибке — откат.
   async function changeStatus(order, newStatus) {
     setStatusMenuFor(null);
     if (!newStatus || newStatus === order.status) return;
@@ -283,52 +288,10 @@ const OrderPanel = () => {
     }
 
     try {
-      // 1) подтягиваем полный заказ (товары, адрес, оплата) — чтобы PUT ничего не затёр
-      const gr = await fetch(`${API}/current-orders/${order.id}`, { headers: authHeaders });
-      const gd = await gr.json();
-      if (!gr.ok || !gd.ok) throw new Error(gd.error || "load failed");
-      const o = gd.item;
-
-      // 2) собираем payload как в EditOrder, меняем только статус.
-      //    applyCustomerDiscount:false — смена статуса не должна пересчитывать цены.
-      const payload = {
-        orderType: o.orderType,
-        status: newStatus,
-        scheduledAt: o.scheduledAt || null,
-        courierId: o.courierId || null,
-        pickupId: o.pickupId || null,
-        payment: o.paymentMethod,
-        // Разовую скидку обязательно вернуть обратно: сервер пересчитывает
-        // суммы по присланному payload, и без этого поля смена статуса
-        // молча обнулила бы скидку и увеличила сумму заказа.
-        manualDiscountPercent: o.manualDiscountPercent ?? 0,
-        deliveryFee: o.deliveryFee ?? 0,
-        customer: o.customer,
-        phone: o.phone,
-        street: o.addressStreet || null,
-        house: o.addressHouse || null,
-        building: o.addressBuilding || null,
-        apart: o.addressApartment || null,
-        floor: o.addressFloor || null,
-        code: o.addressCode || null,
-        numOfPeople: o.numOfPeople || null,
-        addressLat: o.addressLat ?? null,
-        addressLng: o.addressLng ?? null,
-        notes: o.notes || null,
-        applyCustomerDiscount: false,
-        selectedItems: (o.items || []).map((i) => ({
-          id: i.id,
-          name: i.name,
-          price: Number(i.price || 0),
-          discount: Number(i.discount || 0),
-          quantity: Number(i.quantity || 1),
-        })),
-      };
-
-      const res = await fetch(`${API}/current-orders/${order.id}`, {
+      const res = await fetch(`${API}/current-orders/${order.id}/status`, {
         method: "PUT",
         headers: { ...authHeaders, "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ status: newStatus }),
       });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || "status update failed");
