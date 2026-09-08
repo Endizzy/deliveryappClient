@@ -4,8 +4,13 @@ import "./CreateOrder.css";
 import { useNavigate } from "react-router-dom";
 import useNotification from "./hooks/useNotification.jsx";
 import { useTranslation } from "react-i18next";
-import { toCents, formatCents } from "./utils/money.js";
-import { normalizePhoneForLookup } from "./utils/phone.js";
+import {
+  toCents,
+  formatCents,
+  customerDiscountCents as calcCustomerDiscountCents,
+  MANUAL_DISCOUNT_OPTIONS,
+} from "./utils/money.js";
+import { normalizePhoneForLookup, isValidPhone } from "./utils/phone.js";
 import { toLocalDateInput, toLocalTimeInput, localInputsToISO } from "./utils/datetime.js";
 import useOrderResources from "./hooks/useOrderResources.js";
 import useCustomerLookup from "./hooks/useCustomerLookup.js";
@@ -52,6 +57,8 @@ const CreateOrder = () => {
     courierId: "",
     deliveryFee: "",
     payment: "",
+    // Разовая скидка на этот заказ, 0 — без скидки
+    manualDiscountPercent: 0,
     pickupId: "",
     orderType: "active",
     notes: "",
@@ -186,15 +193,51 @@ const CreateOrder = () => {
 
   const calculateItemsTotalCents = itemsTotalCents;
 
-  // Персональная скидка клиента (подставляется по телефону, применяется сервером)
-  const customerDiscountCents = useMemo(() => {
-    if (!customerDiscount || !(Number(customerDiscount.value) > 0)) return 0;
-    const items = itemsTotalCents();
-    if (customerDiscount.type === "fixed") {
-      return Math.min(toCents(customerDiscount.value), items);
+  // Персональная скидка клиента (подставляется по телефону, применяется сервером).
+  // Процент считается только от позиций без скидки в меню — иначе на акционном
+  // товаре скидка складывалась бы дважды.
+  const customerDiscountCents = useMemo(
+    () =>
+      calcCustomerDiscountCents(
+        selectedItems,
+        customerDiscount,
+        formData.manualDiscountPercent
+      ),
+    [customerDiscount, selectedItems, formData.manualDiscountPercent]
+  );
+
+  // Какая из двух скидок реально применилась — её и подписываем в итогах.
+  // Считаем обе по отдельности той же функцией: так подпись не может
+  // разойтись с суммой.
+  const appliedDiscountLabel = useMemo(() => {
+    const personal = calcCustomerDiscountCents(selectedItems, customerDiscount, 0);
+    const manual = calcCustomerDiscountCents(selectedItems, null, formData.manualDiscountPercent);
+
+    if (manual > 0 && manual >= personal) {
+      return {
+        title: t("createOrder.summary.manualDiscount", {
+          defaultValue: "Разовая скидка",
+        }),
+        detail: `(−${formData.manualDiscountPercent}%)`,
+      };
     }
-    return Math.round((items * Math.min(Number(customerDiscount.value), 100)) / 100);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return {
+      title: t("createOrder.summary.customerDiscount", {
+        defaultValue: "Скидка клиента",
+      }),
+      detail:
+        customerDiscount?.type === "fixed"
+          ? `(−${formatCents(toCents(customerDiscount.value))} €)`
+          : `(−${customerDiscount?.value ?? 0}%)`,
+    };
+  }, [selectedItems, customerDiscount, formData.manualDiscountPercent, t]);
+
+  // Есть процентная скидка, но часть позиций уже со скидкой в меню —
+  // показываем диспетчеру, почему сумма скидки меньше ожидаемой.
+  const percentDiscountPartial = useMemo(() => {
+    if (!customerDiscount || customerDiscount.type === "fixed") return false;
+    if (!(Number(customerDiscount.value) > 0)) return false;
+    return selectedItems.some((it) => Number(it?.discount) > 0);
   }, [customerDiscount, selectedItems]);
 
   const calculateGrandTotalCents = () =>
@@ -380,7 +423,9 @@ const CreateOrder = () => {
 
     if (!formData.phone.trim()) {
       e.phone = t("createOrder.validation.phoneRequired");
-    } else if (!/^\+\d{8,15}$/.test(formData.phone.replace(/\s/g, ""))) {
+      // Та же проверка, что и в EditOrder — правило живёт в utils/phone.js.
+      // Раньше здесь и там были две независимые копии, и они разъехались.
+    } else if (!isValidPhone(formData.phone)) {
       e.phone = t("createOrder.validation.phoneInvalid");
     }
 
@@ -459,6 +504,7 @@ const CreateOrder = () => {
         courierId: Number(formData.courierId) || null,
         pickupId: Number(formData.pickupId) || null,
         payment: formData.payment,
+        manualDiscountPercent: Number(formData.manualDiscountPercent) || 0,
         deliveryFee: safeDeliveryFee,
 
         customer: formData.customer.trim(),
@@ -650,16 +696,21 @@ const CreateOrder = () => {
                 <span>{t("createOrder.fields.itemsPrice")}</span>
                 <span className="v">{formatCents(calculateItemsTotalCents())} €</span>
               </div>
-              {customerDiscount && customerDiscountCents > 0 && (
+              {customerDiscountCents > 0 && (
                 <div className="co-rail-row co-rail-discount">
                   <span>
-                    {t("createOrder.summary.customerDiscount", { defaultValue: "Скидка клиента" })}
-                    {" "}
-                    {customerDiscount.type === "fixed"
-                      ? `(−${formatCents(toCents(customerDiscount.value))} €)`
-                      : `(−${customerDiscount.value}%)`}
+                    {appliedDiscountLabel.title}{" "}
+                    {appliedDiscountLabel.detail}
                   </span>
                   <span className="v">−{formatCents(customerDiscountCents)} €</span>
+                </div>
+              )}
+              {percentDiscountPartial && (
+                <div className="co-rail-hint">
+                  {t("createOrder.summary.discountOnlyFullPrice", {
+                    defaultValue:
+                      "Скидка клиента применяется только к позициям без скидки в меню",
+                  })}
                 </div>
               )}
 
@@ -721,6 +772,41 @@ const CreateOrder = () => {
                     })}
                   </div>
                 ))}
+
+              {/* Разовая скидка на заказ: день рождения, извинение за задержку.
+                  Стоит в итогах, рядом с суммой — сразу видно, как она меняется.
+                  Постоянная скидка клиента живёт отдельно, в его карточке. */}
+              {selectedItems.length > 0 && (
+                <div className="co-rail-discount-picker">
+                  <label htmlFor="manualDiscount">
+                    {t("createOrder.fields.manualDiscount", {
+                      defaultValue: "Разовая скидка на заказ",
+                    })}
+                  </label>
+                  <select
+                    id="manualDiscount"
+                    value={formData.manualDiscountPercent || 0}
+                    onChange={(e) =>
+                      handleInputChange("manualDiscountPercent", Number(e.target.value))
+                    }
+                  >
+                    <option value={0}>
+                      {t("createOrder.manualDiscount.none", { defaultValue: "Без скидки" })}
+                    </option>
+                    {MANUAL_DISCOUNT_OPTIONS.map((p) => (
+                      <option key={p} value={p}>
+                        {p}%
+                      </option>
+                    ))}
+                  </select>
+                  {/* <span className="co-rail-hint">
+                    {t("createOrder.manualDiscount.hint", {
+                      defaultValue:
+                        "Считается от позиций без скидки в меню. Если у клиента есть постоянная скидка, применяется большая из двух",
+                    })}
+                  </span> */}
+                </div>
+              )}
 
               <div className="co-rail-actions">
                 <button

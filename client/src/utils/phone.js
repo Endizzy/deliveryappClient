@@ -1,12 +1,5 @@
 // Хелперы для работы с телефонами в формах заказа.
 
-// Универсальный форматтер номера: оставляет ведущий + и цифры.
-export const formatPhoneNumber = (value) => {
-  const cleaned = String(value || "").replace(/\D/g, "");
-  if (!cleaned) return "";
-  return value.startsWith("+") ? value : `+${cleaned}`;
-};
-
 // Нормализация номера для поиска: убираем пробелы.
 export const normalizePhoneForLookup = (value) =>
   String(value || "").replace(/\s/g, "");
@@ -14,3 +7,34 @@ export const normalizePhoneForLookup = (value) =>
 // Валидация международного номера: + и 8-15 цифр.
 export const isValidPhone = (value) =>
   /^\+\d{8,15}$/.test(normalizePhoneForLookup(value));
+
+/**
+ * Форматтер поля ввода телефона для форм заказа.
+ *
+ * Держит два сценария сразу:
+ *  • местный номер — 8 цифр без кода страны дополняются до +371XXXXXXXX,
+ *    чтобы диспетчер не набирал код при каждом заказе;
+ *  • иностранный номер — если начали с «+», код страны не трогаем.
+ *
+ * Без второго правила у клиента с немецким или украинским номером телефон
+ * превращался в мусор: +49176… становился +37149176…
+ */
+export const formatPhoneInput = (value) => {
+  const raw = String(value ?? "");
+  const digits = raw.replace(/\D/g, "");
+  // Плюс уже введён — значит номер международный, код страны не подставляем
+  const isInternational = raw.trim().startsWith("+");
+
+  // Одиночный «+» обязан сохраниться: номер набирают посимвольно, и если
+  // на этом шаге вернуть пустую строку, плюс исчезнет, а следующая цифра
+  // уйдёт в ветку местного номера — иностранный номер станет не набрать.
+  if (!digits) return isInternational ? "+" : "";
+
+  if (isInternational) return "+" + digits;
+
+  if (digits.startsWith("371")) return "+" + digits;
+  // Местный латвийский номер набирают восемью цифрами
+  if (digits.length <= 8) return "+371" + digits;
+
+  return "+" + digits;
+};

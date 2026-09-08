@@ -886,3 +886,57 @@
 .eo-schedule-clear:hover {
     background: #fef3c7;
 }
+
+/* Подпись у позиции со скидкой в меню: персональная скидка клиента на неё
+   не распространяется, иначе скидка сложилась бы дважды. */
+.item-discount-note {
+    display: block;
+    margin-top: 3px;
+    font-size: 11px;
+    line-height: 1.35;
+    font-weight: 600;
+    color: #b45309;
+}
+
+.search-result-item .item-discount-note {
+    font-weight: 500;
+    color: #92400e;
+    opacity: .85;
+}
+
+/* Разовая скидка в блоке «Итог заказа»: стоит над кнопкой действия, чтобы
+   диспетчер видел, как меняется сумма, прежде чем сохранить заказ. */
+.co-rail-discount-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin: 12px 0 4px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.co-rail-discount-picker label {
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+    color: #64748b;
+}
+
+.co-rail-discount-picker select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    background: #fff;
+    font-family: inherit;
+    font-size: 13.5px;
+    color: #0f172a;
+    cursor: pointer;
+}
+
+.co-rail-discount-picker select:focus {
+    outline: none;
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, .12);
+}

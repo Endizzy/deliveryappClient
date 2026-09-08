@@ -138,6 +138,13 @@ const ItemsSection = ({
                         <span>€{formatCents(toCents(item.price))}</span>
                       )}
                     </span>
+                    {item.discount > 0 && (
+                      <span className="item-discount-note">
+                        {t("createOrder.items.noCustomerDiscount", {
+                          defaultValue: "скидка клиента не применяется",
+                        })}
+                      </span>
+                    )}
                   </div>
                   <Plus size={16} className="add-icon" />
                 </div>
@@ -166,6 +173,18 @@ const ItemsSection = ({
                     )}
                     <span className="unit-price">€{formatCents(unitCents)}</span>
                   </div>
+                  {/* На товар со скидкой в меню персональная скидка клиента
+                      не распространяется — иначе скидка сложилась бы дважды.
+                      Без подписи диспетчер этого не видит. */}
+                  {item.discount > 0 && (
+                    <span className="item-discount-note">
+                      {t("createOrder.items.hasMenuDiscount", {
+                        defaultValue:
+                          "Товар со скидкой {{percent}}% — скидка клиента не применяется",
+                        percent: item.discount,
+                      })}
+                    </span>
+                  )}
                 </div>
 
                 <div className="quantity-controls">

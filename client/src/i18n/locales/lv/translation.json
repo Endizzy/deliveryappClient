@@ -158,7 +158,9 @@
       "payment": "Maksājuma veids",
       "pickup": "Komplektēšanas punkts",
       "notes": "Piezīmes (nav obligāti)",
-      "numOfPeople": "Cilvēku skaits"
+      "numOfPeople": "Cilvēku skaits",
+      "manualDiscount": "Vienreizēja atlaide pasūtījumam",
+      "status": "Statuss"
     },
     "placeholders": {
       "phone": "+371XXXXXXXX",
@@ -231,6 +233,21 @@
       "free": "bez maksas",
       "missingToFree": "Līdz bezmaksas piegādei trūkst {{sum}} €",
       "belowMin": "Minimālais pasūtījums zonā «{{zone}}» — {{min}} €. Trūkst {{missing}} €"
+    },
+    "summary": {
+      "discountOnlyFullPrice": "Klienta atlaide attiecas tikai uz pozīcijām bez atlaides ēdienkartē",
+      "manualDiscount": "Vienreizēja atlaide",
+      "title": "Pasūtījuma kopsavilkums",
+      "items": "Pozīcijas",
+      "customerDiscount": "Klienta atlaide"
+    },
+    "items": {
+      "hasMenuDiscount": "Precei jau ir {{percent}}% atlaide — klienta atlaide netiek piemērota",
+      "noCustomerDiscount": "klienta atlaide netiek piemērota"
+    },
+    "manualDiscount": {
+      "none": "Bez atlaides",
+      "hint": "Attiecas uz pozīcijām bez atlaides ēdienkartē. Ja klientam ir pastāvīga atlaide, tiek piemērota lielākā no divām"
     }
   },
   "userProfile": {

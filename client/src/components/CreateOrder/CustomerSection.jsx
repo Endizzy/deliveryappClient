@@ -1,6 +1,6 @@
 import React from "react";
 import { User, Phone, Eraser } from "lucide-react";
-import { formatPhoneNumber } from "../../utils/phone.js";
+import { formatPhoneInput } from "../../utils/phone.js";
 import TimeSelect24 from "./TimeSelect24.jsx";
 
 // Секция «Данные клиента»: контакты, адрес и — последним пунктом — тип заказа
@@ -48,7 +48,7 @@ const CustomerSection = ({
               type="tel"
               value={formData.phone}
               onChange={(e) =>
-                handleInputChange("phone", formatPhoneNumber(e.target.value))
+                handleInputChange("phone", formatPhoneInput(e.target.value))
               }
               className={errors.phone ? "error" : ""}
               placeholder={t("createOrder.placeholders.phone")}

@@ -16,9 +16,20 @@ import "./CreateOrder.css";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useReactToPrint } from "react-to-print";
-import { discountedUnitCents, formatCents, lineTotalCents, toCents } from "./utils/money.js";
+import {
+  discountedUnitCents,
+  formatCents,
+  lineTotalCents,
+  toCents,
+  customerDiscountCents as calcCustomerDiscountCents,
+  MANUAL_DISCOUNT_OPTIONS,
+} from "./utils/money.js";
 import TimeSelect24 from "./components/CreateOrder/TimeSelect24.jsx";
 import { pad2, toLocalDateInput, toLocalTimeInput, localInputsToISO } from "./utils/datetime.js";
+// Общие хелперы телефона: раньше в этом файле лежала своя копия, которая знала
+// только латвийские номера, — из-за неё заказ с иностранным номером нельзя
+// было сохранить, а сам номер портился при вводе.
+import { formatPhoneInput, isValidPhone } from "./utils/phone.js";
 import Loader from "./components/Loader/Loader.jsx";
 import InvoiceTemplate from "./pages/InvoiceSettings/InvoiceTemplate.jsx";
 import AddressMapField from "./components/CreateOrder/AddressMapField.jsx";
@@ -27,14 +38,6 @@ import DeliverySection from "./components/CreateOrder/DeliverySection.jsx";
 import { findZoneForPoint } from "./utils/zones.js";
 
 const API = import.meta.env.VITE_API_URL;
-
-// формат номера LV (как в CreateOrder)
-const formatPhoneNumber = (value) => {
-  let cleaned = value.replace(/\D/g, "");
-  if (cleaned.startsWith("371")) cleaned = "+" + cleaned;
-  else if (!cleaned.startsWith("+371") && cleaned.length > 0) cleaned = "+371" + cleaned;
-  return cleaned;
-};
 
 // Payment label mapping
 const PAYMENT_LABELS = {
@@ -109,6 +112,8 @@ const EditOrder = () => {
     courierId: "",
     deliveryFee: "",
     payment: "",
+    // Разовая скидка на этот заказ, 0 — без скидки
+    manualDiscountPercent: 0,
     pickupId: "",
     notes: "",
     scheduledDate: "",
@@ -278,6 +283,7 @@ const EditOrder = () => {
       courierId: o.courierId || "",
       deliveryFee: o.deliveryFee ?? "",
       payment: o.paymentMethod || "",
+      manualDiscountPercent: Number(o.manualDiscountPercent) || 0,
       pickupId: o.pickupId || "",
       notes: o.notes || "",
       scheduledDate,
@@ -418,15 +424,51 @@ const EditOrder = () => {
       0
     );
 
-  // Персональная скидка клиента (по телефону, применяется сервером и при правке)
-  const customerDiscountCents = useMemo(() => {
-    if (!customerDiscount || !(Number(customerDiscount.value) > 0)) return 0;
-    const items = calculateItemsTotalCents();
-    if (customerDiscount.type === "fixed") {
-      return Math.min(toCents(customerDiscount.value), items);
+  // Персональная скидка клиента (по телефону, применяется сервером и при правке).
+  // Процент считается только от позиций без скидки в меню — иначе на акционном
+  // товаре скидка складывалась бы дважды.
+  const customerDiscountCents = useMemo(
+    () =>
+      calcCustomerDiscountCents(
+        selectedItems,
+        customerDiscount,
+        formData.manualDiscountPercent
+      ),
+    [customerDiscount, selectedItems, formData.manualDiscountPercent]
+  );
+
+  // Какая из двух скидок реально применилась — её и подписываем в итогах.
+  // Считаем обе по отдельности той же функцией: так подпись не может
+  // разойтись с суммой.
+  const appliedDiscountLabel = useMemo(() => {
+    const personal = calcCustomerDiscountCents(selectedItems, customerDiscount, 0);
+    const manual = calcCustomerDiscountCents(selectedItems, null, formData.manualDiscountPercent);
+
+    if (manual > 0 && manual >= personal) {
+      return {
+        title: t("createOrder.summary.manualDiscount", {
+          defaultValue: "Разовая скидка",
+        }),
+        detail: `(−${formData.manualDiscountPercent}%)`,
+      };
     }
-    return Math.round((items * Math.min(Number(customerDiscount.value), 100)) / 100);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return {
+      title: t("createOrder.summary.customerDiscount", {
+        defaultValue: "Скидка клиента",
+      }),
+      detail:
+        customerDiscount?.type === "fixed"
+          ? `(−${formatCents(toCents(customerDiscount.value))} €)`
+          : `(−${customerDiscount?.value ?? 0}%)`,
+    };
+  }, [selectedItems, customerDiscount, formData.manualDiscountPercent, t]);
+
+  // Есть процентная скидка, но часть позиций уже со скидкой в меню —
+  // показываем диспетчеру, почему сумма скидки меньше ожидаемой.
+  const percentDiscountPartial = useMemo(() => {
+    if (!customerDiscount || customerDiscount.type === "fixed") return false;
+    if (!(Number(customerDiscount.value) > 0)) return false;
+    return selectedItems.some((it) => Number(it?.discount) > 0);
   }, [customerDiscount, selectedItems]);
 
   const calculateGrandTotalCents = () =>
@@ -517,8 +559,11 @@ const EditOrder = () => {
   const validateForm = () => {
     const e = {};
     if (!formData.customer.trim()) e.customer = t("createOrder.validation.customerRequired");
+    // Международный формат, как в CreateOrder. Жёсткая маска /^\+371\d{8}$/
+    // не давала сохранить заказ клиента с иностранным номером — заказ
+    // создавался, но становился нередактируемым.
     if (!formData.phone.trim()) e.phone = t("createOrder.validation.phoneRequired");
-    else if (!/^\+371\d{8}$/.test(formData.phone.replace(/\s/g, ""))) {
+    else if (!isValidPhone(formData.phone)) {
       e.phone = t("createOrder.validation.phoneInvalid");
     }
     if (selectedItems.length === 0) e.items = t("createOrder.validation.itemsRequired");
@@ -569,6 +614,7 @@ const EditOrder = () => {
         courierId: Number(formData.courierId) || null,
         pickupId: Number(formData.pickupId) || null,
         payment: formData.payment,
+        manualDiscountPercent: Number(formData.manualDiscountPercent) || 0,
         deliveryFee: safeDeliveryFee,
         customer: formData.customer,
         phone: formData.phone,
@@ -652,7 +698,7 @@ const EditOrder = () => {
                       <input
                         type="tel"
                         value={formData.phone}
-                        onChange={(e) => handleInputChange("phone", formatPhoneNumber(e.target.value))}
+                        onChange={(e) => handleInputChange("phone", formatPhoneInput(e.target.value))}
                         className={errors.phone ? "error" : ""}
                         placeholder={t("createOrder.placeholders.phone")}
                       />
@@ -930,6 +976,13 @@ const EditOrder = () => {
                                   <span>€{formatCents(toCents(item.price))}</span>
                                 )}
                               </span>
+                              {item.discount > 0 && (
+                                <span className="item-discount-note">
+                                  {t("createOrder.items.noCustomerDiscount", {
+                                    defaultValue: "скидка клиента не применяется",
+                                  })}
+                                </span>
+                              )}
                             </div>
                             <Plus size={16} className="add-icon" />
                           </div>
@@ -956,6 +1009,18 @@ const EditOrder = () => {
                               {item.discount > 0 && <span className="discount-info">-{item.discount}%</span>}
                               <span className="unit-price">€{formatCents(unitCents)}</span>
                             </div>
+                            {/* На товар со скидкой в меню персональная скидка
+                                клиента не распространяется — иначе скидка
+                                сложилась бы дважды. */}
+                            {item.discount > 0 && (
+                              <span className="item-discount-note">
+                                {t("createOrder.items.hasMenuDiscount", {
+                                  defaultValue:
+                                    "Товар со скидкой {{percent}}% — скидка клиента не применяется",
+                                  percent: item.discount,
+                                })}
+                              </span>
+                            )}
                           </div>
 
                           <div className="quantity-controls">
@@ -1106,16 +1171,21 @@ const EditOrder = () => {
                   <span>{t("createOrder.fields.itemsPrice")}</span>
                   <span className="v">{formatCents(calculateItemsTotalCents())} €</span>
                 </div>
-                {customerDiscount && customerDiscountCents > 0 && (
+                {customerDiscountCents > 0 && (
                   <div className="co-rail-row co-rail-discount">
                     <span>
-                      {t("createOrder.summary.customerDiscount", { defaultValue: "Скидка клиента" })}
-                      {" "}
-                      {customerDiscount.type === "fixed"
-                        ? `(−${formatCents(toCents(customerDiscount.value))} €)`
-                        : `(−${customerDiscount.value}%)`}
+                      {appliedDiscountLabel.title}{" "}
+                      {appliedDiscountLabel.detail}
                     </span>
                     <span className="v">−{formatCents(customerDiscountCents)} €</span>
+                  </div>
+                )}
+                {percentDiscountPartial && (
+                  <div className="co-rail-hint">
+                    {t("createOrder.summary.discountOnlyFullPrice", {
+                      defaultValue:
+                        "Скидка клиента применяется только к позициям без скидки в меню",
+                    })}
                   </div>
                 )}
                 <div className="co-rail-row">
@@ -1138,6 +1208,41 @@ const EditOrder = () => {
                 {geo && zones.length > 0 && !currentZone && (
                   <div className="co-rail-status warn">
                     {t("createOrder.map.outsideZones", { defaultValue: "Точка вне зон доставки" })}
+                  </div>
+                )}
+
+                {/* Разовая скидка на заказ: день рождения, извинение за задержку.
+                    Стоит в итогах, рядом с суммой — сразу видно, как она меняется.
+                    Постоянная скидка клиента живёт отдельно, в его карточке. */}
+                {selectedItems.length > 0 && (
+                  <div className="co-rail-discount-picker">
+                    <label htmlFor="manualDiscount">
+                      {t("createOrder.fields.manualDiscount", {
+                        defaultValue: "Разовая скидка на заказ",
+                      })}
+                    </label>
+                    <select
+                      id="manualDiscount"
+                      value={formData.manualDiscountPercent || 0}
+                      onChange={(e) =>
+                        handleInputChange("manualDiscountPercent", Number(e.target.value))
+                      }
+                    >
+                      <option value={0}>
+                        {t("createOrder.manualDiscount.none", { defaultValue: "Без скидки" })}
+                      </option>
+                      {MANUAL_DISCOUNT_OPTIONS.map((p) => (
+                        <option key={p} value={p}>
+                          {p}%
+                        </option>
+                      ))}
+                    </select>
+                    {/* <span className="co-rail-hint">
+                      {t("createOrder.manualDiscount.hint", {
+                        defaultValue:
+                          "Считается от позиций без скидки в меню. Если у клиента есть постоянная скидка, применяется большая из двух",
+                      })}
+                    </span> */}
                   </div>
                 )}
 

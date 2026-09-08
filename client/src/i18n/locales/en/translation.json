@@ -158,7 +158,9 @@
       "payment": "Payment method",
       "pickup": "Pickup point",
       "notes": "Notes (optional)",
-      "numOfPeople": "Number of people"
+      "numOfPeople": "Number of people",
+      "manualDiscount": "One-time order discount",
+      "status": "Status"
     },
     "placeholders": {
       "phone": "+371XXXXXXXX",
@@ -231,6 +233,21 @@
       "free": "free",
       "missingToFree": "{{sum}} € more for free delivery",
       "belowMin": "Minimum order in zone “{{zone}}” is {{min}} €. {{missing}} € short"
+    },
+    "summary": {
+      "discountOnlyFullPrice": "Customer discount applies only to items without a menu discount",
+      "manualDiscount": "One-time discount",
+      "title": "Order summary",
+      "items": "Items",
+      "customerDiscount": "Customer discount"
+    },
+    "items": {
+      "hasMenuDiscount": "Item already has {{percent}}% off — customer discount does not apply",
+      "noCustomerDiscount": "customer discount does not apply"
+    },
+    "manualDiscount": {
+      "none": "No discount",
+      "hint": "Applies to items without a menu discount. If the customer has a permanent discount, the larger of the two is used"
     }
   },
   "userProfile": {

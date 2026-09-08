@@ -298,6 +298,10 @@ const OrderPanel = () => {
         courierId: o.courierId || null,
         pickupId: o.pickupId || null,
         payment: o.paymentMethod,
+        // Разовую скидку обязательно вернуть обратно: сервер пересчитывает
+        // суммы по присланному payload, и без этого поля смена статуса
+        // молча обнулила бы скидку и увеличила сумму заказа.
+        manualDiscountPercent: o.manualDiscountPercent ?? 0,
         deliveryFee: o.deliveryFee ?? 0,
         customer: o.customer,
         phone: o.phone,
