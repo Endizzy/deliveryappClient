@@ -213,7 +213,7 @@ export default function PastOrdersModal({
               defaultValue: "Цены берутся из актуального меню, а не из прошлого заказа",
             })}
           </span>
-          <button type="button" className="btn-secondary" onClick={onClose}>
+          <button type="button" className="btn-primary" onClick={onClose}>
             {t("createOrder.buttons.cancel")}
           </button>
         </div>

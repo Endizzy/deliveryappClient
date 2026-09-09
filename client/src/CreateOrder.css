@@ -519,18 +519,21 @@
     width: 28px;
     height: 28px;
     border: none;
-    background: white;
+    background: var(--app-gradient);
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s ease;
-    color: #475569;
+    color: white;
     padding: 0;
 }
 
 .quantity-btn:hover {
-    background: #667eea;
+    /* background: #475569; */
     color: white;
-    transform: scale(1.05);
+    /* transform: scale(1.05); */
+    /* transition: all 0.5s ease; */
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
 }
 
 .quantity {

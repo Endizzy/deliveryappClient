@@ -260,7 +260,7 @@
       "empty": "This customer has no orders yet",
       "loadFailed": "Could not load past orders",
       "nothingToRepeat": "None of this order's items are on the menu",
-      "someMissing": "Not carried over (not on the menu): {{names}}",
+      "someMissing": "Not on the menu: {{names}}",
       "repeated": "Items from the past order have been added",
       "replaceConfirm": "The current item list will be replaced. Continue?",
       "priceHint": "Prices come from the current menu, not from the past order"

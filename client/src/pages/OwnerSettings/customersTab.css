@@ -58,7 +58,7 @@
 .cust-table tbody td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; color: #334155; vertical-align: middle; }
 .cust-table tbody tr:last-child td { border-bottom: none; }
 .cust-table tbody tr:hover { background: #f8fafc; }
-.cust-num { text-align: right; white-space: nowrap; }
+.cust-num { text-align: left; white-space: nowrap; }
 .cust-strong { font-weight: 700; color: #0f172a; }
 .cust-name { font-weight: 600; color: #0f172a; }
 .cust-phone { color: #475569; white-space: nowrap; }
@@ -68,7 +68,11 @@
 
 .cust-icon-btn {
   border: 1px solid #e2e8f0; background: #fff; color: #475569;
-  width: 30px; height: 30px; border-radius: 8px; cursor: pointer;
+  width: 30px; 
+  height: 30px; 
+  padding: 0 !important;
+  border-radius: 8px; 
+  cursor: pointer;
   display: inline-grid; place-items: center; margin-left: 6px;
   transition: all .15s;
 }

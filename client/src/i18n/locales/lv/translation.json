@@ -260,7 +260,7 @@
       "empty": "Šim klientam vēl nav pasūtījumu",
       "loadFailed": "Neizdevās ielādēt iepriekšējos pasūtījumus",
       "nothingToRepeat": "Neviena šī pasūtījuma pozīcija nav ēdienkartē",
-      "someMissing": "Netika pārnestas (nav ēdienkartē): {{names}}",
+      "someMissing": "Nav ēdienkartē: {{names}}",
       "repeated": "Iepriekšējā pasūtījuma pozīcijas ir pārnestas",
       "replaceConfirm": "Pašreizējais pozīciju saraksts tiks aizstāts. Turpināt?",
       "priceHint": "Cenas tiek ņemtas no aktuālās ēdienkartes, nevis no iepriekšējā pasūtījuma"

@@ -65,8 +65,9 @@
 }
 
 .dp-nav {
-    /* width: 28px; */
+    width: 28px;
     height: 28px;
+    padding: 0 !important;
     border-radius: 8px;
     border: 1px solid #e2e8f0;
     background: #f8fafc;
