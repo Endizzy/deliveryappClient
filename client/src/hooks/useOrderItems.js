@@ -35,5 +35,17 @@ export default function useOrderItems() {
       0
     );
 
-  return { selectedItems, addItem, removeItem, updateItemQuantity, itemsTotalCents };
+  // Заменить состав заказа целиком. Нужно для повтора прошлого заказа:
+  // addItem добавляет по одной штуке, а тут количества уже известны.
+  const setItems = (items) =>
+    setSelectedItems(Array.isArray(items) ? items : []);
+
+  return {
+    selectedItems,
+    addItem,
+    removeItem,
+    updateItemQuantity,
+    itemsTotalCents,
+    setItems,
+  };
 }

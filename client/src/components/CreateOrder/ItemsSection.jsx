@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Package, Search, Plus, Minus, X } from "lucide-react";
+import { Package, Search, Plus, Minus, X, History } from "lucide-react";
 import { discountedUnitCents, formatCents, toCents } from "../../utils/money.js";
 import AddressMapField from "./AddressMapField.jsx";
 
@@ -34,6 +34,9 @@ const ItemsSection = ({
   onExpandMap,
   zones,
   currentZone,
+  // ── прошлые заказы клиента ──
+  pastOrdersCount = 0,
+  onOpenPastOrders,
 }) => {
   // ── навигация по списку с клавиатуры ──
   const [activeIndex, setActiveIndex] = useState(0);
@@ -79,6 +82,23 @@ const ItemsSection = ({
         <Package size={20} />
         <h3>{t("createOrder.sections.items")}</h3>
       </div>
+
+      {/* Клиент уже заказывал — предлагаем повторить, не заставляя диспетчера
+          искать прошлый заказ во вкладке «Клиенты» */}
+      {pastOrdersCount > 0 && (
+        <div className="po-open-row">
+          <span>
+            {t("createOrder.pastOrders.hasHistory", {
+              defaultValue: "Клиент уже заказывал: {{count}} заказ(ов)",
+              count: pastOrdersCount,
+            })}
+          </span>
+          <button type="button" className="po-open-btn" onClick={onOpenPastOrders}>
+            <History size={14} />
+            {t("createOrder.pastOrders.open", { defaultValue: "Прошлые заказы" })}
+          </button>
+        </div>
+      )}
 
       <div className="form-group">
         <label htmlFor="search">{t("createOrder.fields.searchItems")} *</label>

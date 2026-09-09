@@ -20,12 +20,13 @@ import DeliverySection from "./components/CreateOrder/DeliverySection.jsx";
 import ItemsSection from "./components/CreateOrder/ItemsSection.jsx";
 import NotesSection from "./components/CreateOrder/NotesSection.jsx";
 import DeliveryMapModal from "./components/CreateOrder/DeliveryMapModal.jsx";
+import PastOrdersModal from "./components/CreateOrder/PastOrdersModal.jsx";
 import { findZoneForPoint, getZoneDeliveryRules } from "./utils/zones.js";
 
 const PREORDER_MIN_OFFSET_MIN = 15;
 
 const CreateOrder = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;
 
@@ -182,8 +183,141 @@ const CreateOrder = () => {
   }, [searchTerm, allMenu]);
 
   // ---- позиции заказа ----
-  const { selectedItems, addItem, removeItem, updateItemQuantity, itemsTotalCents } =
-    useOrderItems();
+  const {
+    selectedItems,
+    addItem,
+    removeItem,
+    updateItemQuantity,
+    itemsTotalCents,
+    setItems,
+  } = useOrderItems();
+
+  // ── Прошлые заказы клиента ────────────────────────────────────────────────
+  // Клиент часто просит «то же, что в прошлый раз». Историю грузим по тому же
+  // номеру, что и скидку, и только когда номер выглядит полным — иначе запрос
+  // уходил бы на каждую набранную цифру.
+  const [pastOrders, setPastOrders] = useState([]);
+  const [pastOrdersLoading, setPastOrdersLoading] = useState(false);
+  const [pastOrdersError, setPastOrdersError] = useState("");
+  const [pastOrdersOpen, setPastOrdersOpen] = useState(false);
+
+  useEffect(() => {
+    const raw = (formData.phone || "").replace(/\s/g, "");
+    if (!/^\+?\d{8,15}$/.test(raw)) {
+      setPastOrders([]);
+      setPastOrdersError("");
+      return;
+    }
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      setPastOrdersLoading(true);
+      setPastOrdersError("");
+      try {
+        const res = await fetch(
+          `${API}/customers/${encodeURIComponent(raw)}/orders?limit=10`,
+          { headers: authHeaders }
+        );
+        if (res.status === 401) return handleUnauthorized();
+        const data = await res.json();
+        if (cancelled) return;
+        if (!res.ok || !data.ok) throw new Error(data.error || "load failed");
+        setPastOrders(data.items || []);
+      } catch {
+        if (!cancelled) {
+          setPastOrders([]);
+          setPastOrdersError(
+            t("createOrder.pastOrders.loadFailed", {
+              defaultValue: "Не удалось загрузить прошлые заказы",
+            })
+          );
+        }
+      } finally {
+        if (!cancelled) setPastOrdersLoading(false);
+      }
+    }, 350);
+    // Быстрая правка номера не должна оставить на экране историю чужого клиента
+    return () => { cancelled = true; clearTimeout(timer); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.phone, API, authHeaders, handleUnauthorized]);
+
+  // Меню по id — для сверки прошлого заказа с актуальным меню
+  const menuById = useMemo(() => {
+    const map = new Map();
+    for (const m of allMenu) map.set(String(m.id), m);
+    return map;
+  }, [allMenu]);
+
+  // Повтор прошлого заказа.
+  //
+  // Из истории берём только состав и количества. Цену и скидку — из ТЕКУЩЕГО
+  // меню: цены меняются, и повтор по старым был бы прямой потерей денег.
+  // Позиции, которых в меню больше нет или которые выключены, пропускаем
+  // и говорим об этом вслух.
+  const repeatPastOrder = (order) => {
+    const merged = new Map();
+    const missing = [];
+
+    for (const it of order?.items || []) {
+      const fresh = menuById.get(String(it.id));
+      if (!fresh) {
+        missing.push(it.name || `#${it.id}`);
+        continue;
+      }
+      const qty = Math.max(1, Math.trunc(Number(it.quantity) || 1));
+      const prev = merged.get(String(fresh.id));
+      // Одна позиция могла попасть в заказ дважды — складываем количества
+      merged.set(String(fresh.id), {
+        ...fresh,
+        quantity: (prev?.quantity || 0) + qty,
+      });
+    }
+
+    const items = Array.from(merged.values());
+    if (items.length === 0) {
+      notify({
+        type: "error",
+        title: t("createOrder.pastOrders.nothingToRepeat", {
+          defaultValue: "Ни одной позиции этого заказа нет в меню",
+        }),
+        duration: 4500,
+      });
+      return;
+    }
+
+    // Уже набранный заказ молча заменять нельзя
+    if (selectedItems.length > 0) {
+      const ok = window.confirm(
+        t("createOrder.pastOrders.replaceConfirm", {
+          defaultValue: "Текущий список позиций будет заменён. Продолжить?",
+        })
+      );
+      if (!ok) return;
+    }
+
+    setItems(items);
+    setPastOrdersOpen(false);
+
+    notify(
+      missing.length > 0
+        ? {
+            type: "error",
+            title: t("createOrder.pastOrders.repeated", {
+              defaultValue: "Позиции прошлого заказа перенесены",
+            }),
+            message: t("createOrder.pastOrders.someMissing", {
+              defaultValue: "Не перенеслись (нет в меню): {{names}}",
+              names: missing.join(", "),
+            }),
+            duration: 6000,
+          }
+        : {
+            title: t("createOrder.pastOrders.repeated", {
+              defaultValue: "Позиции прошлого заказа перенесены",
+            }),
+            duration: 3000,
+          }
+    );
+  };
 
   const addItemToOrder = (menuItem) => {
     addItem(menuItem);
@@ -648,6 +782,8 @@ const CreateOrder = () => {
               onExpandMap={() => setIsMapOpen(true)}
               zones={zones}
               currentZone={currentZone}
+              pastOrdersCount={pastOrders.length}
+              onOpenPastOrders={() => setPastOrdersOpen(true)}
             />
 
             {/* <NotesSection
@@ -847,6 +983,18 @@ const CreateOrder = () => {
             onClose={() => setIsMapOpen(false)}
           />
         )}
+
+        <PastOrdersModal
+          open={pastOrdersOpen}
+          onClose={() => setPastOrdersOpen(false)}
+          orders={pastOrders}
+          loading={pastOrdersLoading}
+          error={pastOrdersError}
+          onRepeat={repeatPastOrder}
+          menuById={menuById}
+          t={t}
+          locale={i18n.language}
+        />
       </div>
     </div>
   );

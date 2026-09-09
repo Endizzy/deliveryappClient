@@ -248,6 +248,22 @@
     "manualDiscount": {
       "none": "Bez atlaides",
       "hint": "Attiecas uz pozīcijām bez atlaides ēdienkartē. Ja klientam ir pastāvīga atlaide, tiek piemērota lielākā no divām"
+    },
+    "pastOrders": {
+      "title": "Klienta iepriekšējie pasūtījumi",
+      "open": "Iepriekšējie pasūtījumi",
+      "hasHistory": "Klients jau ir pasūtījis: {{count}} pasūtījums(i)",
+      "repeat": "Atkārtot",
+      "itemsCount": "Pozīcijas: {{count}}",
+      "itemGone": "nav ēdienkartē",
+      "loading": "Ielādē…",
+      "empty": "Šim klientam vēl nav pasūtījumu",
+      "loadFailed": "Neizdevās ielādēt iepriekšējos pasūtījumus",
+      "nothingToRepeat": "Neviena šī pasūtījuma pozīcija nav ēdienkartē",
+      "someMissing": "Netika pārnestas (nav ēdienkartē): {{names}}",
+      "repeated": "Iepriekšējā pasūtījuma pozīcijas ir pārnestas",
+      "replaceConfirm": "Pašreizējais pozīciju saraksts tiks aizstāts. Turpināt?",
+      "priceHint": "Cenas tiek ņemtas no aktuālās ēdienkartes, nevis no iepriekšējā pasūtījuma"
     }
   },
   "userProfile": {

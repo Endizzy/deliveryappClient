@@ -248,6 +248,22 @@
     "manualDiscount": {
       "none": "No discount",
       "hint": "Applies to items without a menu discount. If the customer has a permanent discount, the larger of the two is used"
+    },
+    "pastOrders": {
+      "title": "Customer's past orders",
+      "open": "Past orders",
+      "hasHistory": "Customer has ordered before: {{count}} order(s)",
+      "repeat": "Repeat",
+      "itemsCount": "Items: {{count}}",
+      "itemGone": "not on the menu",
+      "loading": "Loading…",
+      "empty": "This customer has no orders yet",
+      "loadFailed": "Could not load past orders",
+      "nothingToRepeat": "None of this order's items are on the menu",
+      "someMissing": "Not carried over (not on the menu): {{names}}",
+      "repeated": "Items from the past order have been added",
+      "replaceConfirm": "The current item list will be replaced. Continue?",
+      "priceHint": "Prices come from the current menu, not from the past order"
     }
   },
   "userProfile": {
