@@ -56,6 +56,16 @@
       "wire": "Transfer (€)",
       "paid": "Paid (€)",
       "totalItems": "Total Items"
+    },
+    "title": "Courier report",
+    "revenue": "Revenue",
+    "total": "Total",
+    "workedCount": "{{count}} worked",
+    "periods": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "week": "7 days",
+      "month": "Month"
     }
   },
   "login": {

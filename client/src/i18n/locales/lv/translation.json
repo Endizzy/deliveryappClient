@@ -56,6 +56,16 @@
       "wire": "Pārskaitījums (€)",
       "paid": "Apmaksāts (€)",
       "totalItems": "Kopā preces"
+    },
+    "title": "Kurjeru atskaite",
+    "revenue": "Ieņēmumi",
+    "total": "Kopā",
+    "workedCount": "strādāja {{count}}",
+    "periods": {
+      "today": "Šodien",
+      "yesterday": "Vakar",
+      "week": "7 dienas",
+      "month": "Mēnesis"
     }
   },
   "login": {

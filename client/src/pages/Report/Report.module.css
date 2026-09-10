@@ -1,134 +1,379 @@
+/* ── Отчёт по курьерам ───────────────────────────────────────────────────────
+   Один нейтральный ряд серых вместо набора цветов: акценты делаются размером,
+   весом шрифта и воздухом, а не заливками. */
+
 .report_page {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  background: #f8fafc;
-  min-height: 100vh;
-  color: #334155;
-  display: flex;
-  flex-direction: column;
+    --n900: #0b0f19;
+    --n700: #3f4757;
+    --n500: #6b7280;
+    --n400: #9099a8;
+    --n300: #c9cfd8;
+    --n200: #e6e9ee;
+    --n100: #f1f3f7;
+    --n50: #f8f9fb;
+
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    background: #fff;
+    min-height: 100vh;
+    color: var(--n700);
+    display: flex;
+    flex-direction: column;
+    -webkit-font-smoothing: antialiased;
 }
 
 .report_content {
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+    width: 100%;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+    display: flex;
+    flex-direction: column;
 }
 
+/* ── Панель управления ───────────────────────────────────────────────────── */
 .report_controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+/* Сегментированный переключатель частых периодов: за вчерашний день больше
+   не нужно вручную выставлять обе даты. */
+.period_switch {
+    display: inline-flex;
+    background: var(--n100);
+    border-radius: 10px;
+    padding: 3px;
+    gap: 2px;
+}
+
+.period_btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--n500);
+    transition: background .15s, color .15s;
+    white-space: nowrap;
+}
+
+.period_btn:hover {
+    color: var(--n900);
+}
+
+.period_btn_active {
+    background: #fff;
+    color: var(--n900);
+    box-shadow: 0 1px 2px rgba(11, 15, 25, .08);
+}
+
+/* Обе даты в одном поле — визуально это один диапазон, а не два инпута */
+.date_range {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    background: #fff;
+    border: 1px solid var(--n200);
+    border-radius: 10px;
+    padding: 2px 4px;
+    transition: border-color .15s, box-shadow .15s;
+}
+
+.date_range:focus-within {
+    border-color: var(--n300);
+    box-shadow: 0 0 0 4px var(--n100);
 }
 
 .report_date_input {
-  padding: 8px 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 14px;
-  color: #334155;
-  background: white;
-  outline: none;
-  transition: border-color 0.2s;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13.5px;
+    color: var(--n900);
+    padding: 7px 8px;
 }
 
-.report_date_input:focus {
-  border-color: #1F3841;
+.date_dash {
+    color: var(--n300);
+    font-size: 13px;
+    user-select: none;
 }
 
 .report_back_btn {
-  padding: 8px 16px;
-  background: white;
-  /* color: #667eea; */
-  color: #1F3841;
-  /* border: 1px solid #667eea; */
-  border: 1px solid #1F3841;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.5s, color 0.5s;
+    border: none;
+    background: transparent;
+    color: var(--n500);
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 500;
+    padding: 9px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background .15s, color .15s;
 }
 
 .report_back_btn:hover {
-  background: var(--app-gradient);
-  color: white;
-  border: 1px solid #1F3841;
+    background: var(--n100);
+    color: var(--n900);
 }
 
 .report_load_btn {
-  padding: 8px 20px;
-  background: var(--app-gradient);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.report_load_btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+    border: none;
+    background: var(--n900);
+    color: #fff;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 500;
+    padding: 9px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: opacity .15s;
 }
 
 .report_load_btn:hover:not(:disabled) {
-  opacity: 0.9;
+    opacity: .88;
 }
 
+.report_load_btn:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+/* ── Карточка отчёта ─────────────────────────────────────────────────────── */
+.report_card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow:
+        0 0 0 1px var(--n200),
+        0 1px 2px rgba(11, 15, 25, .04),
+        0 8px 24px -12px rgba(11, 15, 25, .12);
+    overflow: hidden;
+}
+
+.card_top {
+    padding: 22px 24px;
+    display: flex;
+    background: var(--n50);
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--n100);
+}
+
+.card_title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--n900);
+    letter-spacing: -.01em;
+}
+
+.card_period {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--n500);
+}
+
+.inline_stats {
+    display: flex;
+    gap: 28px;
+}
+
+.stat_value {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--n900);
+    letter-spacing: -.01em;
+    font-variant-numeric: tabular-nums;
+}
+
+.stat_label {
+    font-size: 11.5px;
+    color: var(--n400);
+    margin-top: 2px;
+}
+
+.card_body {
+    padding: 8px 24px 20px;
+}
+
+/* Узкий экран: таблица прокручивается, а не ломается */
+.table_scroll {
+    overflow-x: auto;
+}
+
+/* ── Таблица ─────────────────────────────────────────────────────────────── */
+.report_table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 760px;
+}
+
+/* Вертикальных линий нет намеренно: колонки разделяет воздух и выравнивание */
+.report_table thead th {
+    font-size: 11.5px;
+    color: var(--n900);
+    font-weight: 900;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    padding: 14px 20px 12px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.report_table thead th:first-child {
+    text-align: left;
+    padding-left: 4px;
+}
+
+.report_table thead th:last-child {
+    padding-right: 4px;
+}
+
+.report_table tbody td {
+    padding: 16px 20px;
+    text-align: right;
+    font-size: 14.5px;
+    color: var(--n700);
+    border-top: 1px solid var(--n100);
+    /* Моноширинные цифры: разряды стоят друг под другом и суммы сравнимы взглядом */
+    font-variant-numeric: tabular-nums;
+}
+
+.report_table tbody td:first-child {
+    text-align: left;
+    padding-left: 4px;
+    color: var(--n900);
+    font-weight: 500;
+}
+
+.report_table tbody td:last-child {
+    padding-right: 4px;
+}
+
+.report_table tbody tr:hover td {
+    background: var(--n50);
+}
+
+.report_table tbody tr:hover td:first-child {
+    border-radius: 8px 0 0 8px;
+}
+
+.report_table tbody tr:hover td:last-child {
+    border-radius: 0 8px 8px 0;
+}
+
+/* Итоговая сумма выделена весом, а не цветом или заливкой */
+.cell_total {
+    color: var(--n900);
+    font-weight: 600;
+}
+
+/* Ноль не должен спорить с реальными цифрами */
+.cell_zero {
+    color: var(--n300);
+}
+
+.report_table tfoot td {
+    padding: 16px 20px;
+    text-align: right;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--n900);
+    border-top: 1px solid var(--n200);
+    font-variant-numeric: tabular-nums;
+}
+
+.report_table tfoot td:first-child {
+    text-align: left;
+    padding-left: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--n400);
+}
+
+.report_table tfoot td:last-child {
+    padding-right: 4px;
+}
+
+/* ── Имя курьера ─────────────────────────────────────────────────────────── */
+.person {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.person_mark {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    background: var(--app-gradient);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.row_unassigned td:first-child {
+    color: var(--n400);
+    font-weight: 400;
+}
+
+/* ── Состояния ───────────────────────────────────────────────────────────── */
 .report_error {
-  color: #ef4444;
-  font-size: 14px;
-  padding: 10px 16px;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 8px;
+    color: #b42318;
+    font-size: 13.5px;
+    padding: 12px 16px;
+    background: #fef3f2;
+    border-radius: 10px;
+    margin-bottom: 16px;
 }
 
 .report_empty {
-  color: #94a3b8;
-  font-size: 14px;
-  text-align: center;
-  padding: 40px;
+    color: var(--n400);
+    font-size: 14px;
+    text-align: center;
+    padding: 64px 20px;
 }
 
-.report_table {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
-  overflow: hidden;
-}
+@media (max-width: 760px) {
+    .report_content {
+        padding: 20px 16px 64px;
+    }
 
-.table_header {
-  display: grid;
-  /* Колонок стало больше («Оплачен»), поэтому ширины не фиксированные:
-     имя курьера забирает остаток, числовые колонки делят место поровну. */
-  grid-template-columns: minmax(150px, 2fr) repeat(7, minmax(74px, 1fr));
-  background: var(--app-gradient);
-  color: white;
-  padding: 12px 16px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
+    .card_top {
+        padding: 18px 16px;
+    }
 
-.table_row {
-  display: grid;
-  /* Колонок стало больше («Оплачен»), поэтому ширины не фиксированные:
-     имя курьера забирает остаток, числовые колонки делят место поровну. */
-  grid-template-columns: minmax(150px, 2fr) repeat(7, minmax(74px, 1fr));
-  padding: 12px 16px;
-  font-size: 14px;
-  border-bottom: 1px solid #f1f5f9;
-  transition: background 0.15s;
-}
+    .card_body {
+        padding: 4px 16px 16px;
+    }
 
-.table_row:last-child {
-  border-bottom: none;
-}
+    .inline_stats {
+        gap: 20px;
+    }
 
-.table_row:hover {
-  background: rgba(0, 0, 0, 0.03);
+    .report_table thead th,
+    .report_table tbody td,
+    .report_table tfoot td {
+        padding: 12px 14px;
+        font-size: 13.5px;
+    }
+
+    .person_mark {
+        display: none;
+    }
 }
