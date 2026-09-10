@@ -230,10 +230,10 @@ export default function Report() {
                   <div className={styles.stat_value}>{totals.orders}</div>
                   <div className={styles.stat_label}>{t("report.columns.totalOrders")}</div>
                 </div>
-                <div>
+                {/* <div>
                   <div className={styles.stat_value}>{totals.items}</div>
                   <div className={styles.stat_label}>{t("report.columns.totalItems")}</div>
-                </div>
+                </div> */}
                 <div>
                   <div className={styles.stat_value}>{money(totals.sum)} €</div>
                   <div className={styles.stat_label}>{t("report.revenue", { defaultValue: "Выручка" })}</div>
@@ -248,7 +248,7 @@ export default function Report() {
                     <tr>
                       <th>{t("report.columns.courier")}</th>
                       <th>{t("report.columns.totalOrders")}</th>
-                      <th>{t("report.columns.totalItems")}</th>
+                      {/* <th>{t("report.columns.totalItems")}</th> */}
                       <th>{t("report.columns.cash")}</th>
                       <th>{t("report.columns.card")}</th>
                       <th>{t("report.columns.wire")}</th>
@@ -274,7 +274,7 @@ export default function Report() {
                             </span>
                           </td>
                           <td>{num(row.total_orders)}</td>
-                          <td>{num(row.total_items)}</td>
+                          {/* <td>{num(row.total_items)}</td> */}
                           {cell(row.total_cash_sum)}
                           {cell(row.total_card_sum)}
                           {cell(row.total_wire_sum)}
@@ -291,7 +291,7 @@ export default function Report() {
                     <tr>
                       <td>{t("report.total", { defaultValue: "Итого" })}</td>
                       <td>{totals.orders}</td>
-                      <td>{totals.items}</td>
+                      {/* <td>{totals.items}</td> */}
                       <td>{money(totals.cash)}</td>
                       <td>{money(totals.card)}</td>
                       <td>{money(totals.wire)}</td>

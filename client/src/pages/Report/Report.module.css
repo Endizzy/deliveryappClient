@@ -165,7 +165,7 @@
     justify-content: space-between;
     gap: 20px;
     flex-wrap: wrap;
-    border-bottom: 1px solid var(--n100);
+    border-bottom: 3px solid var(--n300);
 }
 
 .card_title {
@@ -192,6 +192,7 @@
     font-weight: 600;
     color: var(--n900);
     letter-spacing: -.01em;
+    text-align: center;
     font-variant-numeric: tabular-nums;
 }
 
@@ -219,7 +220,7 @@
 
 /* Вертикальных линий нет намеренно: колонки разделяет воздух и выравнивание */
 .report_table thead th {
-    font-size: 11.5px;
+    font-size: 11px;
     color: var(--n900);
     font-weight: 900;
     letter-spacing: .04em;
@@ -243,7 +244,7 @@
     text-align: right;
     font-size: 14.5px;
     color: var(--n700);
-    border-top: 1px solid var(--n100);
+    border-top: 3px solid var(--n200);
     /* Моноширинные цифры: разряды стоят друг под другом и суммы сравнимы взглядом */
     font-variant-numeric: tabular-nums;
 }
@@ -288,18 +289,18 @@
     font-size: 14.5px;
     font-weight: 600;
     color: var(--n900);
-    border-top: 1px solid var(--n200);
+    border-top: 3px solid var(--n200);
     font-variant-numeric: tabular-nums;
 }
 
 .report_table tfoot td:first-child {
     text-align: left;
     padding-left: 4px;
-    font-size: 12px;
-    font-weight: 500;
+    font-size: 11px;
+    font-weight: 900;
     letter-spacing: .04em;
     text-transform: uppercase;
-    color: var(--n400);
+    color: var(--n900);
 }
 
 .report_table tfoot td:last-child {
@@ -365,6 +366,7 @@
     .inline_stats {
         gap: 20px;
     }
+
 
     .report_table thead th,
     .report_table tbody td,
