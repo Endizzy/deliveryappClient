@@ -305,3 +305,26 @@
         align-items: flex-start;
     }
 }
+
+/* Подпись о разовой скидке прошлого заказа.
+   При повторе такая скидка не переносится, и сумма нового заказа окажется
+   выше — предупреждаем до нажатия кнопки, а не после. */
+.po-discount-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    margin-top: 9px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    color: #92400e;
+    font-size: 12px;
+    line-height: 1.45;
+    font-weight: 600;
+}
+
+.po-discount-note svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+}

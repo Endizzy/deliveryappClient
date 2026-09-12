@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { X, RotateCcw, History, ChevronDown, ChevronUp } from "lucide-react";
+import { X, RotateCcw, History, ChevronDown, ChevronUp, TicketPercent } from "lucide-react";
 import { formatCents, toCents, discountedUnitCents } from "../../utils/money.js";
 import "./pastOrders.css";
 
@@ -144,6 +144,23 @@ export default function PastOrdersModal({
                       </button>
                     </div>
                   </div>
+
+                  {/* Разовая скидка при повторе НЕ переносится: она выдавалась
+                      под конкретный случай. Без этой подписи диспетчер видел
+                      бы 45 €, копировал заказ и не понимал, почему сумма
+                      выросла. */}
+                  {Number(order.manualDiscountPercent) > 0 && (
+                    <div className="po-discount-note">
+                      <TicketPercent size={14} />
+                      <span>
+                        {t("createOrder.pastOrders.hadManualDiscount", {
+                          defaultValue:
+                            "На этот заказ была разовая скидка {{percent}}%. При повторе она не переносится — сумма будет выше",
+                          percent: Number(order.manualDiscountPercent),
+                        })}
+                      </span>
+                    </div>
+                  )}
 
                   <button
                     type="button"

@@ -273,7 +273,8 @@
       "someMissing": "Nav ēdienkartē: {{names}}",
       "repeated": "Iepriekšējā pasūtījuma pozīcijas ir pārnestas",
       "replaceConfirm": "Pašreizējais pozīciju saraksts tiks aizstāts. Turpināt?",
-      "priceHint": "Cenas tiek ņemtas no aktuālās ēdienkartes, nevis no iepriekšējā pasūtījuma"
+      "priceHint": "Cenas tiek ņemtas no aktuālās ēdienkartes, nevis no iepriekšējā pasūtījuma",
+      "hadManualDiscount": "Šim pasūtījumam bija vienreizēja {{percent}}% atlaide. Atkārtojot tā netiek pārnesta — summa būs lielāka"
     }
   },
   "userProfile": {

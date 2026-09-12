@@ -157,44 +157,6 @@ const EditOrder = () => {
     return toLocalTimeInput(d);
   })();
 
-  // Build the invoice order object from current form state
-  const invoiceOrder = useMemo(() => {
-    const addressParts = [formData.street, formData.house, formData.building]
-      .filter(Boolean)
-      .join(" ");
-    const apartPart = formData.apart ? `-${formData.apart}` : "";
-    const address = addressParts + apartPart;
-
-    const deliveryDate = formData.scheduledDate && formData.scheduledTime
-      ? `${formData.scheduledDate.split("-").reverse().join(".")} ${formData.scheduledTime}`
-      : formData.orderType === "active"
-        ? t("createOrder.orderType.active", { defaultValue: "Aktīvs" })
-        : "—";
-
-    return {
-      number: orderNumber || id,
-      createdAt: orderCreatedAt,
-      deliveryDate,
-      customerPhone: formData.phone,
-      customerName: formData.customer,
-      address,
-      floor: formData.floor,
-      doorCode: formData.code,
-      peopleCount: formData.numOfPeople,
-      notes: formData.notes,
-      paymentMethod: PAYMENT_LABELS[formData.payment] || formData.payment,
-      items: selectedItems.map((i) => ({
-        name: i.name,
-        price: i.discount > 0
-          ? (discountedUnitCents(i.price, i.discount) / 100).toFixed(2)
-          : i.price,
-        quantity: i.quantity,
-      })),
-      deliveryFee: safeDeliveryFee,
-      discount: 0,
-    };
-  }, [formData, selectedItems, id, orderNumber, orderCreatedAt, safeDeliveryFee, t]);
-
   // react-to-print hook
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -470,6 +432,63 @@ const EditOrder = () => {
     if (!(Number(customerDiscount.value) > 0)) return false;
     return selectedItems.some((it) => Number(it?.discount) > 0);
   }, [customerDiscount, selectedItems]);
+
+  // Накладная для печати.
+  //
+  // Считается ПОСЛЕ customerDiscountCents намеренно: useMemo выполняется сразу
+  // при рендере, и обращение к переменной, объявленной ниже, упало бы с
+  // ReferenceError. Раньше блок стоял выше и передавал discount: 0 — на бумаге
+  // печаталась полная цена, хотя на экране сумма была со скидкой.
+  const invoiceOrder = useMemo(() => {
+    const addressParts = [formData.street, formData.house, formData.building]
+      .filter(Boolean)
+      .join(" ");
+    const apartPart = formData.apart ? `-${formData.apart}` : "";
+    const address = addressParts + apartPart;
+
+    const deliveryDate = formData.scheduledDate && formData.scheduledTime
+      ? `${formData.scheduledDate.split("-").reverse().join(".")} ${formData.scheduledTime}`
+      : formData.orderType === "active"
+        ? t("createOrder.orderType.active", { defaultValue: "Aktīvs" })
+        : "—";
+
+    return {
+      number: orderNumber || id,
+      createdAt: orderCreatedAt,
+      deliveryDate,
+      customerPhone: formData.phone,
+      customerName: formData.customer,
+      address,
+      floor: formData.floor,
+      doorCode: formData.code,
+      peopleCount: formData.numOfPeople,
+      notes: formData.notes,
+      paymentMethod: PAYMENT_LABELS[formData.payment] || formData.payment,
+      items: selectedItems.map((i) => ({
+        name: i.name,
+        // Цена позиции уже со скидкой меню: в шаблоне строка умножается
+        // на количество, отдельной колонки под скидку там нет
+        price: i.discount > 0
+          ? (discountedUnitCents(i.price, i.discount) / 100).toFixed(2)
+          : i.price,
+        quantity: i.quantity,
+      })),
+      deliveryFee: safeDeliveryFee,
+      // Скидка клиента или разовая — та, что реально применилась.
+      // Шаблон печатает её строкой «Atlaide» и вычитает из итога.
+      discount: customerDiscountCents / 100,
+    };
+  }, [
+    formData,
+    selectedItems,
+    id,
+    orderNumber,
+    orderCreatedAt,
+    safeDeliveryFee,
+    customerDiscountCents,
+    t,
+  ]);
+
 
   const calculateGrandTotalCents = () =>
     Math.max(0, calculateItemsTotalCents() - customerDiscountCents) + toCents(safeDeliveryFee);
