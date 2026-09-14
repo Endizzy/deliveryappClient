@@ -314,7 +314,8 @@
       "accounts": "Konti (administratori un kurjeri)",
       "customers": "Klienti",
       "invoice": "Pavadzīme",
-      "zones": "Piegādes zonas"
+      "zones": "Piegādes zonas",
+      "analytics": "Analīze"
     },
     "invoice": {
       "title": "Rēķina priekšskatījums",

@@ -2,10 +2,17 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   Users, Search, Percent, Euro, Megaphone, X, ShoppingBag,
   Calendar, Tag, Send, Trash2, ReceiptText, Phone as PhoneIcon,
-  ChevronDown, ChevronRight, CreditCard, Banknote,
+  ChevronDown, ChevronRight, CreditCard, Banknote, AlertTriangle,
+  SlidersHorizontal,
 } from "lucide-react";
 import "./customersTab.css";
 import { formatCents, toCents } from "../../utils/money.js";
+import CustomersFilters from "./CustomersFilters.jsx";
+import { useCustomersFilterStore } from "../../store/customersFilterStore.js";
+import {
+  filterCustomers, sortCustomers, collectDiscountOptions,
+  countActiveFilters, summarize, toDayKey,
+} from "../../utils/customerFilters.js";
 
 const toEUR = (n) => `€${formatCents(toCents(Number(n) || 0))}`;
 
@@ -26,6 +33,25 @@ const STATUS_LABEL = {
 
 const PAYMENT_LABEL = { cash: "Наличные", card: "Карта", wire: "Перечислением", paid: "Оплачен" };
 
+/** Быстрые периоды для фильтра по дате последнего заказа.
+ *  Считаем от «сегодня» локально: через toISOString() ночью получались бы
+ *  сутки назад (см. toDayKey). */
+function buildDatePresets() {
+  const today = new Date();
+  const shift = (days) => {
+    const d = new Date();
+    d.setDate(d.getDate() - days);
+    return toDayKey(d);
+  };
+  const to = toDayKey(today);
+  return [
+    { key: "30", label: "30 дней", from: shift(30), to },
+    { key: "90", label: "90 дней", from: shift(90), to },
+    { key: "365", label: "Год", from: shift(365), to },
+    { key: "all", label: "Весь период", from: "", to: "" },
+  ];
+}
+
 export default function CustomersTab({ API, authHeaders, t, ui }) {
   // Диалоги страницы приходят из OwnerSettings; системное окно оставлено
   // запасным вариантом на случай отдельного рендера вкладки.
@@ -35,7 +61,21 @@ export default function CustomersTab({ API, authHeaders, t, ui }) {
   const [summary, setSummary] = useState({ customers: 0, orders: 0, revenue: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [query, setQuery] = useState("");
+
+  // Фильтры живут в сторе, а не здесь: вкладки в OwnerSettings
+  // размонтируются, и локальный стейт терял бы настроенный отбор при
+  // каждом переключении на «Меню» и обратно.
+  const filters = useCustomersFilterStore((s) => s.filters);
+  const panelOpen = useCustomersFilterStore((s) => s.panelOpen);
+  const togglePanel = useCustomersFilterStore((s) => s.togglePanel);
+  const setField = useCustomersFilterStore((s) => s.setField);
+  const setSortExact = useCustomersFilterStore((s) => s.setSortExact);
+  const setDiscountMode = useCustomersFilterStore((s) => s.setDiscountMode);
+  const toggleDiscountValue = useCustomersFilterStore((s) => s.toggleDiscountValue);
+  const resetFilters = useCustomersFilterStore((s) => s.reset);
+
+  const query = filters.query;
+  const setQuery = (v) => setField("query", v);
 
   // выбранные для рассылки
   const [selected, setSelected] = useState(() => new Set());
@@ -64,15 +104,17 @@ export default function CustomersTab({ API, authHeaders, t, ui }) {
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [API]);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return items;
-    return items.filter(
-      (c) =>
-        (c.name || "").toLowerCase().includes(q) ||
-        (c.phone || "").toLowerCase().includes(q)
-    );
-  }, [items, query]);
+  // Отбор и сортировка вынесены в utils/customerFilters.js чистыми функциями
+  // и покрыты тестами: здесь только их применение.
+  const filtered = useMemo(
+    () => sortCustomers(filterCustomers(items, filters), filters.sortBy, filters.sortDir),
+    [items, filters]
+  );
+
+  const discountOptions = useMemo(() => collectDiscountOptions(items), [items]);
+  const activeFilterCount = useMemo(() => countActiveFilters(filters), [filters]);
+  const visibleSummary = useMemo(() => summarize(filtered), [filtered]);
+  const datePresets = useMemo(() => buildDatePresets(), []);
 
   const toggleSelect = (phone) => {
     setSelected((prev) => {
@@ -80,6 +122,23 @@ export default function CustomersTab({ API, authHeaders, t, ui }) {
       next.has(phone) ? next.delete(phone) : next.add(phone);
       return next;
     });
+  };
+
+  // Сколько выбранных клиентов сейчас не видно из-за фильтров.
+  // Это главная ловушка вкладки: выбрал 200 без фильтров, отфильтровал до 5,
+  // видишь 5 строк — а рассылка уйдёт всем двумстам живым людям.
+  const hiddenSelectedCount = useMemo(() => {
+    if (selected.size === 0) return 0;
+    const visible = new Set(filtered.map((c) => c.phone));
+    let n = 0;
+    for (const phone of selected) if (!visible.has(phone)) n += 1;
+    return n;
+  }, [selected, filtered]);
+
+  /** Оставить в выборе только тех, кто сейчас в таблице. */
+  const keepOnlyVisible = () => {
+    const visible = new Set(filtered.map((c) => c.phone));
+    setSelected((prev) => new Set([...prev].filter((p) => visible.has(p))));
   };
 
   const allVisibleSelected = filtered.length > 0 && filtered.every((c) => selected.has(c.phone));
@@ -223,8 +282,29 @@ export default function CustomersTab({ API, authHeaders, t, ui }) {
           />
         </div>
         <div className="cust-toolbar-right">
+          <button
+            type="button"
+            className={`cfd-open ${panelOpen ? "on" : ""}`}
+            onClick={togglePanel}
+          >
+            <SlidersHorizontal size={16} />
+            Фильтры
+            {activeFilterCount > 0 && (
+              <span className="cfd-badge">{activeFilterCount}</span>
+            )}
+          </button>
+
           {selected.size > 0 && (
-            <span className="cust-selected-count">Выбрано: {selected.size}</span>
+            <span className="cust-selected-count">
+              Выбрано: {selected.size}
+              {/* Расхождение между «выбрано» и «видно» — то, из-за чего
+                  рассылка может уйти не тем, кого владелец видит на экране */}
+              {hiddenSelectedCount > 0 && (
+                <span className="cust-selected-hidden">
+                  {" "}· вне фильтра: {hiddenSelectedCount}
+                </span>
+              )}
+            </span>
           )}
           <button className="owner-primary-btn" onClick={openBroadcast}>
             <Megaphone size={16} /> Рассылка
@@ -232,7 +312,35 @@ export default function CustomersTab({ API, authHeaders, t, ui }) {
         </div>
       </div>
 
-      {error && <div className="cust-error">{error}</div>}
+      {/* Таблица и панель — две колонки. Закрытая панель колонку не занимает,
+          иначе справа от таблицы оставалась бы пустота. */}
+      <div className={`cust-layout ${panelOpen ? "with-panel" : ""}`}>
+        <div className="cust-main">
+          {/* Итог по видимой выборке. Верхние карточки остаются общими по
+              базе, иначе «всего клиентов» менялось бы от фильтра и сравнивать
+              было бы не с чем. */}
+          {!loading && (
+            <div className="cfd-result">
+              <span>
+                Показано <strong>{visibleSummary.customers}</strong> из{" "}
+                <strong>{items.length}</strong> клиентов
+              </span>
+              {visibleSummary.customers > 0 && (
+                <>
+                  <span>·</span>
+                  <span>
+                    заказов <strong>{visibleSummary.orders}</strong>
+                  </span>
+                  <span>·</span>
+                  <span>
+                    на <strong>{toEUR(visibleSummary.revenue)}</strong>
+                  </span>
+                </>
+              )}
+            </div>
+          )}
+
+          {error && <div className="cust-error">{error}</div>}
 
       {/* Таблица клиентов */}
       <div className="cust-table-card">
@@ -255,7 +363,22 @@ export default function CustomersTab({ API, authHeaders, t, ui }) {
             {loading ? (
               <tr><td colSpan={8} className="cust-empty">Загрузка…</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={8} className="cust-empty">Клиенты не найдены</td></tr>
+              <tr>
+                <td colSpan={8} className="cust-empty">
+                  {/* Пустая таблица при активных фильтрах слишком похожа на
+                      пустую базу — говорим, что дело в отборе, и даём выход */}
+                  {activeFilterCount > 0 ? (
+                    <>
+                      Под фильтры не подходит ни один клиент
+                      <button className="cfd-reset cust-empty-reset" onClick={resetFilters}>
+                        <X size={14} /> Сбросить фильтры
+                      </button>
+                    </>
+                  ) : (
+                    "Клиенты не найдены"
+                  )}
+                </td>
+              </tr>
             ) : (
               filtered.map((c) => (
                 <tr key={c.phone}>
@@ -289,8 +412,30 @@ export default function CustomersTab({ API, authHeaders, t, ui }) {
                 </tr>
               ))
             )}
-          </tbody>
-        </table>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {panelOpen && (
+          <>
+            {/* Затемнение работает только в узком режиме, когда панель
+                выезжает поверх содержимого (см. @media в customersFilters.css) */}
+            <div className="cfd-backdrop" onMouseDown={togglePanel} />
+            <CustomersFilters
+              filters={filters}
+              setField={setField}
+              setSortExact={setSortExact}
+              setDiscountMode={setDiscountMode}
+              toggleDiscountValue={toggleDiscountValue}
+              reset={resetFilters}
+              activeCount={activeFilterCount}
+              onClose={togglePanel}
+              discountOptions={discountOptions}
+              datePresets={datePresets}
+            />
+          </>
+        )}
       </div>
 
       {/* ── Модалка скидки ── */}
@@ -479,6 +624,39 @@ export default function CustomersTab({ API, authHeaders, t, ui }) {
                   </option>
                 </select>
               </div>
+
+              {/* Последний рубеж перед отправкой живым людям: если часть
+                  выбранных скрыта фильтром, владелец видит в таблице пять
+                  строк, а сообщение уйдёт двумстам. Показываем точное число
+                  получателей и даём сузить выбор одним нажатием. */}
+              {broadcastModal.scope === "selected" && hiddenSelectedCount > 0 && (
+                <div className="cust-warn">
+                  <AlertTriangle size={15} />
+                  <div>
+                    Сообщение получат <b>{selected.size}</b> клиентов, из них{" "}
+                    <b>{hiddenSelectedCount}</b> сейчас скрыты фильтрами и в таблице
+                    не видны.
+                    <button
+                      type="button"
+                      className="cust-warn-btn"
+                      onClick={keepOnlyVisible}
+                    >
+                      Оставить только видимых ({selected.size - hiddenSelectedCount})
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {broadcastModal.scope === "all" && activeFilterCount > 0 && (
+                <div className="cust-warn">
+                  <AlertTriangle size={15} />
+                  <div>
+                    Фильтры на рассылку «всем» не влияют: сообщение уйдёт всем{" "}
+                    <b>{summary.customers}</b> клиентам базы, а не только видимым{" "}
+                    <b>{visibleSummary.customers}</b>.
+                  </div>
+                </div>
+              )}
 
               <div className="owner-field">
                 <label>Сообщение</label>

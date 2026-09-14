@@ -4,13 +4,14 @@ import {
   Save, Upload, Image as ImageIcon, Plus, Edit, Trash2,
   Search, Percent, Package, Users, Shield, Phone, Mail,
   BadgeCheck, X, ChevronDown, ChevronUp, Map as MapIcon, FileText,
-  MapPin, Clock, Globe, Building2, Info, UserCog, Pencil
+  MapPin, Clock, Globe, Building2, Info, UserCog, Pencil, BarChart3
 } from "lucide-react";
 import "./ownerSettings.css";
 import Header from "../../components/Header/Header.jsx";
 import DeliveryZonesEditor from "./DeliveryZonesEditor.jsx";
 import InvoiceSettingsTab from "./InvoiceSettingsTab.jsx";
 import CustomersTab from "./CustomersTab.jsx";
+import AnalyticsTab from "./AnalyticsTab.jsx";
 import OwnerDialog, { useOwnerDialog } from "./OwnerDialog.jsx";
 import { useTranslation } from "react-i18next";
 import { formatCents, toCents } from "../../utils/money.js";
@@ -655,6 +656,17 @@ export default function OwnerSettings() {
         <button
           type="button"
           role="tab"
+          aria-selected={activeTab === "analytics"}
+          className={`owner-nav-tab ${activeTab === "analytics" ? "active" : ""}`}
+          onClick={() => setActiveTab("analytics")}
+        >
+          <BarChart3 size={18} />
+          <span>{t("ownerSettings.sections.analytics", { defaultValue: "Анализ" })}</span>
+        </button>
+
+        <button
+          type="button"
+          role="tab"
           aria-selected={activeTab === "invoice"}
           className={`owner-nav-tab ${activeTab === "invoice" ? "active" : ""}`}
           onClick={() => setActiveTab("invoice")}
@@ -1132,6 +1144,11 @@ export default function OwnerSettings() {
 
         {activeTab === "zones" && (
           <DeliveryZonesEditor API={API} authHeaders={authHeaders} t={t} />
+        )}
+
+        {/* Анализ: карта заказов. Только чтение, на работу смены не влияет. */}
+        {activeTab === "analytics" && (
+          <AnalyticsTab API={API} authHeaders={authHeaders} t={t} />
         )}
 
         {/* Invoice settings */}

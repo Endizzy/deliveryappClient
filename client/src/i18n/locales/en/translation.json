@@ -314,7 +314,8 @@
       "accounts": "Accounts (admins and couriers)",
       "customers": "Customers",
       "invoice": "Invoice",
-      "zones": "Delivery zones"
+      "zones": "Delivery zones",
+      "analytics": "Analytics"
     },
     "invoice": {
       "title": "Invoice preview",

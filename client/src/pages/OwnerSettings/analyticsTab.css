@@ -1,0 +1,241 @@
+/* ── Вкладка «Анализ»: карта заказов ─────────────────────────────────────────
+   Палитра как в customersTab.css — вкладка должна читаться как часть той же
+   страницы. Цвет только на кругах, и то одним тоном. */
+
+.an-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.an-warn {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: 9px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    color: #92400e;
+    font-size: 12.5px;
+    line-height: 1.5;
+}
+
+.an-warn svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.an-warn b {
+    font-weight: 700;
+}
+
+.an-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* ── Полоса управления ── */
+.an-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 11px 14px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.an-grp {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.an-grp > span {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    white-space: nowrap;
+}
+
+.an-seg {
+    display: flex;
+    background: #f1f5f9;
+    border-radius: 9px;
+    padding: 3px;
+    gap: 2px;
+}
+
+.an-seg button {
+    padding: 6px 13px;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: #64748b;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.an-seg button:hover {
+    color: #0f172a;
+}
+
+.an-seg button.on {
+    background: #fff;
+    color: #0f172a;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .08);
+}
+
+.an-chk {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-left: auto;
+    font-size: 12.5px;
+    color: #475569;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* ── Карта ── */
+.an-map-holder {
+    position: relative;
+}
+
+.an-map {
+    height: 540px;
+    width: 100%;
+    background: #e8eef4;
+}
+
+/* Слой поверх карты для загрузки и пустого результата: карта под ним
+   остаётся видимой, поэтому не выглядит сломанной */
+.an-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    background: rgba(248, 250, 252, .82);
+    color: #475569;
+    font-size: 13.5px;
+    font-weight: 600;
+    pointer-events: none;
+}
+
+.an-spin {
+    animation: an-rotate 1s linear infinite;
+}
+
+@keyframes an-rotate {
+    to { transform: rotate(360deg); }
+}
+
+/* ── Подвал ── */
+.an-foot {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 10px 14px;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    font-size: 12.5px;
+    color: #64748b;
+}
+
+.an-foot b {
+    color: #0f172a;
+    font-weight: 700;
+}
+
+.an-skip {
+    color: #b45309;
+    font-weight: 600;
+}
+
+.an-err {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+.an-legend {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+}
+
+.an-legend i {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px #cbd5e1;
+}
+
+.an-legend-lbl {
+    color: #94a3b8;
+    font-size: 11.5px;
+}
+
+/* ── Круг скопления ──────────────────────────────────────────────────────────
+   Рисуется через L.divIcon, поэтому класс глобальный: CSS-модулями Leaflet
+   не достать, он вставляет html строкой. */
+.an-blob {
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    color: #fff;
+    font-weight: 700;
+    font-family: inherit;
+    border: 2px solid rgba(255, 255, 255, .9);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, .25);
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+}
+
+.an-pop table {
+    border-collapse: collapse;
+    font-size: 12.5px;
+    font-family: inherit;
+}
+
+.an-pop td {
+    padding: 2px 0;
+}
+
+.an-pop td:first-child {
+    color: #64748b;
+    padding-right: 16px;
+}
+
+.an-pop td:last-child {
+    text-align: right;
+    color: #0f172a;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+    .an-map {
+        height: 380px;
+    }
+
+    .an-chk {
+        margin-left: 0;
+    }
+
+    .an-legend {
+        margin-left: 0;
+    }
+}
