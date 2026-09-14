@@ -702,8 +702,13 @@ const OrderPanel = () => {
                   <span className="courier">{order.courierName}</span>
                 </div>
 
+                {/* Кто принял заказ. У заказов, созданных до появления этой
+                    логики, автор не записан — прочерк честнее пустой ячейки:
+                    видно, что данных нет, а не что колонка сломалась. */}
                 <div className="cell dispatcher-cell">
-                  <span className="dispatcher">{order.dispatcherUnitId ?? ""}</span>
+                  <span className="dispatcher">
+                    {order.dispatcherName?.trim() ? order.dispatcherName : "—"}
+                  </span>
                 </div>
               </div>
             ))}
