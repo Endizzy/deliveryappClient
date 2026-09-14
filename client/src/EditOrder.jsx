@@ -157,10 +157,32 @@ const EditOrder = () => {
     return toLocalTimeInput(d);
   })();
 
-  // react-to-print hook
+  // react-to-print hook.
+  // pageStyle задаём явно: без него react-to-print ставит свой @page, а поля
+  // листа оказываются на усмотрение браузера. Накладная ровно в высоту A4 плюс
+  // эти поля не влезала в лист и печаталась вторая, пустая страница.
+  // Теперь поля задаёт @page, а высоту блока — его собственное содержимое
+  // (см. @media print в InvoiceTemplate.module.css).
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: `Order_${id}`,
+    pageStyle: `
+      @page { size: A4; margin: 10mm 12mm; }
+      @media print {
+        html, body {
+          margin: 0 !important;
+          padding: 0 !important;
+          height: auto !important;
+          /* react-to-print переносит в печатный iframe стили всего приложения,
+             вместе с глобальным body { background: var(--app-gradient) } из
+             index.css. На листе это лиловая заливка под накладной — гасим её.
+             Печать фонов включается точечно, только для самой накладной
+             (см. print-color-adjust в InvoiceTemplate.module.css). */
+          background: #fff !important;
+          background-image: none !important;
+        }
+      }
+    `,
   });
 
   // справочники
@@ -301,11 +323,13 @@ const EditOrder = () => {
   const addItemToOrder = (menuItem) => {
     const existing = selectedItems.find((i) => i.id === menuItem.id);
     if (existing) {
+      // Уже в заказе — только количество, строку с места не двигаем
       setSelectedItems((prev) =>
         prev.map((i) => (i.id === menuItem.id ? { ...i, quantity: i.quantity + 1 } : i))
       );
     } else {
-      setSelectedItems((prev) => [...prev, { ...menuItem, quantity: 1 }]);
+      // Новая позиция в начало — так же, как в форме создания заказа
+      setSelectedItems((prev) => [{ ...menuItem, quantity: 1 }, ...prev]);
     }
     setSearchTerm("");
     setShowSearchResults(false);

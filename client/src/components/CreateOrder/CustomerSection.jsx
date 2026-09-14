@@ -43,9 +43,13 @@ const CustomerSection = ({
           <label htmlFor="phone">{t("createOrder.fields.phone")} *</label>
           <div className="input-with-icon">
             <Phone size={16} />
+            {/* Приём заказа всегда начинается с телефона: ставим курсор сюда
+                сразу при открытии формы, чтобы диспетчер начинал набирать
+                номер, не беря мышь. */}
             <input
               id="phone"
               type="tel"
+              autoFocus
               value={formData.phone}
               onChange={(e) =>
                 handleInputChange("phone", formatPhoneInput(e.target.value))

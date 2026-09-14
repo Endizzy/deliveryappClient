@@ -10,11 +10,15 @@ export default function useOrderItems() {
     setSelectedItems((prev) => {
       const existing = prev.find((i) => i.id === menuItem.id);
       if (existing) {
+        // Позиция уже в заказе — увеличиваем количество, но с места не двигаем:
+        // переезд строки посреди набора сбивал бы с толку сильнее, чем помогал
         return prev.map((i) =>
           i.id === menuItem.id ? { ...i, quantity: i.quantity + 1 } : i
         );
       }
-      return [...prev, { ...menuItem, quantity: 1 }];
+      // Новая позиция — в начало списка. В длинном заказе добавленное в конец
+      // уезжало под фолд, и диспетчер не видел, что именно он только что выбрал
+      return [{ ...menuItem, quantity: 1 }, ...prev];
     });
   };
 
