@@ -4,6 +4,7 @@ import { ChevronDown, Trash2, History } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import "./orderPanel.css";
 import Header from "./components/Header/Header.jsx";
+import Footer from "./components/Footer/Footer.jsx";
 import { useSound } from "./provider/SoundContext.jsx";
 import { useNow } from "./provider/TimeContext";
 import { formatDuration, formatClockTime } from "./utils/time/time.js";
@@ -726,11 +727,12 @@ const OrderPanel = () => {
         </div>
       </div>
 
-      <footer className="footer-section">
+      {/* <footer className="footer-section">
         <div className="footer-section__text">
           <h1>{t("orderPanel.footer.demo")}</h1>
         </div>
-      </footer>
+      </footer> */}
+      <Footer></Footer>
 
       {openFilterColumn && (
         <FilterPanel

@@ -1,0 +1,17 @@
+.footer {
+    background: var(--app-gradient);
+    padding: 5px 5px;
+    color: white;
+    /* border-top: 1px solid #e2e8f0; */
+    display: flex;
+    justify-content: left;
+}
+
+.footerText {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.footerText h1 {
+
+}
