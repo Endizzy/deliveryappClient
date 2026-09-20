@@ -176,8 +176,8 @@ const InvoiceTemplate = React.forwardRef(function InvoiceTemplate({ settings = {
                 <td className={styles.summaryValue}>{discount.toFixed(2)}</td>
               </tr>
               <tr>
-                <td className={styles.summaryLabel}>Pavisam apmaksai</td>
-                <td className={styles.summaryValue}>{total.toFixed(2)}</td>
+                <td className={`${styles.summaryLabel} ${styles.bold}`}>Pavisam apmaksai</td>
+                <td className={`${styles.summaryValue} ${styles.bold}`}>{total.toFixed(2)}</td>
               </tr>
               <tr className={styles.paymentRow}>
                 <td className={`${styles.summaryLabel} ${styles.bold}`}>Apmakasas veids</td>
