@@ -652,6 +652,7 @@ export default function OwnerSettings() {
         >
           <Gift size={18} />
           <span>{t("ownerSettings.sections.loyalty", { defaultValue: "Лояльность" })}</span>
+          <b className="owner-nav-new">NEW</b>
         </button>
 
         <button
@@ -674,6 +675,7 @@ export default function OwnerSettings() {
         >
           <BarChart3 size={18} />
           <span>{t("ownerSettings.sections.analytics", { defaultValue: "Анализ" })}</span>
+          <b className="owner-nav-new">NEW</b>
         </button>
 
         <button

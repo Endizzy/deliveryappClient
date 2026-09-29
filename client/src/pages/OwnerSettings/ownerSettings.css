@@ -163,6 +163,28 @@
     transition: .2s;
 }
 
+/* Красная пометка NEW над вкладкой. Тег <b>, а не <span>: на узких экранах
+   текст вкладок прячется правилом «.owner-nav-tab span», а пометка остаётся. */
+.owner-nav-tab {
+    position: relative;
+}
+
+.owner-nav-new {
+    position: absolute;
+    top: -9px;
+    right: 10px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .5px;
+    line-height: 1.2;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, .4);
+    pointer-events: none;
+}
+
 .owner-nav-tab:hover {
     color: #334155;
     border-color: #cbd5e1;
