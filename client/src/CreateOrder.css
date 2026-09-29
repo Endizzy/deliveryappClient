@@ -943,3 +943,88 @@
     border-color: #93c5fd;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, .12);
 }
+
+
+/* ── Программа лояльности в итогах заказа ─────────────────────────────────── */
+.co-loyalty {
+    margin: 0 0 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.co-loyalty-progress {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    background: #f5f7ff;
+    border: 1px solid #e0e7ff;
+    color: #4f46e5;
+    font-weight: 600;
+}
+
+.co-loyalty-progress svg {
+    flex-shrink: 0;
+}
+
+.co-loyalty-gift {
+    padding: 10px 12px;
+    background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%);
+    border: 1px solid #c7d2fe;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.co-loyalty-gift.is-off {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+.co-loyalty-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #3730a3;
+}
+
+.co-loyalty-gift.is-off .co-loyalty-head {
+    color: #64748b;
+}
+
+.co-loyalty-head strong {
+    font-size: 13.5px;
+    font-weight: 800;
+}
+
+.co-loyalty-ico {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    color: white;
+    background: var(--app-gradient);
+    flex-shrink: 0;
+}
+
+.co-loyalty-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+}
+
+.co-loyalty-check input {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.co-loyalty-hint {
+    font-size: 12px;
+    color: #64748b;
+}

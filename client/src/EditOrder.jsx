@@ -22,9 +22,12 @@ import {
   lineTotalCents,
   toCents,
   customerDiscountCents as calcCustomerDiscountCents,
+  orderDiscountBreakdown,
+  formatLoyaltyValue,
   MANUAL_DISCOUNT_OPTIONS,
 } from "./utils/money.js";
 import TimeSelect24 from "./components/CreateOrder/TimeSelect24.jsx";
+import LoyaltyNotice from "./components/CreateOrder/LoyaltyNotice.jsx";
 import { pad2, toLocalDateInput, toLocalTimeInput, localInputsToISO } from "./utils/datetime.js";
 // Общие хелперы телефона: раньше в этом файле лежала своя копия, которая знала
 // только латвийские номера, — из-за неё заказ с иностранным номером нельзя
@@ -97,6 +100,12 @@ const EditOrder = () => {
   const [showSearchResults, setShowSearchResults] = useState(false);
 
   // форма
+  // Скидка программы лояльности, выданная ЭТОМУ заказу при создании
+  // ({ applied, type, value, orderNo }). Новая скидка при правке не выдаётся.
+  const [loyaltyOrder, setLoyaltyOrder] = useState(null);
+  // Снять галочку — значит убрать скидку с заказа; сервер вернёт её клиенту.
+  const [applyLoyalty, setApplyLoyalty] = useState(true);
+
   const [formData, setFormData] = useState({
     orderType: "active",
     status: "new",
@@ -251,6 +260,18 @@ const EditOrder = () => {
     // тип уже active, но время доставки осталось. Запоминаем это, чтобы
     // показать время админу — иначе он его не увидит и потеряет при сохранении.
     setWasActivatedPreorder(Boolean(o.scheduledAt) && (o.orderType || "active") !== "preorder");
+
+    setLoyaltyOrder(
+      o.loyaltyApplied
+        ? {
+            applied: true,
+            type: o.loyaltyType,
+            value: Number(o.loyaltyValue) || 0,
+            orderNo: o.loyaltyOrderNo ?? null,
+          }
+        : null
+    );
+    setApplyLoyalty(true);
 
     setFormData({
       orderType: o.orderType || "active",
@@ -413,20 +434,39 @@ const EditOrder = () => {
   // Персональная скидка клиента (по телефону, применяется сервером и при правке).
   // Процент считается только от позиций без скидки в меню — иначе на акционном
   // товаре скидка складывалась бы дважды.
-  const customerDiscountCents = useMemo(
+  //
+  // Скидка лояльности берётся из самого заказа (что было выдано при создании)
+  // и участвует в том же выборе «большая из скидок».
+  const loyaltyOffer = useMemo(
     () =>
-      calcCustomerDiscountCents(
+      loyaltyOrder?.applied && applyLoyalty
+        ? { type: loyaltyOrder.type, value: loyaltyOrder.value }
+        : null,
+    [loyaltyOrder, applyLoyalty]
+  );
+
+  const discountBreakdown = useMemo(
+    () =>
+      orderDiscountBreakdown(
         selectedItems,
         customerDiscount,
-        formData.manualDiscountPercent
+        formData.manualDiscountPercent,
+        loyaltyOffer
       ),
-    [customerDiscount, selectedItems, formData.manualDiscountPercent]
+    [customerDiscount, selectedItems, formData.manualDiscountPercent, loyaltyOffer]
   );
+  const customerDiscountCents = discountBreakdown.total;
 
   // Какая из двух скидок реально применилась — её и подписываем в итогах.
   // Считаем обе по отдельности той же функцией: так подпись не может
   // разойтись с суммой.
   const appliedDiscountLabel = useMemo(() => {
+    if (discountBreakdown.loyaltyWon && loyaltyOffer) {
+      return {
+        title: t("loyalty.summary.label", { defaultValue: "Скидка лояльности" }),
+        detail: `(−${formatLoyaltyValue(loyaltyOffer.type, loyaltyOffer.value)})`,
+      };
+    }
     const personal = calcCustomerDiscountCents(selectedItems, customerDiscount, 0);
     const manual = calcCustomerDiscountCents(selectedItems, null, formData.manualDiscountPercent);
 
@@ -447,7 +487,7 @@ const EditOrder = () => {
           ? `(−${formatCents(toCents(customerDiscount.value))} €)`
           : `(−${customerDiscount?.value ?? 0}%)`,
     };
-  }, [selectedItems, customerDiscount, formData.manualDiscountPercent, t]);
+  }, [selectedItems, customerDiscount, formData.manualDiscountPercent, discountBreakdown, loyaltyOffer, t]);
 
   // Есть процентная скидка, но часть позиций уже со скидкой в меню —
   // показываем диспетчеру, почему сумма скидки меньше ожидаемой.
@@ -658,6 +698,8 @@ const EditOrder = () => {
         pickupId: Number(formData.pickupId) || null,
         payment: formData.payment,
         manualDiscountPercent: Number(formData.manualDiscountPercent) || 0,
+        // Только для заказа, которому скидка лояльности уже выдана: false — снять её
+        ...(loyaltyOrder?.applied ? { applyLoyalty } : {}),
         deliveryFee: safeDeliveryFee,
         customer: formData.customer,
         phone: formData.phone,
@@ -1174,6 +1216,31 @@ const EditOrder = () => {
                 <h3 className="co-rail-title">
                   {t("createOrder.summary.title", { defaultValue: "Итог заказа" })}
                 </h3>
+
+                {/* Скидка лояльности, выданная этому заказу при создании */}
+                {loyaltyOrder?.applied && (
+                  <LoyaltyNotice
+                    variant="gift"
+                    title={t("loyalty.order.appliedEdit", {
+                      defaultValue: "На этом заказе выдана скидка лояльности",
+                    }) + ` (${formatLoyaltyValue(loyaltyOrder.type, loyaltyOrder.value)})`}
+                    checked={applyLoyalty}
+                    onChange={setApplyLoyalty}
+                    checkLabel={t("loyalty.order.apply", { defaultValue: "Применить скидку" })}
+                    hint={
+                      !applyLoyalty
+                        ? t("loyalty.order.skippedEdit", {
+                            defaultValue: "Скидка будет снята с заказа и вернётся клиенту",
+                          })
+                        : selectedItems.length > 0 && !discountBreakdown.loyaltyWon
+                          ? t("loyalty.order.notWon", {
+                              defaultValue:
+                                "Сейчас действует большая скидка — скидка лояльности не сгорает",
+                            })
+                          : null
+                    }
+                  />
+                )}
 
                 <div className="co-rail-row">
                   <span>{t("createOrder.fields.orderType")}</span>

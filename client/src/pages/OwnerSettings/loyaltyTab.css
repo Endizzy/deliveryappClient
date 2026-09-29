@@ -1,0 +1,558 @@
+/* Вкладка «Лояльность» (OwnerSettings). Все классы с префиксом lo-,
+   чтобы не пересекаться со стилями других вкладок. */
+
+.lo-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+}
+
+@media (max-width: 960px) {
+    .lo-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.lo-loading {
+    color: #64748b;
+    font-weight: 600;
+}
+
+.lo-card {
+    padding: 20px;
+}
+
+/* ── Шапка + переключатель ── */
+.lo-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.lo-head-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.lo-head-title h3 {
+    margin: 0;
+    font-size: 17px;
+    color: #1e293b;
+}
+
+.lo-head-title p {
+    margin: 2px 0 0;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.lo-head-ico {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    color: white;
+    background: var(--app-gradient);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, .25);
+    flex-shrink: 0;
+}
+
+.lo-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.lo-switch input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.lo-switch-track {
+    width: 44px;
+    height: 24px;
+    border-radius: 999px;
+    background: #cbd5e1;
+    position: relative;
+    transition: background .2s;
+}
+
+.lo-switch-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+    transition: transform .2s;
+}
+
+.lo-switch.on .lo-switch-track {
+    background: #10b981;
+}
+
+.lo-switch.on .lo-switch-thumb {
+    transform: translateX(20px);
+}
+
+.lo-switch input:focus-visible + .lo-switch-track {
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, .3);
+}
+
+.lo-switch-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #334155;
+    min-width: 76px;
+}
+
+/* ── Баннер ── */
+.lo-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.lo-banner-warn {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    color: #92400e;
+}
+
+.lo-banner svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* ── Тело формы ── */
+.lo-body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+    transition: opacity .2s;
+}
+
+/* Выключенная программа: настройки можно править, но видно, что она не работает */
+.lo-body.is-off {
+    opacity: .6;
+}
+
+.lo-group {
+    border: 1px solid #e8edf3;
+    border-radius: 12px;
+    padding: 16px;
+    background: #fbfcfe;
+}
+
+.lo-group-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.lo-group-head h4 {
+    margin: 0;
+    font-size: 15px;
+    color: #1e293b;
+}
+
+.lo-group-head p {
+    margin: 2px 0 0;
+    font-size: 12.5px;
+    color: #64748b;
+}
+
+.lo-step {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+    font-weight: 800;
+    color: #4f46e5;
+    background: #e0e7ff;
+    flex-shrink: 0;
+}
+
+/* Степпер */
+.lo-stepper-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.lo-stepper {
+    display: inline-flex;
+    align-items: stretch;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: white;
+    overflow: hidden;
+}
+
+.lo-stepper.has-error,
+.lo-value.has-error {
+    border-color: #ef4444;
+}
+
+.lo-stepper button {
+    width: 40px;
+    border: none;
+    background: #f1f5f9;
+    color: #475569;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: background .15s;
+}
+
+.lo-stepper button:hover:not(:disabled) {
+    background: #e2e8f0;
+}
+
+.lo-stepper button:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+.lo-stepper input {
+    width: 64px;
+    border: none;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 800;
+    color: #1e293b;
+    padding: 8px 0;
+    background: transparent;
+}
+
+.lo-stepper input:focus {
+    outline: none;
+    background: #f8faff;
+}
+
+.lo-stepper-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.lo-stepper-text strong {
+    font-size: 15px;
+    color: #4f46e5;
+}
+
+.lo-stepper-text span {
+    font-size: 12.5px;
+    color: #64748b;
+}
+
+/* Переключатель типа */
+.lo-segment {
+    display: inline-flex;
+    padding: 4px;
+    gap: 4px;
+    background: #f1f5f9;
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+
+.lo-segment button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    background: transparent;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    transition: .15s;
+}
+
+.lo-segment button.active {
+    background: white;
+    color: #4f46e5;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .12);
+}
+
+.lo-segment button:disabled {
+    cursor: not-allowed;
+    opacity: .6;
+}
+
+/* Значение */
+.lo-value-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.lo-value {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: white;
+    overflow: hidden;
+}
+
+.lo-value input {
+    width: 96px;
+    border: none;
+    padding: 10px 12px;
+    font-size: 20px;
+    font-weight: 800;
+    color: #1e293b;
+    background: transparent;
+}
+
+.lo-value input:focus {
+    outline: none;
+    background: #f8faff;
+}
+
+.lo-value-suffix {
+    padding: 0 14px;
+    align-self: stretch;
+    display: grid;
+    place-items: center;
+    background: #f1f5f9;
+    color: #475569;
+    font-weight: 800;
+}
+
+.lo-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.lo-chips button {
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #475569;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: .15s;
+}
+
+.lo-chips button:hover:not(:disabled) {
+    border-color: #a5b4fc;
+    color: #4f46e5;
+}
+
+.lo-chips button.active {
+    background: #e0e7ff;
+    border-color: #a5b4fc;
+    color: #3730a3;
+}
+
+.lo-error {
+    margin-top: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #dc2626;
+}
+
+/* ── Низ формы ── */
+.lo-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.lo-footer .owner-primary-btn:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.lo-dirty {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #b45309;
+}
+
+.lo-clean {
+    font-size: 13px;
+    color: #94a3b8;
+}
+
+/* ── Предпросмотр ── */
+.lo-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: linear-gradient(180deg, #f8faff 0%, #ffffff 60%);
+}
+
+.lo-preview.is-off {
+    opacity: .7;
+}
+
+.lo-preview-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    color: #334155;
+    flex-wrap: wrap;
+}
+
+.lo-preview-off {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.lo-timeline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.lo-dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    background: #eef2f7;
+    border: 1px solid #e2e8f0;
+}
+
+.lo-dot.gift {
+    color: white;
+    border-color: transparent;
+    background: var(--app-gradient);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, .35);
+    width: 36px;
+    height: 36px;
+}
+
+.lo-dot-gap {
+    color: #94a3b8;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.lo-timeline-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 12.5px;
+    color: #64748b;
+}
+
+.lo-timeline-legend .gift {
+    color: #4f46e5;
+    font-weight: 700;
+}
+
+.lo-example {
+    border: 1px dashed #c7d2fe;
+    background: #f5f7ff;
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.lo-example-head {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    color: #64748b;
+    font-weight: 700;
+}
+
+.lo-example-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #334155;
+}
+
+.lo-example-row.disc {
+    color: #059669;
+    font-weight: 700;
+}
+
+.lo-example-row.total {
+    margin-top: 4px;
+    padding-top: 8px;
+    border-top: 1px solid #dbe2fb;
+    font-size: 16px;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.lo-rules {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.lo-rules li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: #64748b;
+}
+
+.lo-rules svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: #94a3b8;
+}

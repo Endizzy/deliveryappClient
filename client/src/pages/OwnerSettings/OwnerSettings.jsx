@@ -4,7 +4,7 @@ import {
   Save, Upload, Image as ImageIcon, Plus, Edit, Trash2,
   Search, Percent, Package, Users, Shield, Phone, Mail,
   BadgeCheck, X, ChevronDown, ChevronUp, Map as MapIcon, FileText,
-  MapPin, Clock, Globe, Building2, Info, UserCog, Pencil, BarChart3
+  MapPin, Clock, Globe, Building2, Info, UserCog, Pencil, BarChart3, Gift
 } from "lucide-react";
 import "./ownerSettings.css";
 import Header from "../../components/Header/Header.jsx";
@@ -12,6 +12,7 @@ import DeliveryZonesEditor from "./DeliveryZonesEditor.jsx";
 import InvoiceSettingsTab from "./InvoiceSettingsTab.jsx";
 import CustomersTab from "./CustomersTab.jsx";
 import AnalyticsTab from "./AnalyticsTab.jsx";
+import LoyaltyTab from "./LoyaltyTab.jsx";
 import OwnerDialog, { useOwnerDialog } from "./OwnerDialog.jsx";
 import { useTranslation } from "react-i18next";
 import { formatCents, toCents } from "../../utils/money.js";
@@ -645,6 +646,17 @@ export default function OwnerSettings() {
         <button
           type="button"
           role="tab"
+          aria-selected={activeTab === "loyalty"}
+          className={`owner-nav-tab ${activeTab === "loyalty" ? "active" : ""}`}
+          onClick={() => setActiveTab("loyalty")}
+        >
+          <Gift size={18} />
+          <span>{t("ownerSettings.sections.loyalty", { defaultValue: "Лояльность" })}</span>
+        </button>
+
+        <button
+          type="button"
+          role="tab"
           aria-selected={activeTab === "zones"}
           className={`owner-nav-tab ${activeTab === "zones" ? "active" : ""}`}
           onClick={() => setActiveTab("zones")}
@@ -1140,6 +1152,11 @@ export default function OwnerSettings() {
         {/* Delivery zones */}
         {activeTab === "customers" && (
           <CustomersTab API={API} authHeaders={authHeaders} t={t} ui={ui} />
+        )}
+
+        {/* Программа лояльности: скидка на N+1-й заказ клиента */}
+        {activeTab === "loyalty" && (
+          <LoyaltyTab API={API} authHeaders={authHeaders} t={t} ui={ui} />
         )}
 
         {activeTab === "zones" && (

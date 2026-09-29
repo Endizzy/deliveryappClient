@@ -315,7 +315,8 @@
       "customers": "Klienti",
       "invoice": "Pavadzīme",
       "zones": "Piegādes zonas",
-      "analytics": "Analīze"
+      "analytics": "Analīze",
+      "loyalty": "Lojalitāte"
     },
     "invoice": {
       "title": "Rēķina priekšskatījums",
@@ -705,6 +706,68 @@
       "activatedPreorder": "Iepriekšpasūtījums aktivizēts automātiski. Piegādes laiks saglabājas.",
       "clear": "Noņemt piegādes laiku",
       "clearConfirm": "Piegādes laiks {{when}} tiks dzēsts. Turpināt?"
+    }
+  },
+  "loyalty": {
+    "title": "Lojalitātes programma",
+    "subtitle": "Atlaide klientam noteiktā pēc kārtas pasūtījumā",
+    "on": "Ieslēgta",
+    "off": "Izslēgta",
+    "loading": "Ielāde…",
+    "notReady": "Nav izpildīta SQL migrācija loyalty.sql — programma nav pieejama, kamēr tabulas nav izveidotas.",
+    "saved": "Lojalitātes iestatījumi saglabāti",
+    "saving": "Saglabā…",
+    "save": "Saglabāt",
+    "unsaved": "Ir nesaglabātas izmaiņas",
+    "upToDate": "Iestatījumi saglabāti",
+    "when": {
+      "title": "Kad piešķirt atlaidi",
+      "hint": "Cik pasūtījumus klients veic bez atlaides",
+      "label": "Pasūtījumu skaits līdz atlaidei",
+      "result": "Atlaide {{n}}. pasūtījumam",
+      "after": "Pēc tam uzskaite sākas no jauna"
+    },
+    "what": {
+      "title": "Kāda atlaide",
+      "hint": "Fiksēta summa vai procents no pasūtījuma",
+      "fixed": "Summa",
+      "percent": "Procents",
+      "value": "Atlaides apmērs"
+    },
+    "errors": {
+      "ordersBefore": "No 1 līdz {{max}}",
+      "valuePositive": "Vairāk par nulli",
+      "percentMax": "Ne vairāk par 100%",
+      "fixedMax": "Ne vairāk par {{max}} €",
+      "saveFailed": "Neizdevās saglabāt iestatījumus"
+    },
+    "preview": {
+      "title": "Kā tas darbosies",
+      "off": "programma izslēgta",
+      "regular": "Pasūtījumi 1–{{n}} — par parasto cenu",
+      "gift": "{{n}}. — atlaide {{v}}",
+      "example": "Piemērs: klienta {{n}}. pasūtījums",
+      "orderSum": "Pasūtījuma summa",
+      "discount": "Lojalitātes atlaide",
+      "total": "Jāmaksā"
+    },
+    "rules": {
+      "phone": "Klients tiek noteikts pēc tālruņa numura",
+      "cancelled": "Atceltie pasūtījumi netiek skaitīti; ja pasūtījums ar atlaidi tiek atcelts, atlaide tiek atgriezta",
+      "best": "Neapvienojas ar citām atlaidēm — tiek piemērota lielākā",
+      "since": "Pasūtījumi tiek skaitīti no programmas ieslēgšanas brīža"
+    },
+    "order": {
+      "progress": "Lojalitāte: klienta {{n}}. pasūtījums, atlaide {{gift}}. pasūtījumam",
+      "gift": "Klienta {{n}}. pasūtījums — lojalitātes atlaide {{v}}",
+      "apply": "Piemērot atlaidi",
+      "skipped": "Atlaide netiks piemērota un netiks zaudēta",
+      "appliedEdit": "Šim pasūtījumam piešķirta lojalitātes atlaide",
+      "notWon": "Šobrīd tiek piemērota lielāka atlaide — lojalitātes atlaide netiek zaudēta",
+      "skippedEdit": "Atlaide tiks noņemta no pasūtījuma un atgriezta klientam"
+    },
+    "summary": {
+      "label": "Lojalitātes atlaide"
     }
   }
 }

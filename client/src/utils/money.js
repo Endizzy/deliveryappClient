@@ -57,7 +57,28 @@ export const MANUAL_DISCOUNT_OPTIONS = [5, 10, 15, 20, 25, 30];
  * пересчитывает суммы сам и является источником правды. Меняя правило здесь,
  * поменяйте и там, иначе итог в форме разойдётся с сохранённым.
  */
-export function customerDiscountCents(items, discount, manualPercent = 0) {
+export function customerDiscountCents(items, discount, manualPercent = 0, loyalty = null) {
+  return orderDiscountBreakdown(items, discount, manualPercent, loyalty).total;
+}
+
+/** Подпись скидки лояльности: «5.00 €» или «10%» */
+export function formatLoyaltyValue(type, value) {
+  const v = Number(value) || 0;
+  return type === "percent" ? `${v}%` : `${formatCents(toCents(v))} €`;
+}
+
+/**
+ * Разбор скидки на заказ по источникам.
+ *
+ * loyalty — скидка программы лояльности ({ type, value }) или null.
+ * Применяется НАИБОЛЬШАЯ из трёх скидок, они не складываются. Скидка
+ * лояльности «побеждает» (loyaltyWon), только если строго больше остальных —
+ * при равенстве она не сгорает. Та же логика на сервере:
+ * loyaltyLogic.js, pickOrderDiscount.
+ *
+ * Возвращает { personal, manual, loyalty, total, loyaltyWon } в центах.
+ */
+export function orderDiscountBreakdown(items, discount, manualPercent = 0, loyalty = null) {
   const list = Array.isArray(items) ? items : [];
   const itemsTotal = list.reduce(
     (sum, it) => sum + lineTotalCents(it?.price, it?.discount, it?.quantity),
@@ -82,7 +103,25 @@ export function customerDiscountCents(items, discount, manualPercent = 0) {
       ? Math.round((percentBase * Math.min(manual, 100)) / 100)
       : 0;
 
-  // Не складываем: клиент получает лучшее из двух условий
-  return Math.max(personalCents, manualCents);
+  // Скидка лояльности: fixed — от всей суммы (не больше неё), percent — от
+  // позиций без скидки в меню. Те же формулы, что у постоянной скидки.
+  let loyaltyCents = 0;
+  const lv = Number(loyalty?.value);
+  if (loyalty && lv > 0) {
+    loyaltyCents =
+      loyalty.type === "percent"
+        ? Math.round((percentBase * Math.min(lv, 100)) / 100)
+        : Math.min(toCents(lv), itemsTotal);
+  }
+
+  // Не складываем: клиент получает лучшее из условий
+  const other = Math.max(personalCents, manualCents);
+  return {
+    personal: personalCents,
+    manual: manualCents,
+    loyalty: loyaltyCents,
+    total: Math.max(other, loyaltyCents),
+    loyaltyWon: loyaltyCents > other,
+  };
 }
 

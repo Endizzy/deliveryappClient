@@ -315,7 +315,8 @@
       "customers": "Customers",
       "invoice": "Invoice",
       "zones": "Delivery zones",
-      "analytics": "Analytics"
+      "analytics": "Analytics",
+      "loyalty": "Loyalty"
     },
     "invoice": {
       "title": "Invoice preview",
@@ -704,6 +705,68 @@
       "activatedPreorder": "Preorder was activated automatically. The delivery time is kept.",
       "clear": "Remove delivery time",
       "clearConfirm": "Delivery time {{when}} will be removed. Continue?"
+    }
+  },
+  "loyalty": {
+    "title": "Loyalty program",
+    "subtitle": "A discount for the customer's Nth order",
+    "on": "Enabled",
+    "off": "Disabled",
+    "loading": "Loading…",
+    "notReady": "The loyalty.sql migration has not been run — the program is unavailable until the tables are created.",
+    "saved": "Loyalty settings saved",
+    "saving": "Saving…",
+    "save": "Save",
+    "unsaved": "You have unsaved changes",
+    "upToDate": "Settings saved",
+    "when": {
+      "title": "When to give the discount",
+      "hint": "How many orders a customer places without a discount",
+      "label": "Orders before discount",
+      "result": "Discount on order #{{n}}",
+      "after": "After that the count starts over"
+    },
+    "what": {
+      "title": "What discount",
+      "hint": "A fixed amount or a percentage of the order",
+      "fixed": "Amount",
+      "percent": "Percent",
+      "value": "Discount value"
+    },
+    "errors": {
+      "ordersBefore": "From 1 to {{max}}",
+      "valuePositive": "Must be greater than zero",
+      "percentMax": "No more than 100%",
+      "fixedMax": "No more than {{max}} €",
+      "saveFailed": "Could not save the settings"
+    },
+    "preview": {
+      "title": "How it will work",
+      "off": "program disabled",
+      "regular": "Orders 1–{{n}} — regular price",
+      "gift": "#{{n}} — discount {{v}}",
+      "example": "Example: customer's order #{{n}}",
+      "orderSum": "Order total",
+      "discount": "Loyalty discount",
+      "total": "To pay"
+    },
+    "rules": {
+      "phone": "The customer is identified by phone number",
+      "cancelled": "Cancelled orders are not counted; if the discounted order is cancelled, the discount is returned",
+      "best": "Not combined with other discounts — the largest one applies",
+      "since": "Orders are counted from the moment the program is enabled"
+    },
+    "order": {
+      "progress": "Loyalty: customer's order #{{n}}, discount on #{{gift}}",
+      "gift": "Customer's order #{{n}} — loyalty discount {{v}}",
+      "apply": "Apply discount",
+      "skipped": "The discount will not be applied and will not be used up",
+      "appliedEdit": "A loyalty discount was given on this order",
+      "notWon": "A larger discount is in effect — the loyalty discount is not used up",
+      "skippedEdit": "The discount will be removed from the order and returned to the customer"
+    },
+    "summary": {
+      "label": "Loyalty discount"
     }
   }
 }

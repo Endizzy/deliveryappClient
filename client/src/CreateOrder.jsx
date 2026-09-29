@@ -8,6 +8,8 @@ import {
   toCents,
   formatCents,
   customerDiscountCents as calcCustomerDiscountCents,
+  orderDiscountBreakdown,
+  formatLoyaltyValue,
   MANUAL_DISCOUNT_OPTIONS,
 } from "./utils/money.js";
 import { normalizePhoneForLookup, isValidPhone } from "./utils/phone.js";
@@ -21,6 +23,7 @@ import ItemsSection from "./components/CreateOrder/ItemsSection.jsx";
 import NotesSection from "./components/CreateOrder/NotesSection.jsx";
 import DeliveryMapModal from "./components/CreateOrder/DeliveryMapModal.jsx";
 import PastOrdersModal from "./components/CreateOrder/PastOrdersModal.jsx";
+import LoyaltyNotice from "./components/CreateOrder/LoyaltyNotice.jsx";
 import { findZoneForPoint, getZoneDeliveryRules } from "./utils/zones.js";
 
 const PREORDER_MIN_OFFSET_MIN = 15;
@@ -160,6 +163,37 @@ const CreateOrder = () => {
         if (!cancelled) setCustomerDiscount(data?.ok ? data.discount || null : null);
       } catch {
         if (!cancelled) setCustomerDiscount(null);
+      }
+    }, 350);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [formData.phone, API, authHeaders, handleUnauthorized]);
+
+  // ---- программа лояльности: каким по счёту будет этот заказ клиента ----
+  // Только предпросмотр: итоговую скидку сервер определяет сам при создании.
+  // Любая ошибка = «лояльности нет», форма заказа от неё не зависит.
+  const [loyalty, setLoyalty] = useState(null);
+  const [applyLoyalty, setApplyLoyalty] = useState(true);
+
+  useEffect(() => {
+    const raw = (formData.phone || "").replace(/\s/g, "");
+    if (!/^\+?\d{8,15}$/.test(raw)) {
+      setLoyalty(null);
+      return;
+    }
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `${API}/loyalty/status?phone=${encodeURIComponent(normalizePhoneForLookup(raw))}`,
+          { headers: authHeaders }
+        );
+        if (res.status === 401) return handleUnauthorized();
+        const data = await res.json();
+        if (cancelled) return;
+        setLoyalty(data?.ok && data.enabled ? data : null);
+        setApplyLoyalty(true); // другой клиент — чекбокс снова включён
+      } catch {
+        if (!cancelled) setLoyalty(null);
       }
     }, 350);
     return () => { cancelled = true; clearTimeout(timer); };
@@ -330,20 +364,38 @@ const CreateOrder = () => {
   // Персональная скидка клиента (подставляется по телефону, применяется сервером).
   // Процент считается только от позиций без скидки в меню — иначе на акционном
   // товаре скидка складывалась бы дважды.
-  const customerDiscountCents = useMemo(
+  //
+  // Скидка лояльности участвует в том же выборе «большая из скидок».
+  const loyaltyOffer = useMemo(
     () =>
-      calcCustomerDiscountCents(
+      loyalty?.enabled && loyalty.willApply && applyLoyalty
+        ? { type: loyalty.type, value: loyalty.value }
+        : null,
+    [loyalty, applyLoyalty]
+  );
+
+  const discountBreakdown = useMemo(
+    () =>
+      orderDiscountBreakdown(
         selectedItems,
         customerDiscount,
-        formData.manualDiscountPercent
+        formData.manualDiscountPercent,
+        loyaltyOffer
       ),
-    [customerDiscount, selectedItems, formData.manualDiscountPercent]
+    [customerDiscount, selectedItems, formData.manualDiscountPercent, loyaltyOffer]
   );
+  const customerDiscountCents = discountBreakdown.total;
 
   // Какая из двух скидок реально применилась — её и подписываем в итогах.
   // Считаем обе по отдельности той же функцией: так подпись не может
   // разойтись с суммой.
   const appliedDiscountLabel = useMemo(() => {
+    if (discountBreakdown.loyaltyWon && loyaltyOffer) {
+      return {
+        title: t("loyalty.summary.label", { defaultValue: "Скидка лояльности" }),
+        detail: `(−${formatLoyaltyValue(loyaltyOffer.type, loyaltyOffer.value)})`,
+      };
+    }
     const personal = calcCustomerDiscountCents(selectedItems, customerDiscount, 0);
     const manual = calcCustomerDiscountCents(selectedItems, null, formData.manualDiscountPercent);
 
@@ -364,7 +416,7 @@ const CreateOrder = () => {
           ? `(−${formatCents(toCents(customerDiscount.value))} €)`
           : `(−${customerDiscount?.value ?? 0}%)`,
     };
-  }, [selectedItems, customerDiscount, formData.manualDiscountPercent, t]);
+  }, [selectedItems, customerDiscount, formData.manualDiscountPercent, discountBreakdown, loyaltyOffer, t]);
 
   // Есть процентная скидка, но часть позиций уже со скидкой в меню —
   // показываем диспетчеру, почему сумма скидки меньше ожидаемой.
@@ -639,6 +691,8 @@ const CreateOrder = () => {
         pickupId: Number(formData.pickupId) || null,
         payment: formData.payment,
         manualDiscountPercent: Number(formData.manualDiscountPercent) || 0,
+        // false — оператор отказался от скидки лояльности: она не применится и не сгорит
+        applyLoyalty,
         deliveryFee: safeDeliveryFee,
 
         customer: formData.customer.trim(),
@@ -798,6 +852,43 @@ const CreateOrder = () => {
               <h3 className="co-rail-title">
                 {t("createOrder.summary.title", { defaultValue: "Итог заказа" })}
               </h3>
+
+              {/* Программа лояльности: каким по счёту будет заказ клиента */}
+              {loyalty?.enabled && loyalty.willApply && (
+                <LoyaltyNotice
+                  variant="gift"
+                  title={t("loyalty.order.gift", {
+                    defaultValue: "{{n}}-й заказ клиента — скидка лояльности {{v}}",
+                    n: loyalty.position,
+                    v: formatLoyaltyValue(loyalty.type, loyalty.value),
+                  })}
+                  checked={applyLoyalty}
+                  onChange={setApplyLoyalty}
+                  checkLabel={t("loyalty.order.apply", { defaultValue: "Применить скидку" })}
+                  hint={
+                    !applyLoyalty
+                      ? t("loyalty.order.skipped", {
+                          defaultValue: "Скидка не применяется и не сгорает",
+                        })
+                      : selectedItems.length > 0 && !discountBreakdown.loyaltyWon
+                        ? t("loyalty.order.notWon", {
+                            defaultValue:
+                              "Сейчас действует большая скидка — скидка лояльности не сгорает",
+                          })
+                        : null
+                  }
+                />
+              )}
+              {loyalty?.enabled && !loyalty.willApply && (
+                <LoyaltyNotice
+                  variant="progress"
+                  title={t("loyalty.order.progress", {
+                    defaultValue: "Лояльность: заказ №{{n}} клиента, скидка на {{gift}}-м",
+                    n: loyalty.position,
+                    gift: loyalty.ordersBefore + 1,
+                  })}
+                />
+              )}
 
               <div className="co-rail-row">
                 <span>{t("createOrder.fields.orderType")}</span>
