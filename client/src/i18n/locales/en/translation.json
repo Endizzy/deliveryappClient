@@ -767,6 +767,31 @@
     },
     "summary": {
       "label": "Loyalty discount"
-    }
+    },
+    "clients": {
+      "title": "Customers in the program",
+      "subtitle": "Building up orders toward the discount — those whose discount is due are shown first",
+      "refresh": "Refresh",
+      "filters": {
+        "all": "All",
+        "ready": "Discount due",
+        "soon": "Soon"
+      },
+      "search": "Name or phone",
+      "empty": "Nobody is building up orders yet. Customers will appear here after their first orders while the program is on.",
+      "emptyFiltered": "Nobody found",
+      "ordersOf": "{{n}} of {{total}}",
+      "ready": "Discount due",
+      "readyHint": "Next order gets a {{v}} discount",
+      "remaining": "Left: {{n}}",
+      "lastOrder": "Last order",
+      "noName": "No name",
+      "more": "Show more",
+      "truncated": "Showing the first 500 customers with the most orders",
+      "loadError": "Could not load the customer list",
+      "retry": "Retry",
+      "disabled": "The bonus program is disabled — the list is empty"
+    },
+    "lockedHint": "The program is off — turn it on to change the settings"
   }
 }

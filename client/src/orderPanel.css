@@ -160,7 +160,7 @@
 
 .table-header {
     display: grid;
-    grid-template-columns: 80px 120px 120px 1fr 200px 100px 130px 120px 120px;
+    grid-template-columns: 80px 138px 120px 1fr 200px 100px 130px 120px 120px;
     /*background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);*/
     /*background: linear-gradient(135deg, rgba(242, 243, 246, 0.79) 0%, #edf2f8 100%);*/
     /*background: linear-gradient(135deg, rgba(15, 32, 39, 0.70) 0%, rgba(32, 58, 67, 0.70) 50%, rgba(44, 83, 100, 0.70) 100%);*/
@@ -247,7 +247,7 @@
 
 .table-row {
     display: grid;
-    grid-template-columns: 80px 120px 120px 1fr 200px 100px 130px 120px 120px;
+    grid-template-columns: 80px 138px 120px 1fr 200px 100px 130px 120px 120px;
     border-bottom: 1px solid #f1f5f9;
     transition: all 0.2s ease;
     min-height: 72px;
@@ -349,6 +349,12 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    /* Бейдж никогда не выходит за свою ячейку и не переносится на 2 строки:
+       если текст всё же не помещается (узкое окно, длинный перевод) —
+       обрезается многоточием, полное название в title. */
+    max-width: 100%;
+    min-width: 0;
+    white-space: nowrap;
     border: none;
     cursor: pointer;
     font-family: inherit;
@@ -357,6 +363,13 @@
 
 .status-badge-btn svg {
     flex-shrink: 0;
+}
+
+.status-badge-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .status-badge-btn:hover:not(:disabled) {
@@ -632,7 +645,26 @@
 @media (max-width: 1200px) {
     .table-header,
     .table-row {
-        grid-template-columns: 60px 90px 100px 150px 120px 90px 100px 80px 100px;
+        grid-template-columns: 60px 110px 100px 150px 120px 90px 100px 80px 100px;
+    }
+
+    /* Статус в узкой колонке: меньше внутренние отступы ячейки и компактнее
+       сам бейдж (администраторы часто держат окно на пол-экрана). */
+    .cell.status-cell {
+        padding-left: 6px;
+        padding-right: 6px;
+    }
+
+    .status-badge-btn {
+        gap: 3px;
+        padding: 3px 5px;
+        font-size: 10px;
+        letter-spacing: 0.2px;
+    }
+
+    .status-badge-btn svg {
+        width: 11px;
+        height: 11px;
     }
 
     .orders-container {

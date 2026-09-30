@@ -152,7 +152,16 @@
 
 /* Выключенная программа: настройки можно править, но видно, что она не работает */
 .lo-body.is-off {
-    opacity: .6;
+    opacity: .55;
+    /* Настройки заблокированы: поля ещё и disabled, это страховка для мыши */
+    pointer-events: none;
+    user-select: none;
+}
+
+.lo-banner-info {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1e40af;
 }
 
 .lo-group {
@@ -418,6 +427,7 @@
 /* ── Предпросмотр ── */
 .lo-preview {
     display: flex;
+    height: 100%;
     flex-direction: column;
     gap: 16px;
     background: linear-gradient(180deg, #f8faff 0%, #ffffff 60%);
@@ -555,4 +565,350 @@
     flex-shrink: 0;
     margin-top: 2px;
     color: #94a3b8;
+}
+
+/* ── Список клиентов, копящих заказы (LoyaltyCustomers) ─────────────────── */
+.lo-cl {
+    margin-top: 16px;
+}
+
+.lo-cl-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.lo-cl-refresh:disabled {
+    opacity: .6;
+    cursor: default;
+}
+
+.lo-spin {
+    animation: lo-spin 1s linear infinite;
+}
+
+@keyframes lo-spin {
+    to { transform: rotate(360deg); }
+}
+
+.lo-cl-tools {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 16px 0 12px;
+}
+
+.lo-cl-tabs {
+    display: inline-flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.lo-cl-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #64748b;
+    border-radius: 999px;
+    padding: 7px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: .15s;
+}
+
+.lo-cl-tab b {
+    min-width: 20px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 12px;
+    text-align: center;
+}
+
+.lo-cl-tab:hover {
+    border-color: #a5b4fc;
+    color: #4f46e5;
+}
+
+.lo-cl-tab.active {
+    background: #e0e7ff;
+    border-color: #a5b4fc;
+    color: #3730a3;
+}
+
+.lo-cl-tab.active b {
+    background: white;
+    color: #3730a3;
+}
+
+.lo-cl-tab.ready.active {
+    background: var(--app-gradient);
+    border-color: transparent;
+    color: white;
+}
+
+.lo-cl-tab.ready.active b {
+    background: rgba(255, 255, 255, .25);
+    color: white;
+}
+
+.lo-cl-search {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    border-radius: 10px;
+    padding: 0 12px;
+    color: #94a3b8;
+    min-width: 220px;
+}
+
+.lo-cl-search input {
+    border: none;
+    background: transparent;
+    padding: 9px 0;
+    font-size: 14px;
+    color: #334155;
+    width: 100%;
+}
+
+.lo-cl-search input:focus {
+    outline: none;
+}
+
+.lo-cl-search:focus-within {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, .1);
+}
+
+.lo-cl-empty {
+    padding: 28px 12px;
+    text-align: center;
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.lo-cl-retry {
+    margin-left: auto;
+    border: none;
+    background: transparent;
+    color: #92400e;
+    font-weight: 800;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.lo-cl-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.lo-cl-row {
+    display: grid;
+    grid-template-columns: 40px minmax(140px, 1.3fr) minmax(140px, 1fr) minmax(150px, auto) 110px;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 14px;
+    border: 1px solid #e8edf3;
+    border-left: 4px solid #e2e8f0;
+    border-radius: 12px;
+    background: white;
+}
+
+.lo-cl-row.is-ready {
+    border-left-color: #6366f1;
+    background: linear-gradient(90deg, #eef2ff 0%, #ffffff 70%);
+}
+
+.lo-cl-row.is-soon {
+    border-left-color: #f59e0b;
+}
+
+.lo-cl-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    font-size: 14px;
+    color: #4f46e5;
+    background: #e0e7ff;
+}
+
+.lo-cl-who {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.lo-cl-who strong {
+    font-size: 14px;
+    color: #1e293b;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.lo-cl-who span {
+    font-size: 12.5px;
+    color: #64748b;
+}
+
+.lo-cl-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.lo-cl-bar {
+    height: 7px;
+    border-radius: 999px;
+    background: #eef2f7;
+    overflow: hidden;
+}
+
+.lo-cl-bar span {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: #94a3b8;
+    transition: width .3s;
+}
+
+.lo-cl-row.is-soon .lo-cl-bar span {
+    background: #f59e0b;
+}
+
+.lo-cl-row.is-ready .lo-cl-bar span {
+    background: var(--app-gradient);
+}
+
+.lo-cl-count {
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+}
+
+.lo-cl-status {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.lo-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.lo-chip.ready {
+    color: white;
+    background: var(--app-gradient);
+    box-shadow: 0 3px 10px rgba(102, 126, 234, .3);
+}
+
+.lo-chip.ready em {
+    font-style: normal;
+    padding-left: 6px;
+    border-left: 1px solid rgba(255, 255, 255, .45);
+}
+
+.lo-chip.soon {
+    color: #92400e;
+    background: #fef3c7;
+}
+
+.lo-chip.wait {
+    color: #64748b;
+    background: #f1f5f9;
+}
+
+.lo-cl-last {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    text-align: right;
+}
+
+.lo-cl-last span {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+    color: #94a3b8;
+}
+
+.lo-cl-more {
+    margin: 14px auto 0;
+    display: flex;
+    justify-content: center;
+}
+
+.lo-cl-note {
+    margin-top: 12px;
+    text-align: center;
+    font-size: 12.5px;
+    color: #94a3b8;
+}
+
+@media (max-width: 860px) {
+    .lo-cl-row {
+        grid-template-columns: 40px minmax(0, 1fr) auto;
+        grid-template-areas:
+            "av who status"
+            "av prog prog";
+        row-gap: 8px;
+    }
+    .lo-cl-avatar { grid-area: av; }
+    .lo-cl-who { grid-area: who; }
+    .lo-cl-status { grid-area: status; }
+    .lo-cl-progress { grid-area: prog; }
+    .lo-cl-last { display: none; }
+    .lo-cl-search { min-width: 0; width: 100%; }
+}
+
+/* Блок клиентов при выключенной программе */
+.lo-cl-disabled {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 16px;
+    padding: 28px 12px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.lo-cl-off .lo-cl-refresh {
+    opacity: .5;
+    cursor: not-allowed;
 }

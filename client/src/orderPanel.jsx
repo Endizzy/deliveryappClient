@@ -655,10 +655,11 @@ const OrderPanel = () => {
                     type="button"
                     className={`status-badge status-badge-btn ${getStatusColor(order.status)}`}
                     disabled={statusSaving.has(order.id)}
+                    title={formatOrderStatus(order.status)}
                     onClick={(e) => toggleStatusMenu(e, order.id)}
                   >
                     {order.status === "cancelled" && <Trash2 size={13} />}
-                    {formatOrderStatus(order.status)}
+                    <span className="status-badge-label">{formatOrderStatus(order.status)}</span>
                     <ChevronDown size={14} />
                   </button>
                 </div>

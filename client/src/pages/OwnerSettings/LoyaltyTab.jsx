@@ -3,6 +3,7 @@ import {
   Gift, Save, Minus, Plus, Euro, Percent, Info, AlertTriangle, RotateCcw, ShoppingBag,
 } from "lucide-react";
 import "./loyaltyTab.css";
+import LoyaltyCustomers from "./LoyaltyCustomers.jsx";
 import { formatCents, toCents } from "../../utils/money.js";
 
 // Пример заказа для предпросмотра, €
@@ -37,6 +38,8 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
 
   // Что сохранено на сервере — чтобы показывать «есть несохранённые изменения»
   const [saved, setSaved] = useState(null);
+  // Растёт после каждого успешного сохранения — список клиентов перезагружается
+  const [listVersion, setListVersion] = useState(0);
 
   const applyServer = (s) => {
     const next = {
@@ -95,6 +98,10 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
   }, [nOrders, nValue, type, t]);
   const hasErrors = Object.keys(errors).length > 0;
 
+  // Настройки можно менять только при включённой программе (и готовой миграции).
+  // Сам переключатель «Включена» остаётся доступным — иначе программу не включить.
+  const locked = !ready || !enabled;
+
   const dirty =
     !!saved &&
     (saved.enabled !== enabled ||
@@ -130,6 +137,7 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
         );
       }
       applyServer(data.settings);
+      setListVersion((v) => v + 1);
       notify({ message: t("loyalty.saved", { defaultValue: "Настройки лояльности сохранены" }) });
     } catch (e) {
       notify({ message: e.message, tone: "danger" });
@@ -169,6 +177,7 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
   }
 
   return (
+    <>
     <div className="lo-layout">
       {/* ───────── Форма ───────── */}
       <section className="owner-card lo-card">
@@ -213,7 +222,18 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
           </div>
         )}
 
-        <div className={`lo-body ${!enabled ? "is-off" : ""}`}>
+        {ready && !enabled && (
+          <div className="lo-banner lo-banner-info">
+            <Info size={16} />
+            <span>
+              {t("loyalty.lockedHint", {
+                defaultValue: "Программа выключена — включите её, чтобы изменить настройки",
+              })}
+            </span>
+          </div>
+        )}
+
+        <div className={`lo-body ${!enabled ? "is-off" : ""}`} aria-disabled={locked}>
           {/* 1. Когда */}
           <div className="lo-group">
             <div className="lo-group-head">
@@ -233,7 +253,7 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
                 <button
                   type="button"
                   onClick={() => stepOrders(-1)}
-                  disabled={!ready || nOrders <= 1}
+                  disabled={locked || nOrders <= 1}
                   aria-label="−"
                 >
                   <Minus size={16} />
@@ -241,14 +261,14 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
                 <input
                   inputMode="numeric"
                   value={ordersBefore}
-                  disabled={!ready}
+                  disabled={locked}
                   onChange={(e) => setOrdersBefore(e.target.value.replace(/[^\d]/g, "").slice(0, 3))}
                   aria-label={t("loyalty.when.label", { defaultValue: "Заказов до скидки" })}
                 />
                 <button
                   type="button"
                   onClick={() => stepOrders(1)}
-                  disabled={!ready || nOrders >= MAX_ORDERS_BEFORE}
+                  disabled={locked || nOrders >= MAX_ORDERS_BEFORE}
                   aria-label="+"
                 >
                   <Plus size={16} />
@@ -290,7 +310,7 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
                 role="tab"
                 aria-selected={type === "fixed"}
                 className={type === "fixed" ? "active" : ""}
-                disabled={!ready}
+                disabled={locked}
                 onClick={() => switchType("fixed")}
               >
                 <Euro size={15} /> {t("loyalty.what.fixed", { defaultValue: "Сумма" })}
@@ -300,7 +320,7 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
                 role="tab"
                 aria-selected={type === "percent"}
                 className={type === "percent" ? "active" : ""}
-                disabled={!ready}
+                disabled={locked}
                 onClick={() => switchType("percent")}
               >
                 <Percent size={15} /> {t("loyalty.what.percent", { defaultValue: "Процент" })}
@@ -312,7 +332,7 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
                 <input
                   inputMode="decimal"
                   value={value}
-                  disabled={!ready}
+                  disabled={locked}
                   onChange={(e) => setValue(e.target.value.replace(/[^\d.,]/g, "").slice(0, 7))}
                   aria-label={t("loyalty.what.value", { defaultValue: "Размер скидки" })}
                 />
@@ -324,7 +344,7 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
                   <button
                     key={p}
                     type="button"
-                    disabled={!ready}
+                    disabled={locked}
                     className={nValue === p ? "active" : ""}
                     onClick={() => setValue(String(p))}
                   >
@@ -454,5 +474,16 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
         </ul>
       </aside>
     </div>
+
+    {/* Список клиентов: блок виден всегда; при выключенной (сохранённой)
+        программе внутри пишется, что бонус отключён, и список пуст */}
+    <LoyaltyCustomers
+      API={API}
+      authHeaders={authHeaders}
+      t={t}
+      enabled={!!saved?.enabled && ready}
+      refreshKey={listVersion}
+    />
+    </>
   );
 }

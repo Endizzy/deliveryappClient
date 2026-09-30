@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Save } from "lucide-react";
+import { flushSync } from "react-dom";
+import { ArrowLeft, Save, Printer } from "lucide-react";
+import { useReactToPrint } from "react-to-print";
 import "./CreateOrder.css";
 import { useNavigate } from "react-router-dom";
 import useNotification from "./hooks/useNotification.jsx";
@@ -10,6 +12,7 @@ import {
   customerDiscountCents as calcCustomerDiscountCents,
   orderDiscountBreakdown,
   formatLoyaltyValue,
+  discountedUnitCents,
   MANUAL_DISCOUNT_OPTIONS,
 } from "./utils/money.js";
 import { normalizePhoneForLookup, isValidPhone } from "./utils/phone.js";
@@ -24,9 +27,24 @@ import NotesSection from "./components/CreateOrder/NotesSection.jsx";
 import DeliveryMapModal from "./components/CreateOrder/DeliveryMapModal.jsx";
 import PastOrdersModal from "./components/CreateOrder/PastOrdersModal.jsx";
 import LoyaltyNotice from "./components/CreateOrder/LoyaltyNotice.jsx";
+import InvoiceTemplate from "./pages/InvoiceSettings/InvoiceTemplate.jsx";
 import { findZoneForPoint, getZoneDeliveryRules } from "./utils/zones.js";
 
 const PREORDER_MIN_OFFSET_MIN = 15;
+
+// Подписи способов оплаты на накладной (те же, что в EditOrder)
+const PAYMENT_LABELS = {
+  cash: "Skaidra nauda",
+  card: "Karte",
+  wire: "Pārskaitījums",
+  paid: "Apmaksāts",
+};
+
+const pad2 = (n) => String(n).padStart(2, "0");
+const stampNow = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+};
 
 const CreateOrder = () => {
   const { t, i18n } = useTranslation();
@@ -429,6 +447,93 @@ const CreateOrder = () => {
   const calculateGrandTotalCents = () =>
     Math.max(0, itemsTotalCents() - customerDiscountCents) + toCents(safeDeliveryFee);
 
+  // ── Печать накладной прямо с формы (как в EditOrder) ─────────────────────
+  // Печатается то, что сейчас в форме, ещё до сохранения: номера заказа у него
+  // пока нет (на бумаге «—»), время — момент нажатия. Реквизиты компании
+  // грузятся отдельно; при ошибке шаблон берёт значения по умолчанию.
+  const printRef = useRef(null);
+  const [invoiceSettings, setInvoiceSettings] = useState(null);
+  const [printStamp, setPrintStamp] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${API}/invoice-settings`, { headers: authHeaders });
+        if (res.status === 401) return;
+        const data = await res.json();
+        if (!cancelled && data?.ok && data.settings) setInvoiceSettings(data.settings);
+      } catch {
+        // не критично: накладная напечатается с реквизитами по умолчанию
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [API, authHeaders]);
+
+  const invoiceOrder = useMemo(() => {
+    const addressParts = [formData.street, formData.house, formData.building]
+      .filter(Boolean)
+      .join(" ");
+    const address = addressParts + (formData.apart ? `-${formData.apart}` : "");
+
+    const deliveryDate =
+      formData.scheduledDate && formData.scheduledTime
+        ? `${formData.scheduledDate.split("-").reverse().join(".")} ${formData.scheduledTime}`
+        : formData.orderType === "active"
+          ? t("createOrder.orderType.active", { defaultValue: "Aktīvs" })
+          : "—";
+
+    return {
+      number: "",
+      createdAt: printStamp,
+      deliveryDate,
+      customerPhone: formData.phone,
+      customerName: formData.customer,
+      address,
+      floor: formData.floor,
+      doorCode: formData.code,
+      peopleCount: formData.numOfPeople,
+      notes: formData.notes,
+      paymentMethod: PAYMENT_LABELS[formData.payment] || formData.payment,
+      items: selectedItems.map((i) => ({
+        name: i.name,
+        // цена позиции уже со скидкой меню — в шаблоне отдельной колонки нет
+        price: i.discount > 0
+          ? (discountedUnitCents(i.price, i.discount) / 100).toFixed(2)
+          : i.price,
+        quantity: i.quantity,
+      })),
+      deliveryFee: safeDeliveryFee,
+      // реально применившаяся скидка (клиента / разовая / лояльности)
+      discount: customerDiscountCents / 100,
+    };
+  }, [formData, selectedItems, printStamp, safeDeliveryFee, customerDiscountCents, t]);
+
+  // pageStyle — тот же, что в EditOrder: поля листа и белый фон
+  const runPrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: "Order",
+    pageStyle: `
+      @page { size: A4; margin: 10mm 12mm; }
+      @media print {
+        html, body {
+          margin: 0 !important;
+          padding: 0 !important;
+          height: auto !important;
+          background: #fff !important;
+          background-image: none !important;
+        }
+      }
+    `,
+  });
+
+  const handlePrint = () => {
+    // время на накладной — момент печати; flushSync, чтобы оно попало в разметку
+    // до того, как react-to-print заберёт содержимое
+    flushSync(() => setPrintStamp(stampNow()));
+    runPrint();
+  };
+
   // ── Правила зоны по сумме заказа ──────────────────────────────────────────
   // База — товары со скидкой, без доставки: сама доставка не должна влиять на
   // то, бесплатна ли она.
@@ -762,6 +867,11 @@ const CreateOrder = () => {
 
   return (
     <div className="create-order-page">
+      {/* Hidden invoice for printing */}
+      <div style={{ display: "none" }}>
+        <InvoiceTemplate ref={printRef} order={invoiceOrder} settings={invoiceSettings || {}} />
+      </div>
+
       <header className="header">
         <div className="header-left">
           <button className="back-btn" onClick={() => navigate("/orderPanel")}>
@@ -1046,6 +1156,15 @@ const CreateOrder = () => {
                   {isSubmitting
                     ? t("createOrder.buttons.creating")
                     : t("createOrder.buttons.create")}
+                </button>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={handlePrint}
+                  disabled={isSubmitting || selectedItems.length === 0}
+                  title={t("createOrder.buttons.print")}
+                >
+                  <Printer size={16} /> {t("createOrder.buttons.print")}
                 </button>
                 <button
                   type="button"

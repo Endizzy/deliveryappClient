@@ -1028,3 +1028,102 @@
     font-size: 12px;
     color: #64748b;
 }
+
+/* ── Адаптив правого блока «Итог заказа» для невысоких экранов ────────────────
+   Проблема: блок липкий, но на ноутбуке выше экрана — кнопки уходили вниз, и
+   чтобы нажать «Создать/Сохранить» или «Печать», приходилось листать страницу.
+   Решение: на невысоких экранах (и только в двухколоночной раскладке, >980px)
+   блок становится компактнее, чтобы целиком помещаться на экране без
+   прокрутки внутри себя:
+     D — компактнее шапка страницы;
+     B — меньше отступы и шрифты, кнопки: «Создать/Сохранить» на всю ширину,
+         «Печать» и «Отмена» в один ряд;
+     на совсем низких экранах скрываются второстепенные пояснения-подсказки.
+   Экраны выше 800px и узкие (≤980px) остаются как раньше. */
+@media (min-width: 981px) and (max-height: 800px) {
+    /* D: компактная шапка (только на этих двух страницах) */
+    .create-order-page .header {
+        padding: 12px 24px;
+    }
+    .create-order-page .header-left {
+        gap: 16px;
+    }
+    .create-order-page .page-title h1 {
+        font-size: 22px;
+        margin: 0 0 2px 0;
+    }
+    .create-order-page .form-container {
+        padding-top: 16px;
+        padding-bottom: 16px;
+    }
+
+    /* B: плотнее правый блок */
+    .co-rail-card {
+        padding: 16px;
+        gap: 8px;
+    }
+    .co-rail-title {
+        font-size: 16px;
+        margin-bottom: 0;
+    }
+    .co-rail-row {
+        font-size: 13px;
+    }
+    .co-rail-total .amt {
+        font-size: 22px;
+    }
+    .co-rail-status {
+        font-size: 12px;
+        padding: 6px 9px;
+    }
+    .co-rail-hint {
+        margin-top: 0;
+        font-size: 11.5px;
+        line-height: 1.3;
+    }
+    .co-loyalty {
+        margin-bottom: 4px;
+    }
+    .co-loyalty-gift {
+        padding: 8px 10px;
+        gap: 6px;
+    }
+    .co-loyalty-progress {
+        padding: 6px 9px;
+    }
+    .co-loyalty-hint {
+        font-size: 11.5px;
+    }
+    .co-rail-discount-picker {
+        margin: 6px 0 0;
+        padding-top: 8px;
+    }
+    .co-rail-discount-picker select {
+        padding: 6px 9px;
+    }
+
+    /* Кнопки: «Создать/Сохранить» на всю ширину, «Печать» и «Отмена» рядом */
+    .co-rail-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 4px;
+    }
+    .co-rail-actions > :first-child {
+        grid-column: 1 / -1;
+    }
+    .co-rail-actions .btn-primary,
+    .co-rail-actions .btn-secondary {
+        min-width: 0;
+        padding: 9px 12px;
+    }
+}
+
+/* Совсем низкие экраны: убираем пояснения второго плана, чтобы блок с кнопками
+   поместился целиком. Суммы, скидки, статусы зоны и кнопки остаются. */
+@media (min-width: 981px) and (max-height: 700px) {
+    .co-rail-hint,
+    .co-loyalty-hint {
+        display: none;
+    }
+}

@@ -768,6 +768,31 @@
     },
     "summary": {
       "label": "Lojalitātes atlaide"
-    }
+    },
+    "clients": {
+      "title": "Programmas klienti",
+      "subtitle": "Krāj pasūtījumus līdz atlaidei — kam atlaide jau pienākas, rādīti pirmie",
+      "refresh": "Atjaunot",
+      "filters": {
+        "all": "Visi",
+        "ready": "Atlaide pienākas",
+        "soon": "Drīz"
+      },
+      "search": "Vārds vai tālrunis",
+      "empty": "Pagaidām neviens nekrāj pasūtījumus. Klienti parādīsies šeit pēc pirmajiem pasūtījumiem, kad programma ir ieslēgta.",
+      "emptyFiltered": "Nekas nav atrasts",
+      "ordersOf": "{{n}} no {{total}}",
+      "ready": "Atlaide pienākas",
+      "readyHint": "Nākamais pasūtījums — ar atlaidi {{v}}",
+      "remaining": "Atlicis: {{n}}",
+      "lastOrder": "Pēdējais pasūtījums",
+      "noName": "Bez vārda",
+      "more": "Rādīt vēl",
+      "truncated": "Rādīti pirmie 500 klienti ar vislielāko pasūtījumu skaitu",
+      "loadError": "Neizdevās ielādēt klientu sarakstu",
+      "retry": "Mēģināt vēlreiz",
+      "disabled": "Bonusu programma ir izslēgta — saraksts ir tukšs"
+    },
+    "lockedHint": "Programma ir izslēgta — ieslēdziet to, lai mainītu iestatījumus"
   }
 }
