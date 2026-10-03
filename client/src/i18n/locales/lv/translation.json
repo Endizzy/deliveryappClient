@@ -579,7 +579,8 @@
       "demo": "Demo versija"
     },
     "errors": {
-      "loadOrdersFailed": "Neizdevās ielādēt pasūtījumus"
+      "loadOrdersFailed": "Neizdevās ielādēt pasūtījumus",
+      "courierUpdateFailed": "Neizdevās nomainīt kurjeru"
     },
     "history": {
       "tab": "Vēsture",
@@ -590,6 +591,9 @@
       "loading": "Ielādējam dienas pasūtījumus…",
       "empty": "Šajā dienā pasūtījumu nav",
       "createBlocked": "Vispirms atgriezieties pie šodienas"
+    },
+    "courier": {
+      "unassigned": "Nav piešķirts"
     }
   },
   "map": {

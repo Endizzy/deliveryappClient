@@ -33,6 +33,7 @@ import { pad2, toLocalDateInput, toLocalTimeInput, localInputsToISO } from "./ut
 // только латвийские номера, — из-за неё заказ с иностранным номером нельзя
 // было сохранить, а сам номер портился при вводе.
 import { formatPhoneInput, isValidPhone } from "./utils/phone.js";
+import { searchMenu } from "./utils/menuSearch.js";
 import Loader from "./components/Loader/Loader.jsx";
 import InvoiceTemplate from "./pages/InvoiceSettings/InvoiceTemplate.jsx";
 import AddressMapField from "./components/CreateOrder/AddressMapField.jsx";
@@ -329,16 +330,7 @@ const EditOrder = () => {
   }, [token, id, navigate]);
 
   // локальный поиск
-  const searchResults = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
-    if (!q) return [];
-    const filtered = allMenu.filter(
-      (it) =>
-        (it.name || "").toLowerCase().includes(q) ||
-        (it.category || "").toLowerCase().includes(q)
-    );
-    return filtered.sort((a, b) => a.name.localeCompare(b.name)).slice(0, 8);
-  }, [searchTerm, allMenu]);
+  const searchResults = useMemo(() => searchMenu(allMenu, searchTerm, 8), [searchTerm, allMenu]);
 
   // товары
   const addItemToOrder = (menuItem) => {

@@ -38,6 +38,62 @@ function mergeById(oldArr = [], newArr = []) {
 // Допустимые статусы заказа (совпадают с EditOrder и серверным PATCH)
 const ORDER_STATUSES = ["new", "preparing", "ready", "enroute", "completed", "cancelled"];
 
+// ── Выбор курьера в таблице ───────────────────────────────────────────────
+// Цвет курьера задаётся при создании его аккаунта (users.color). Текст на нём
+// берём тёмным или белым по яркости фона; если цвет не распознан (не hex) —
+// возвращаем null, и бейдж остаётся нейтральным.
+function courierTextColor(color) {
+  const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(color || "").trim());
+  if (!m) return null;
+  let h = m[1];
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  const luma = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luma > 0.6 ? "#1e293b" : "#ffffff";
+}
+
+const normalizeHex = (color) => {
+  const s = String(color || "").trim();
+  return courierTextColor(s) ? (s.startsWith("#") ? s : `#${s}`) : null;
+};
+
+// Бейдж курьера оформлен как бейдж статуса: светлая заливка цветом курьера и
+// более тёмный текст того же оттенка. Возвращает null, если цвета нет.
+function courierPillStyle(color) {
+  const hex = normalizeHex(color);
+  if (!hex) return null;
+  let h = hex.slice(1);
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+  const ch = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const dark = ch.map((v) => Math.round(v * 0.6));
+  return {
+    background: `rgba(${ch[0]}, ${ch[1]}, ${ch[2]}, 0.18)`,
+    color: `rgb(${dark[0]}, ${dark[1]}, ${dark[2]})`,
+  };
+}
+
+// Позиция выпадающего меню (position: fixed) относительно кнопки: вниз, а если
+// снизу не хватает места и сверху его больше — вверх (привязка по bottom, высоту
+// считать не нужно). Если не помещается ни там, ни там — ограничиваем высоту,
+// внутри меню появится прокрутка.
+function computeMenuPos(rect, itemCount) {
+  const menuH = Math.min(itemCount * 32 + 12, 320);
+  const spaceBelow = window.innerHeight - rect.bottom - 12;
+  const up = spaceBelow < menuH && rect.top > spaceBelow;
+  const room = up ? rect.top - 16 : spaceBelow - 4;
+  const menuW = Math.max(rect.width, 170);
+  return {
+    up,
+    top: rect.bottom + 4,
+    bottom: window.innerHeight - rect.top + 4,
+    left: Math.max(8, Math.min(rect.left, window.innerWidth - menuW - 8)),
+    width: rect.width,
+    maxHeight: Math.max(120, Math.min(room, 320)),
+  };
+}
+
 const isValidCurrentOrder = (o) =>
   o && typeof o === "object" &&
   typeof o.id !== "undefined" &&
@@ -59,6 +115,13 @@ const OrderPanel = () => {
   const [statusSaving, setStatusSaving] = useState(() => new Set());
   const menuRef = useRef(null);
 
+  // Выбор курьера прямо в таблице (аналогично статусу)
+  const [couriers, setCouriers] = useState([]); // [{ id, nickname, color }]
+  const [courierMenuFor, setCourierMenuFor] = useState(null);
+  const [courierMenuPos, setCourierMenuPos] = useState(null);
+  const [courierSaving, setCourierSaving] = useState(() => new Set());
+  const courierMenuRef = useRef(null);
+
   // Открыть/закрыть меню статуса; позицию считаем от кнопки (для fixed-портала)
   const toggleStatusMenu = (e, orderId) => {
     e.stopPropagation();
@@ -67,7 +130,27 @@ const OrderPanel = () => {
       return;
     }
     const r = e.currentTarget.getBoundingClientRect();
-    setMenuPos({ top: r.bottom + 4, left: r.left, width: r.width });
+    // Меню по умолчанию раскрывается вниз. Если под кнопкой не хватает места
+    // (последние строки таблицы, низкое окно) и сверху места больше —
+    // раскрываем вверх: привязываемся к нижнему краю меню (bottom), так что
+    // высоту считать не нужно.
+    const menuH = ORDER_STATUSES.length * 32 + 12; // с запасом
+    const spaceBelow = window.innerHeight - r.bottom - 12;
+    const openUp = spaceBelow < menuH && r.top > spaceBelow;
+    const menuW = Math.max(r.width, 160);
+    // Совсем низкое окно: не помещается ни снизу, ни сверху — ограничиваем
+    // высоту меню доступным местом, внутри появится прокрутка
+    const room = openUp ? r.top - 16 : spaceBelow - 4;
+    setCourierMenuFor(null);
+    setMenuPos({
+      maxHeight: room < menuH ? Math.max(room, 120) : null,
+      up: openUp,
+      top: r.bottom + 4,
+      bottom: window.innerHeight - r.top + 4,
+      // не даём меню уйти за правый край окна
+      left: Math.max(8, Math.min(r.left, window.innerWidth - menuW - 8)),
+      width: r.width,
+    });
     setStatusMenuFor(orderId);
   };
 
@@ -323,6 +406,119 @@ const OrderPanel = () => {
     }
   }
 
+  // Список курьеров компании (имя + цвет аккаунта) для выпадающего списка.
+  // Ошибка загрузки не критична: панель работает как раньше, а в списке будет
+  // только «Неназначен» и текущий курьер заказа.
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch(`${API}/order-support/couriers`, { headers: authHeaders });
+        if (!r.ok) return;
+        const d = await r.json();
+        if (!cancelled && d?.ok && Array.isArray(d.items)) setCouriers(d.items);
+      } catch (e) {
+        console.warn("load couriers", e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [token]); // eslint-disable-line
+
+  // Открыть/закрыть меню курьера; позицию считаем от кнопки (fixed-портал)
+  const toggleCourierMenu = (e, orderId) => {
+    e.stopPropagation();
+    if (courierMenuFor === orderId) {
+      setCourierMenuFor(null);
+      return;
+    }
+    const r = e.currentTarget.getBoundingClientRect();
+    setCourierMenuPos(computeMenuPos(r, couriers.length + 1));
+    setStatusMenuFor(null);
+    setCourierMenuFor(orderId);
+  };
+
+  // Быстрая смена курьера прямо из таблицы.
+  //
+  // Идёт через отдельный маршрут PUT /:id/courier, который меняет ТОЛЬКО
+  // курьера (суммы и скидки не пересчитываются). Сервер сам рассылает по WS
+  // order_updated с признаком courierAssigned и отправляет push новому курьеру —
+  // точно так же, как при назначении через EditOrder.
+  //
+  // Оптимистично обновляем UI, при ошибке — откат.
+  async function changeCourier(order, newCourierId) {
+    setCourierMenuFor(null);
+    const nextId = newCourierId == null ? null : newCourierId;
+    if (String(nextId ?? "") === String(order.courierId ?? "")) return;
+
+    const nick = couriers.find((c) => String(c.id) === String(nextId))?.nickname || "";
+    const optimistic = { ...order, courierId: nextId, courierName: nextId == null ? "" : nick };
+
+    setCourierSaving((prev) => new Set(prev).add(order.id));
+
+    if (isHistory) {
+      setHistoryOrders((prev) => prev.map((x) => (x.id === order.id ? optimistic : x)));
+    } else {
+      upsertOrderToTabs(optimistic);
+    }
+
+    try {
+      const res = await fetch(`${API}/current-orders/${order.id}/courier`, {
+        method: "PUT",
+        headers: { ...authHeaders, "Content-Type": "application/json" },
+        body: JSON.stringify({ courierId: nextId }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "courier update failed");
+      // живые вкладки подтвердит WS; архив WS не трогает — кладём ответ вручную
+      if (isHistory && data.item) {
+        setHistoryOrders((prev) => prev.map((x) => (x.id === data.item.id ? data.item : x)));
+      }
+    } catch (e) {
+      console.error("changeCourier", e);
+      if (isHistory) {
+        setHistoryOrders((prev) => prev.map((x) => (x.id === order.id ? order : x)));
+      } else {
+        loadTab(activeTab).catch(() => {});
+      }
+      alert(t("orderPanel.errors.courierUpdateFailed", { defaultValue: "Не удалось изменить курьера" }));
+    } finally {
+      setCourierSaving((prev) => {
+        const next = new Set(prev);
+        next.delete(order.id);
+        return next;
+      });
+    }
+  }
+
+  // Закрытие меню курьера: клик вне (кнопки и самого меню), Escape, скролл
+  // страницы, ресайз. Прокрутка внутри самого меню его не закрывает.
+  useEffect(() => {
+    if (courierMenuFor == null) return;
+    const onDocClick = (e) => {
+      const onButton = e.target.closest?.(".courier-badge-btn");
+      const inMenu = courierMenuRef.current && courierMenuRef.current.contains(e.target);
+      if (!onButton && !inMenu) setCourierMenuFor(null);
+    };
+    const onKey = (e) => e.key === "Escape" && setCourierMenuFor(null);
+    const close = () => setCourierMenuFor(null);
+    const onScroll = (e) => {
+      const tg = e.target;
+      if (tg && tg.nodeType && courierMenuRef.current && courierMenuRef.current.contains(tg)) return;
+      close();
+    };
+    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", onScroll, true);
+    window.addEventListener("resize", close);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", onScroll, true);
+      window.removeEventListener("resize", close);
+    };
+  }, [courierMenuFor]);
+
   // Закрытие меню статуса: клик вне (кнопки и самого меню), Escape, скролл, ресайз.
   useEffect(() => {
     if (statusMenuFor == null) return;
@@ -333,15 +529,21 @@ const OrderPanel = () => {
     };
     const onKey = (e) => e.key === "Escape" && setStatusMenuFor(null);
     const close = () => setStatusMenuFor(null);
+    // прокрутка внутри самого меню (низкое окно) его не закрывает
+    const onScroll = (e) => {
+      const tg = e.target;
+      if (tg && tg.nodeType && menuRef.current && menuRef.current.contains(tg)) return;
+      close();
+    };
     document.addEventListener("mousedown", onDocClick);
     document.addEventListener("keydown", onKey);
     // fixed-меню не «поедет» за таблицей при скролле — просто закрываем
-    window.addEventListener("scroll", close, true);
+    window.addEventListener("scroll", onScroll, true);
     window.addEventListener("resize", close);
     return () => {
       document.removeEventListener("mousedown", onDocClick);
       document.removeEventListener("keydown", onKey);
-      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("scroll", onScroll, true);
       window.removeEventListener("resize", close);
     };
   }, [statusMenuFor]);
@@ -700,9 +902,39 @@ const OrderPanel = () => {
                   <span className="items">{order.pickupName}</span>
                 </div>
 
-                <div className="cell courier-cell">
-                  <span className="courier">{order.courierName}</span>
-                </div>
+                {(() => {
+                  // Завершённым и отменённым заказам курьера не назначают —
+                  // для них остаётся обычный текст
+                  const finished = order.status === "completed" || order.status === "cancelled";
+                  const unassignedLabel = t("orderPanel.courier.unassigned", { defaultValue: "Неназначен" });
+                  const label = order.courierName || unassignedLabel;
+                  if (finished) {
+                    return (
+                      <div className="cell courier-cell">
+                        <span className="courier">{order.courierName || "—"}</span>
+                      </div>
+                    );
+                  }
+                  const badgeStyle =
+                    courierPillStyle(
+                      couriers.find((c) => String(c.id) === String(order.courierId))?.color
+                    ) || undefined;
+                  return (
+                    <div className="cell courier-cell" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        className={`courier-badge courier-badge-btn ${order.courierId == null ? "is-unassigned" : ""}`}
+                        style={badgeStyle}
+                        title={label}
+                        disabled={courierSaving.has(order.id)}
+                        onClick={(e) => toggleCourierMenu(e, order.id)}
+                      >
+                        <span className="courier-badge-label">{label}</span>
+                        <ChevronDown size={14} />
+                      </button>
+                    </div>
+                  );
+                })()}
 
                 {/* Кто принял заказ. У заказов, созданных до появления этой
                     логики, автор не записан — прочерк честнее пустой ячейки:
@@ -745,6 +977,72 @@ const OrderPanel = () => {
 
       {/* Меню смены статуса — в портале с position:fixed, чтобы не обрезалось
           overflow таблицы и не перекрывалось соседними строками */}
+      {/* Меню выбора курьера: тот же приём — fixed-портал; фон пункта — цвет
+          курьера из его аккаунта */}
+      {courierMenuFor != null && courierMenuPos && (() => {
+        const menuOrder = orders.find((o) => o.id === courierMenuFor);
+        if (!menuOrder) return null;
+        const curId = menuOrder.courierId == null ? null : String(menuOrder.courierId);
+        // Курьер заказа мог быть отключён и не попасть в список активных —
+        // показываем его первым, чтобы текущее значение не пропало из меню
+        const hasCurrent = curId == null || couriers.some((c) => String(c.id) === curId);
+        const list = hasCurrent
+          ? couriers
+          : [{ id: menuOrder.courierId, nickname: menuOrder.courierName || `#${curId}`, color: null, inactive: true }, ...couriers];
+        return createPortal(
+          <div
+            ref={courierMenuRef}
+            className="status-menu courier-menu"
+            role="listbox"
+            style={{
+              ...(courierMenuPos.up ? { bottom: courierMenuPos.bottom } : { top: courierMenuPos.top }),
+              left: courierMenuPos.left,
+              minWidth: Math.max(courierMenuPos.width, 170),
+              maxHeight: courierMenuPos.maxHeight,
+              overflowY: "auto",
+            }}
+          >
+            <button
+              type="button"
+              role="option"
+              aria-selected={curId == null}
+              className={`status-menu-item courier-menu-item ${curId == null ? "current" : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                changeCourier(menuOrder, null);
+              }}
+            >
+              <span className="status-dot status-default" />
+              {t("orderPanel.courier.unassigned", { defaultValue: "Неназначен" })}
+            </button>
+            {list.map((c) => {
+              const dot = normalizeHex(c.color);
+              const isCurrent = curId === String(c.id);
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  role="option"
+                  aria-selected={isCurrent}
+                  className={`status-menu-item courier-menu-item ${isCurrent ? "current" : ""}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    changeCourier(menuOrder, c.id);
+                  }}
+                >
+                  <span
+                    className={`status-dot ${dot ? "" : "status-default"}`}
+                    style={dot ? { background: dot } : undefined}
+                  />
+                  {c.nickname}
+                </button>
+              );
+            })}
+          </div>,
+          document.body
+        );
+      })()}
+
       {statusMenuFor != null && menuPos && (() => {
         const menuOrder = orders.find((o) => o.id === statusMenuFor);
         if (!menuOrder) return null;
@@ -753,7 +1051,12 @@ const OrderPanel = () => {
             ref={menuRef}
             className="status-menu"
             role="listbox"
-            style={{ top: menuPos.top, left: menuPos.left, minWidth: Math.max(menuPos.width, 160) }}
+            style={{
+              ...(menuPos.up ? { bottom: menuPos.bottom } : { top: menuPos.top }),
+              left: menuPos.left,
+              minWidth: Math.max(menuPos.width, 160),
+              ...(menuPos.maxHeight ? { maxHeight: menuPos.maxHeight, overflowY: "auto" } : null),
+            }}
           >
             {ORDER_STATUSES.map((s) => (
               <button

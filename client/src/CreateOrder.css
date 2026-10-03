@@ -371,6 +371,13 @@
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
+/* Карта (Leaflet) использует внутренние z-index до 1000 и кнопку «развернуть» (500).
+   isolation создаёт для блока карты собственный контекст наложения, чтобы выпадающий
+   список поиска меню (.search-results) всегда рисовался поверх карты. */
+.address-map-block {
+    isolation: isolate;
+}
+
 .search-result-item {
     display: flex;
     align-items: center;

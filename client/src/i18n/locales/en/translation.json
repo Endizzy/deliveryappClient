@@ -578,7 +578,8 @@
       "demo": "Demo version"
     },
     "errors": {
-      "loadOrdersFailed": "Failed to load orders"
+      "loadOrdersFailed": "Failed to load orders",
+      "courierUpdateFailed": "Failed to change the courier"
     },
     "history": {
       "tab": "History",
@@ -589,6 +590,9 @@
       "loading": "Loading orders for the day…",
       "empty": "No orders on this day",
       "createBlocked": "Return to today first"
+    },
+    "courier": {
+      "unassigned": "Unassigned"
     }
   },
   "map": {

@@ -160,7 +160,7 @@
 
 .table-header {
     display: grid;
-    grid-template-columns: 80px 138px 120px 1fr 200px 100px 130px 120px 120px;
+    grid-template-columns: 80px 138px 120px 1fr 200px 100px 130px 136px 120px;
     /*background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);*/
     /*background: linear-gradient(135deg, rgba(242, 243, 246, 0.79) 0%, #edf2f8 100%);*/
     /*background: linear-gradient(135deg, rgba(15, 32, 39, 0.70) 0%, rgba(32, 58, 67, 0.70) 50%, rgba(44, 83, 100, 0.70) 100%);*/
@@ -247,7 +247,7 @@
 
 .table-row {
     display: grid;
-    grid-template-columns: 80px 138px 120px 1fr 200px 100px 130px 120px 120px;
+    grid-template-columns: 80px 138px 120px 1fr 200px 100px 130px 136px 120px;
     border-bottom: 1px solid #f1f5f9;
     transition: all 0.2s ease;
     min-height: 72px;
@@ -645,7 +645,7 @@
 @media (max-width: 1200px) {
     .table-header,
     .table-row {
-        grid-template-columns: 60px 110px 100px 150px 120px 90px 100px 80px 100px;
+        grid-template-columns: 60px 110px 100px 150px 120px 90px 100px 104px 100px;
     }
 
     /* Статус в узкой колонке: меньше внутренние отступы ячейки и компактнее
@@ -790,5 +790,73 @@ input[type="checkbox"] {
     .table-row:hover {
         transform: none;
         box-shadow: none;
+    }
+}
+
+/* --- Выбор курьера в таблице: оформление как у бейджа и меню статуса --- */
+.courier-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+    min-width: 0;
+    padding: 4px 8px;
+    border: none;
+    border-radius: 6px;
+    /* без цвета у курьера (и для «Неназначен») — нейтральный, как status-default */
+    background: #f1f5f9;
+    color: #64748b;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: filter 0.15s ease;
+}
+
+.courier-badge svg {
+    flex-shrink: 0;
+}
+
+.courier-badge-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.courier-badge:hover:not(:disabled) {
+    filter: brightness(0.95);
+}
+
+.courier-badge:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+/* Меню курьера целиком использует стили .status-menu / .status-menu-item /
+   .status-dot (точка — цвет курьера), отдельно только ограничение ширины */
+.courier-menu {
+    max-width: 260px;
+}
+
+@media (max-width: 1200px) {
+    .cell.courier-cell {
+        padding-left: 6px;
+        padding-right: 6px;
+    }
+
+    .courier-badge {
+        gap: 3px;
+        padding: 3px 5px;
+        font-size: 10px;
+        letter-spacing: 0.2px;
+    }
+
+    .courier-badge svg {
+        width: 11px;
+        height: 11px;
     }
 }

@@ -27,6 +27,7 @@ import NotesSection from "./components/CreateOrder/NotesSection.jsx";
 import DeliveryMapModal from "./components/CreateOrder/DeliveryMapModal.jsx";
 import PastOrdersModal from "./components/CreateOrder/PastOrdersModal.jsx";
 import LoyaltyNotice from "./components/CreateOrder/LoyaltyNotice.jsx";
+import { searchMenu } from "./utils/menuSearch.js";
 import InvoiceTemplate from "./pages/InvoiceSettings/InvoiceTemplate.jsx";
 import { findZoneForPoint, getZoneDeliveryRules } from "./utils/zones.js";
 
@@ -221,18 +222,7 @@ const CreateOrder = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
 
-  const searchResults = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
-    if (!q) return [];
-
-    const filtered = allMenu.filter(
-      (it) =>
-        (it.name || "").toLowerCase().includes(q) ||
-        (it.category || "").toLowerCase().includes(q)
-    );
-
-    return filtered.sort((a, b) => a.name.localeCompare(b.name)).slice(0, 8);
-  }, [searchTerm, allMenu]);
+  const searchResults = useMemo(() => searchMenu(allMenu, searchTerm, 8), [searchTerm, allMenu]);
 
   // ---- позиции заказа ----
   const {

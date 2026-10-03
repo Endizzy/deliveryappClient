@@ -579,7 +579,8 @@
       "demo": "Demo version"
     },
     "errors": {
-      "loadOrdersFailed": "Ошибка загрузки заказов"
+      "loadOrdersFailed": "Ошибка загрузки заказов",
+      "courierUpdateFailed": "Не удалось изменить курьера"
     },
     "history": {
       "tab": "История",
@@ -590,6 +591,9 @@
       "loading": "Загружаем заказы за день…",
       "empty": "За этот день заказов нет",
       "createBlocked": "Сначала вернитесь к сегодняшнему дню"
+    },
+    "courier": {
+      "unassigned": "Неназначен"
     }
   },
   "map": {
