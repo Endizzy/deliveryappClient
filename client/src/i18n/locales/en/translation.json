@@ -275,6 +275,10 @@
       "replaceConfirm": "The current item list will be replaced. Continue?",
       "priceHint": "Prices come from the current menu, not from the past order",
       "hadManualDiscount": "This order had a one-time {{percent}}% discount. It is not carried over — the new total will be higher"
+    },
+    "addresses": {
+      "title": "Customer addresses",
+      "usedTimes": "Orders to this address: {{n}}"
     }
   },
   "userProfile": {

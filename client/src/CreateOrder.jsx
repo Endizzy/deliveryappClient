@@ -18,6 +18,7 @@ import {
 import { normalizePhoneForLookup, isValidPhone } from "./utils/phone.js";
 import { toLocalDateInput, toLocalTimeInput, localInputsToISO } from "./utils/datetime.js";
 import useOrderResources from "./hooks/useOrderResources.js";
+import useCustomerAddresses from "./hooks/useCustomerAddresses.js";
 import useCustomerLookup from "./hooks/useCustomerLookup.js";
 import useOrderItems from "./hooks/useOrderItems.js";
 import CustomerSection from "./components/CreateOrder/CustomerSection.jsx";
@@ -643,6 +644,33 @@ const CreateOrder = () => {
     }
   }, [geo]);
 
+  // ── Прошлые адреса клиента (чипы под телефоном) ──
+  const customerAddresses = useCustomerAddresses({
+    phone: formData.phone,
+    API,
+    authHeaders,
+    handleUnauthorized,
+  });
+
+  // Подставляем только адресные поля. Имя, телефон и заметки не трогаем.
+  // Координаты сбрасываем: новый адрес надо заново проверить на карте.
+  const pickCustomerAddress = useCallback((a) => {
+    if (!a) return;
+    setFormData((prev) => ({
+      ...prev,
+      street: a.street || "",
+      house: a.house || "",
+      building: a.building || "",
+      apart: a.apart || "",
+      floor: a.floor || "",
+      code: a.code || "",
+    }));
+    setGeo(null);
+    setGeoConfirmed(false);
+    setGeoError(null);
+    setErrors((prev) => ({ ...prev, address: "" }));
+  }, []);
+
   const applyFoundCustomerData = useCallback(() => {
     if (!customerLookupData) return;
 
@@ -888,6 +916,8 @@ const CreateOrder = () => {
               showApplyDataButton={showApplyDataButton}
               applyFoundCustomerData={applyFoundCustomerData}
               clearCustomerFields={clearCustomerFields}
+              customerAddresses={customerAddresses}
+              onPickAddress={pickCustomerAddress}
               minDate={minDate}
               minTimeToday={minTimeToday}
               preorderMinOffset={PREORDER_MIN_OFFSET_MIN}

@@ -1,7 +1,8 @@
 import React from "react";
-import { User, Phone, Eraser } from "lucide-react";
+import { User, Phone, Eraser, MapPin } from "lucide-react";
 import { formatPhoneInput } from "../../utils/phone.js";
 import TimeSelect24 from "./TimeSelect24.jsx";
+import { formatAddressLabel, isSameAddress } from "../../utils/addressLabel.js";
 
 // Секция «Данные клиента»: контакты, адрес и — последним пунктом — тип заказа
 // (текущий / предзаказ) вместе с датой и временем предзаказа.
@@ -16,10 +17,15 @@ const CustomerSection = ({
   showApplyDataButton,
   applyFoundCustomerData,
   clearCustomerFields,
+  customerAddresses = [],
+  onPickAddress,
   minDate,
   minTimeToday,
   preorderMinOffset,
 }) => {
+  const hasAddresses = customerAddresses.length > 0 && !!onPickAddress;
+  const customerFound = !errors.phone && phoneLookupState === "found";
+
   return (
     <div className="form-section">
       {/* <div className="section-header customer-section-header"> */}
@@ -65,31 +71,6 @@ const CustomerSection = ({
             <span className="hint muted">Ищем прошлый заказ клиента…</span>
           )}
 
-          {!errors.phone && phoneLookupState === "found" && (
-            <div
-              className="hint muted"
-              style={{
-                display: "flex",
-                gap: 8,
-                alignItems: "center",
-                marginTop: 6,
-                flexWrap: "wrap",
-              }}
-            >
-              <span style={{ backgroundColor: "#22C55E", borderRadius: 20, padding: "4px 8px", fontSize: 10, border: "1px solid #16A34A " }}>{t("createOrder.customerFound")}</span>
-
-              {showApplyDataButton && (
-                <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={applyFoundCustomerData}
-                >
-                  {t("createOrder.buttons.fillCustomer")}
-                </button>
-              )}
-            </div>
-          )}
-
           {!errors.phone &&
             phoneLookupState === "found" &&
             customerLookupData?.notes && (
@@ -124,6 +105,52 @@ const CustomerSection = ({
           )}
         </div>
       </div>
+
+      {/* Прошлые адреса клиента: клик подставляет улицу, дом, корпус, квартиру, этаж и код */}
+      {(hasAddresses || customerFound) && (
+        <div className="co-addr-chips" role="group" aria-label={t("createOrder.addresses.title", { defaultValue: "Адреса клиента" })}>
+          <div className="co-addr-chips-title">
+            {hasAddresses && (
+              <>
+                <MapPin size={14} aria-hidden="true" />
+                {t("createOrder.addresses.title", { defaultValue: "Адреса клиента" })} ({customerAddresses.length})
+              </>
+            )}
+            {customerFound && (
+              <span className="co-addr-found">{t("createOrder.customerFound")}</span>
+            )}
+          </div>
+          {hasAddresses && (
+          <div className="co-addr-chips-list">
+            {customerAddresses.map((a) => {
+              const label = formatAddressLabel(a);
+              const details = [
+                a.floor && `${t("createOrder.fields.floor")}: ${a.floor}`,
+                a.code && `${t("createOrder.fields.code")}: ${a.code}`,
+                t("createOrder.addresses.usedTimes", {
+                  n: a.count,
+                  defaultValue: "Заказов по этому адресу: {{n}}",
+                }),
+              ]
+                .filter(Boolean)
+                .join(" · ");
+              return (
+                <button
+                  key={`${a.street}|${a.house}|${a.building}|${a.apart}`}
+                  type="button"
+                  className={`co-addr-chip${isSameAddress(a, formData) ? " is-active" : ""}`}
+                  title={details}
+                  onClick={() => onPickAddress(a)}
+                >
+                  <span className="co-addr-chip-label">{label}</span>
+                  <span className="co-addr-chip-count">{a.count}×</span>
+                </button>
+              );
+            })}
+          </div>
+          )}
+        </div>
+      )}
 
       <div className="form-row">
         <div className="form-group">

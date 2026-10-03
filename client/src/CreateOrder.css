@@ -1134,3 +1134,84 @@
         display: none;
     }
 }
+
+/* Чипы прошлых адресов клиента (под телефоном на странице создания заказа) */
+.co-addr-chips {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.co-addr-chips-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.co-addr-chips-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.co-addr-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    padding: 5px 11px;
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #1e293b;
+    font-size: 12.5px;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.co-addr-chip:hover {
+    border-color: #2f8cff;
+    background: #f8fafc;
+}
+
+.co-addr-chip:focus-visible {
+    outline: 2px solid #2f8cff;
+    outline-offset: 2px;
+}
+
+.co-addr-chip.is-active {
+    background: #eff6ff;
+    border-color: #2f8cff;
+    color: #1d4ed8;
+}
+
+.co-addr-chip-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.co-addr-chip-count {
+    flex-shrink: 0;
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+/* Бейдж «клиент найден» справа от заголовка «Адреса клиента» (вид как был под телефоном) */
+.co-addr-found {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 4px;
+    padding: 4px 8px;
+    border: 1px solid #16a34a;
+    border-radius: 20px;
+    background: #22c55e;
+    font-size: 10px;
+    font-weight: 400;
+    line-height: 1.2;
+    white-space: nowrap;
+}

@@ -29,6 +29,23 @@ const byNewest = (a, b) => {
   return (b.id || 0) - (a.id || 0);
 };
 
+// Предзаказы: сверху те, что раньше попадут в активные, то есть ближайшие по
+// дате и времени, на которые назначен заказ (scheduledAt). Заказы без даты
+// уходят вниз, при равном времени порядок стабильный: раньше созданный выше.
+const byScheduledSoonest = (a, b) => {
+  // new Date(null) = 1970 год, поэтому пустую дату проверяем явно
+  const at = a.scheduledAt ? new Date(a.scheduledAt).getTime() : NaN;
+  const bt = b.scheduledAt ? new Date(b.scheduledAt).getTime() : NaN;
+  const aOk = Number.isFinite(at);
+  const bOk = Number.isFinite(bt);
+  if (aOk && bOk && at !== bt) return at - bt;
+  if (aOk !== bOk) return aOk ? -1 : 1;
+  const ac = new Date(a.createdAt).getTime() || 0;
+  const bc = new Date(b.createdAt).getTime() || 0;
+  if (ac !== bc) return ac - bc;
+  return (a.id || 0) - (b.id || 0);
+};
+
 function mergeById(oldArr = [], newArr = []) {
   const map = new Map(oldArr.map((o) => [o.id, o]));
   newArr.forEach((o) => map.set(o.id, o));
@@ -637,9 +654,21 @@ const OrderPanel = () => {
   const unfilteredOrders = isHistory ? historyOrders : (ordersByTab[activeTab] || []);
   let orders = applyFilters(unfilteredOrders);
 
+  // Вкладка «Предзаказы»: по умолчанию ближайшие к активации сверху.
+  // Явная сортировка по времени там тоже идёт по дате/времени предзаказа,
+  // а не по моменту создания: именно оно показано в колонке времени.
+  const isPreordersView = !isHistory && activeTab === "preorders";
+  if (isPreordersView && !filters.timeSort) {
+    orders = [...orders].sort(byScheduledSoonest);
+  }
+
   // Сортировка по времени
   if (filters.timeSort) {
     orders = [...orders].sort((a, b) => {
+      if (isPreordersView) {
+        const cmp = byScheduledSoonest(a, b);
+        return filters.timeSort === "asc" ? cmp : -cmp;
+      }
       const at = new Date(a.createdAt).getTime();
       const bt = new Date(b.createdAt).getTime();
       return filters.timeSort === "asc" ? at - bt : bt - at;

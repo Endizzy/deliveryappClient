@@ -275,6 +275,10 @@
       "replaceConfirm": "Pašreizējais pozīciju saraksts tiks aizstāts. Turpināt?",
       "priceHint": "Cenas tiek ņemtas no aktuālās ēdienkartes, nevis no iepriekšējā pasūtījuma",
       "hadManualDiscount": "Šim pasūtījumam bija vienreizēja {{percent}}% atlaide. Atkārtojot tā netiek pārnesta — summa būs lielāka"
+    },
+    "addresses": {
+      "title": "Klienta adreses",
+      "usedTimes": "Pasūtījumi uz šo adresi: {{n}}"
     }
   },
   "userProfile": {
