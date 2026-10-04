@@ -652,10 +652,14 @@ const CreateOrder = () => {
     handleUnauthorized,
   });
 
-  // Подставляем только адресные поля. Имя, телефон и заметки не трогаем.
+  // Подставляем адресные поля и, если имя клиента ещё не введено, имя из его
+  // последнего заказа (оно обязательное, а кнопки «Заполнить данные» больше нет).
+  // Уже введённое диспетчером имя не перезаписываем: по одному номеру может
+  // заказывать другой человек. Телефон и заметки не трогаем.
   // Координаты сбрасываем: новый адрес надо заново проверить на карте.
   const pickCustomerAddress = useCallback((a) => {
     if (!a) return;
+    const knownName = String(customerLookupData?.customerName || "").trim();
     setFormData((prev) => ({
       ...prev,
       street: a.street || "",
@@ -664,12 +668,17 @@ const CreateOrder = () => {
       apart: a.apart || "",
       floor: a.floor || "",
       code: a.code || "",
+      customer: String(prev.customer || "").trim() ? prev.customer : knownName || prev.customer,
     }));
     setGeo(null);
     setGeoConfirmed(false);
     setGeoError(null);
-    setErrors((prev) => ({ ...prev, address: "" }));
-  }, []);
+    setErrors((prev) => ({
+      ...prev,
+      address: "",
+      ...(knownName ? { customer: "" } : {}),
+    }));
+  }, [customerLookupData]);
 
   const applyFoundCustomerData = useCallback(() => {
     if (!customerLookupData) return;
