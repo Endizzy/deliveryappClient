@@ -34,9 +34,9 @@ const InvoiceTemplate = React.forwardRef(function InvoiceTemplate({ settings = {
             )}
           </div>
           <div className={styles.companyDetails}>
-            <div>Tel.: {settings.regNumber || "+371 20405060"}</div>
-            <div>E-mail: {settings.email || "info@bentosushi.lv"}</div>
-            <div>Website: {settings.website || "www.bentosushi.lv"}</div>
+            <div><span className={styles.companyDetailLabel}>Tel.:</span> {settings.regNumber || "+371 20405060"}</div>
+            <div><span className={styles.companyDetailLabel}>E-mail:</span> {settings.email || "info@bentosushi.lv"}</div>
+            <div><span className={styles.companyDetailLabel}>Website:</span> {settings.website || "www.bentosushi.lv"}</div>
           </div>
         </div>
 
