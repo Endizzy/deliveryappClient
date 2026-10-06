@@ -440,11 +440,15 @@ const CreateOrder = () => {
 
   // ── Печать накладной прямо с формы (как в EditOrder) ─────────────────────
   // Печатается то, что сейчас в форме, ещё до сохранения: номера заказа у него
-  // пока нет (на бумаге «—»), время — момент нажатия. Реквизиты компании
+  // пока нет: при печати узнаём у сервера номер, который он получит (только
+  // чтение, без брони; при сбое на бумаге «—»), время — момент нажатия. Реквизиты компании
   // грузятся отдельно; при ошибке шаблон берёт значения по умолчанию.
   const printRef = useRef(null);
   const [invoiceSettings, setInvoiceSettings] = useState(null);
   const [printStamp, setPrintStamp] = useState("");
+  // номер, который получит заказ (запрашивается в момент печати; пусто — «—»)
+  const [printNumber, setPrintNumber] = useState("");
+  const printingRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -475,7 +479,7 @@ const CreateOrder = () => {
           : "—";
 
     return {
-      number: "",
+      number: printNumber,
       createdAt: printStamp,
       deliveryDate,
       customerPhone: formData.phone,
@@ -498,7 +502,7 @@ const CreateOrder = () => {
       // реально применившаяся скидка (клиента / разовая / лояльности)
       discount: customerDiscountCents / 100,
     };
-  }, [formData, selectedItems, printStamp, safeDeliveryFee, customerDiscountCents, t]);
+  }, [formData, selectedItems, printStamp, printNumber, safeDeliveryFee, customerDiscountCents, t]);
 
   // pageStyle — тот же, что в EditOrder: поля листа и белый фон
   const runPrint = useReactToPrint({
@@ -518,11 +522,49 @@ const CreateOrder = () => {
     `,
   });
 
-  const handlePrint = () => {
-    // время на накладной — момент печати; flushSync, чтобы оно попало в разметку
-    // до того, как react-to-print заберёт содержимое
-    flushSync(() => setPrintStamp(stampNow()));
-    runPrint();
+  // Номер, который получит заказ, если создать его сейчас. Сервер только
+  // считает «максимум за день + 1» и ничего не бронирует, поэтому если за
+  // это время другой администратор создаст заказ, номер на бумаге может
+  // не совпасть. Любая ошибка или таймаут не мешают печати: номер остаётся «—».
+  const fetchNextSeq = async () => {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 4000);
+    try {
+      const params = new URLSearchParams({ orderType: formData.orderType });
+      if (formData.orderType === "preorder") {
+        const iso = localInputsToISO(formData.scheduledDate, formData.scheduledTime);
+        if (iso) params.set("scheduledAt", iso);
+      }
+      const res = await fetch(`${API}/current-orders/next-seq?${params}`, {
+        headers: authHeaders,
+        signal: ctrl.signal,
+      });
+      if (!res.ok) return "";
+      const data = await res.json();
+      return data?.ok && Number.isFinite(Number(data.seq)) ? String(data.seq) : "";
+    } catch {
+      return "";
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+
+  const handlePrint = async () => {
+    // защита от двойного клика: пока идёт запрос номера, второй печати нет
+    if (printingRef.current) return;
+    printingRef.current = true;
+    try {
+      const number = await fetchNextSeq();
+      // время и номер на накладной — момент печати; flushSync, чтобы они
+      // попали в разметку до того, как react-to-print заберёт содержимое
+      flushSync(() => {
+        setPrintStamp(stampNow());
+        setPrintNumber(number);
+      });
+      runPrint();
+    } finally {
+      printingRef.current = false;
+    }
   };
 
   // ── Правила зоны по сумме заказа ──────────────────────────────────────────
