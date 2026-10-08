@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
-  Gift, Save, Minus, Plus, Euro, Percent, Info, AlertTriangle, RotateCcw, ShoppingBag,
+  Gift, Save, Minus, Plus, Euro, Percent, Info, AlertTriangle, RotateCcw, ShoppingBag, ShieldAlert, X,
 } from "lucide-react";
 import "./loyaltyTab.css";
 import LoyaltyCustomers from "./LoyaltyCustomers.jsx";
@@ -14,6 +15,9 @@ const PERCENT_PRESETS = [5, 10, 15, 20];
 
 const MAX_ORDERS_BEFORE = 100;
 const MAX_FIXED = 1000;
+
+// Фраза, которую нужно ввести, чтобы подтвердить отключение программы
+const CONFIRM_PHRASE = "cancel loyalty";
 
 const parseNum = (v) => {
   const n = Number(String(v ?? "").trim().replace(",", "."));
@@ -40,6 +44,12 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
   const [saved, setSaved] = useState(null);
   // Растёт после каждого успешного сохранения — список клиентов перезагружается
   const [listVersion, setListVersion] = useState(0);
+
+  // Подтверждение отключения: окно с вводом фразы (как удаление репозитория на GitHub)
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
+  const confirmInputRef = useRef(null);
+  const confirmMatches = confirmText.trim().toLowerCase() === CONFIRM_PHRASE;
 
   const applyServer = (s) => {
     const next = {
@@ -121,7 +131,41 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
     setValue(next === "percent" ? "10" : "5");
   };
 
-  const handleSave = async () => {
+  // Нажатие «Сохранить»: если программа сейчас включена на сервере, а в форме её
+  // выключили — сначала просим подтверждение, и только после него сохраняем.
+  const handleSave = () => {
+    if (hasErrors || saving) return;
+    if (saved?.enabled && !enabled) {
+      setConfirmText("");
+      setConfirmOpen(true);
+      return;
+    }
+    doSave();
+  };
+
+  const closeConfirm = () => {
+    if (saving) return;
+    setConfirmOpen(false);
+    setConfirmText("");
+  };
+
+  const confirmDisable = async () => {
+    if (!confirmMatches || saving) return;
+    await doSave();
+    setConfirmOpen(false);
+    setConfirmText("");
+  };
+
+  useEffect(() => {
+    if (!confirmOpen) return undefined;
+    const onKey = (e) => { if (e.key === "Escape" && !saving) closeConfirm(); };
+    window.addEventListener("keydown", onKey);
+    const tid = setTimeout(() => confirmInputRef.current?.focus(), 30);
+    return () => { window.removeEventListener("keydown", onKey); clearTimeout(tid); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [confirmOpen, saving]);
+
+  const doSave = async () => {
     if (hasErrors) return;
     setSaving(true);
     try {
@@ -484,6 +528,72 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
       enabled={!!saved?.enabled && ready}
       refreshKey={listVersion}
     />
+
+    {confirmOpen && createPortal(
+      <div
+        className="lo-confirm-overlay"
+        onMouseDown={(e) => { if (e.target === e.currentTarget) closeConfirm(); }}
+      >
+        <div className="lo-confirm" role="dialog" aria-modal="true" aria-labelledby="lo-confirm-title">
+          <div className="lo-confirm-head">
+            <span className="lo-confirm-ico"><ShieldAlert size={18} /></span>
+            <h4 id="lo-confirm-title">
+              {t("loyalty.confirmOff.title", { defaultValue: "Отключить программу лояльности?" })}
+            </h4>
+            <button type="button" className="lo-confirm-x" onClick={closeConfirm} disabled={saving} aria-label="×">
+              <X size={16} />
+            </button>
+          </div>
+
+          <div className="lo-confirm-warn">
+            <AlertTriangle size={15} />
+            <span>
+              {t("loyalty.confirmOff.warning", {
+                defaultValue: "Новые заказы перестанут получать скидку лояльности, а клиенты перестанут накапливать заказы для неё.",
+              })}
+            </span>
+          </div>
+
+          <div className="lo-confirm-body">
+            <label htmlFor="lo-confirm-input">
+              {t("loyalty.confirmOff.prompt", {
+                defaultValue: "Чтобы подтвердить, введите {{phrase}} в поле ниже:",
+                phrase: CONFIRM_PHRASE,
+              })}
+            </label>
+            <div className="lo-confirm-phrase">{CONFIRM_PHRASE}</div>
+            <input
+              id="lo-confirm-input"
+              ref={confirmInputRef}
+              className="lo-confirm-input"
+              value={confirmText}
+              autoComplete="off"
+              spellCheck={false}
+              disabled={saving}
+              onChange={(e) => setConfirmText(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); confirmDisable(); } }}
+            />
+          </div>
+
+          <div className="lo-confirm-foot">
+            <button type="button" className="lo-confirm-cancel" onClick={closeConfirm} disabled={saving}>
+              {t("loyalty.confirmOff.cancel", { defaultValue: "Отмена" })}
+            </button>
+            <button
+              type="button"
+              className="lo-confirm-danger"
+              onClick={confirmDisable}
+              disabled={!confirmMatches || saving}
+            >
+              {saving
+                ? t("loyalty.saving", { defaultValue: "Сохранение…" })
+                : t("loyalty.confirmOff.confirm", { defaultValue: "Я понимаю, отключить лояльность" })}
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    )}
     </>
   );
 }

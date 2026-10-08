@@ -717,6 +717,13 @@
     }
   },
   "loyalty": {
+    "confirmOff": {
+      "title": "Izslēgt lojalitātes programmu?",
+      "warning": "Jauniem pasūtījumiem lojalitātes atlaide vairs netiks piemērota, un klienti pārstās krāt pasūtījumus tai.",
+      "prompt": "Lai apstiprinātu, zemāk ievadiet {{phrase}}:",
+      "cancel": "Atcelt",
+      "confirm": "Es saprotu, izslēgt lojalitāti"
+    },
     "title": "Lojalitātes programma",
     "subtitle": "Atlaide klientam noteiktā pēc kārtas pasūtījumā",
     "on": "Ieslēgta",

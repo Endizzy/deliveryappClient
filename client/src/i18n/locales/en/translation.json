@@ -716,6 +716,13 @@
     }
   },
   "loyalty": {
+    "confirmOff": {
+      "title": "Turn off the loyalty program?",
+      "warning": "New orders will no longer get the loyalty discount, and customers will stop accumulating orders towards it.",
+      "prompt": "To confirm, type {{phrase}} in the box below:",
+      "cancel": "Cancel",
+      "confirm": "I understand, turn off loyalty"
+    },
     "title": "Loyalty program",
     "subtitle": "A discount for the customer's Nth order",
     "on": "Enabled",
