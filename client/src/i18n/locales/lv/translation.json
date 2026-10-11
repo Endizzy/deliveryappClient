@@ -720,6 +720,26 @@
       "clearConfirm": "Piegādes laiks {{when}} tiks dzēsts. Turpināt?"
     }
   },
+  "customerNotes": {
+    "title": "Piezīmes administratoriem",
+    "private": "Netiek iekļautas pavadzīmē",
+    "collapse": "Sakļaut",
+    "expand": "Rādīt",
+    "empty": "Piezīmju par klientu vēl nav",
+    "save": "Saglabāt",
+    "cancel": "Atcelt",
+    "doneBy": "izpildīts",
+    "statusDone": "Izpildīts",
+    "statusOpen": "Aktuāls",
+    "reopen": "Atgriezt aktuālajās",
+    "markDone": "Atzīmēt kā izpildītu",
+    "edit": "Labot",
+    "delete": "Dzēst",
+    "confirmDelete": "Dzēst?",
+    "placeholder": "Jauna piezīme par klientu (Ctrl+Enter — pievienot)…",
+    "add": "Pievienot",
+    "hint": "Piezīme tiek saglabāta uzreiz un ir redzama administratoriem klienta nākamajos pasūtījumos."
+  },
   "appUpdate": {
     "title": "Pieejama jauna versija",
     "text": "Ir izdots lietotnes atjauninājums. Atjaunojiet lapu, lai strādātu ar aktuālo versiju.",

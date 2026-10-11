@@ -28,6 +28,7 @@ import {
 } from "./utils/money.js";
 import TimeSelect24 from "./components/CreateOrder/TimeSelect24.jsx";
 import LoyaltyNotice from "./components/CreateOrder/LoyaltyNotice.jsx";
+import CustomerNotesPanel from "./components/CreateOrder/CustomerNotesPanel.jsx";
 import { pad2, toLocalDateInput, toLocalTimeInput, localInputsToISO } from "./utils/datetime.js";
 // Общие хелперы телефона: раньше в этом файле лежала своя копия, которая знала
 // только латвийские номера, — из-за неё заказ с иностранным номером нельзя
@@ -972,6 +973,13 @@ const EditOrder = () => {
                   </>
                 )}
               </div>
+
+              {/* Заметки админов о клиенте: сохраняются сразу, в накладную не идут */}
+              <CustomerNotesPanel
+                phone={formData.phone}
+                API={API}
+                authHeaders={authHeaders}
+              />
 
               <div className="form-section full-width">
                 <div className="section-header">

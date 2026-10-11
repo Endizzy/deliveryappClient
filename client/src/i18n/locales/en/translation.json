@@ -719,6 +719,26 @@
       "clearConfirm": "Delivery time {{when}} will be removed. Continue?"
     }
   },
+  "customerNotes": {
+    "title": "Notes for administrators",
+    "private": "Not printed on the invoice",
+    "collapse": "Collapse",
+    "expand": "Show",
+    "empty": "No notes about this customer yet",
+    "save": "Save",
+    "cancel": "Cancel",
+    "doneBy": "done",
+    "statusDone": "Done",
+    "statusOpen": "Active",
+    "reopen": "Mark as active again",
+    "markDone": "Mark as done",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirmDelete": "Delete?",
+    "placeholder": "New note about the customer (Ctrl+Enter to add)…",
+    "add": "Add",
+    "hint": "The note is saved immediately and shown to administrators on the customer's next orders."
+  },
   "appUpdate": {
     "title": "A new version is available",
     "text": "An app update has been released. Refresh the page to use the latest version.",

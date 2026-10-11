@@ -29,6 +29,7 @@ import NotesSection from "./components/CreateOrder/NotesSection.jsx";
 import DeliveryMapModal from "./components/CreateOrder/DeliveryMapModal.jsx";
 import PastOrdersModal from "./components/CreateOrder/PastOrdersModal.jsx";
 import LoyaltyNotice from "./components/CreateOrder/LoyaltyNotice.jsx";
+import CustomerNotesPanel from "./components/CreateOrder/CustomerNotesPanel.jsx";
 import { searchMenu } from "./utils/menuSearch.js";
 import InvoiceTemplate from "./pages/InvoiceSettings/InvoiceTemplate.jsx";
 import { findZoneForPoint, getZoneDeliveryRules } from "./utils/zones.js";
@@ -975,6 +976,14 @@ const CreateOrder = () => {
               minDate={minDate}
               minTimeToday={minTimeToday}
               preorderMinOffset={PREORDER_MIN_OFFSET_MIN}
+            />
+
+            {/* Заметки админов о клиенте: сохраняются сразу, в накладную не идут */}
+            <CustomerNotesPanel
+              phone={formData.phone}
+              API={API}
+              authHeaders={authHeaders}
+              onUnauthorized={handleUnauthorized}
             />
 
             <NotesSection
