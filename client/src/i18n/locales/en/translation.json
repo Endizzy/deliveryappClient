@@ -583,6 +583,7 @@
     },
     "errors": {
       "loadOrdersFailed": "Failed to load orders",
+      "pickupUpdateFailed": "Failed to change the restaurant",
       "courierUpdateFailed": "Failed to change the courier"
     },
     "history": {
@@ -594,6 +595,9 @@
       "loading": "Loading orders for the day…",
       "empty": "No orders on this day",
       "createBlocked": "Return to today first"
+    },
+    "pickup": {
+      "unassigned": "Select"
     },
     "courier": {
       "unassigned": "Unassigned"
@@ -725,6 +729,13 @@
     "chip": "New version available — update"
   },
   "loyalty": {
+    "minOrder": {
+      "title": "Minimum order amount",
+      "hint": "Orders cheaper than this don't count. 0 — all orders count",
+      "label": "Minimum order amount",
+      "any": "Any",
+      "recalc": "After saving, customer progress is recalculated immediately: orders below the threshold stop counting"
+    },
     "confirmOff": {
       "title": "Turn off the loyalty program?",
       "warning": "New orders will no longer get the loyalty discount, and customers will stop accumulating orders towards it.",
@@ -758,6 +769,8 @@
       "value": "Discount value"
     },
     "errors": {
+      "minOrderInvalid": "Invalid amount",
+      "minOrderMax": "No more than {{max}} €",
       "ordersBefore": "From 1 to {{max}}",
       "valuePositive": "Must be greater than zero",
       "percentMax": "No more than 100%",
@@ -775,6 +788,8 @@
       "total": "To pay"
     },
     "rules": {
+      "minOrder": "Orders of {{v}} € or more count (total incl. delivery). The discount can be received on an order of any amount",
+      "minOrderAny": "All orders count, regardless of amount",
       "phone": "The customer is identified by phone number",
       "cancelled": "Cancelled orders are not counted; if the discounted order is cancelled, the discount is returned",
       "best": "Not combined with other discounts — the largest one applies",

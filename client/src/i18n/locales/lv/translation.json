@@ -584,6 +584,7 @@
     },
     "errors": {
       "loadOrdersFailed": "Neizdevās ielādēt pasūtījumus",
+      "pickupUpdateFailed": "Neizdevās nomainīt restorānu",
       "courierUpdateFailed": "Neizdevās nomainīt kurjeru"
     },
     "history": {
@@ -595,6 +596,9 @@
       "loading": "Ielādējam dienas pasūtījumus…",
       "empty": "Šajā dienā pasūtījumu nav",
       "createBlocked": "Vispirms atgriezieties pie šodienas"
+    },
+    "pickup": {
+      "unassigned": "Izvēlies"
     },
     "courier": {
       "unassigned": "Nav piešķirts"
@@ -726,6 +730,13 @@
     "chip": "Pieejama jauna versija — atjaunot"
   },
   "loyalty": {
+    "minOrder": {
+      "title": "Minimālā pasūtījuma summa",
+      "hint": "Lētāki pasūtījumi netiek skaitīti. 0 — tiek skaitīti visi",
+      "label": "Minimālā pasūtījuma summa",
+      "any": "Jebkura",
+      "recalc": "Pēc saglabāšanas klientu progress tiks pārrēķināts uzreiz: pasūtījumi, kas lētāki par slieksni, vairs netiks skaitīti"
+    },
     "confirmOff": {
       "title": "Izslēgt lojalitātes programmu?",
       "warning": "Jauniem pasūtījumiem lojalitātes atlaide vairs netiks piemērota, un klienti pārstās krāt pasūtījumus tai.",
@@ -759,6 +770,8 @@
       "value": "Atlaides apmērs"
     },
     "errors": {
+      "minOrderInvalid": "Nederīga summa",
+      "minOrderMax": "Ne vairāk kā {{max}} €",
       "ordersBefore": "No 1 līdz {{max}}",
       "valuePositive": "Vairāk par nulli",
       "percentMax": "Ne vairāk par 100%",
@@ -776,6 +789,8 @@
       "total": "Jāmaksā"
     },
     "rules": {
+      "minOrder": "Tiek skaitīti pasūtījumi no {{v}} € (kopsumma ar piegādi). Atlaidi var saņemt par jebkuras summas pasūtījumu",
+      "minOrderAny": "Tiek skaitīti visi pasūtījumi neatkarīgi no summas",
       "phone": "Klients tiek noteikts pēc tālruņa numura",
       "cancelled": "Atceltie pasūtījumi netiek skaitīti; ja pasūtījums ar atlaidi tiek atcelts, atlaide tiek atgriezta",
       "best": "Neapvienojas ar citām atlaidēm — tiek piemērota lielākā",

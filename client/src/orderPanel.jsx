@@ -139,6 +139,13 @@ const OrderPanel = () => {
   const [courierSaving, setCourierSaving] = useState(() => new Set());
   const courierMenuRef = useRef(null);
 
+  // Выбор ресторана комплектации прямо в таблице (аналогично курьеру)
+  const [pickupPoints, setPickupPoints] = useState([]); // [{ id, nickname }]
+  const [pickupMenuFor, setPickupMenuFor] = useState(null);
+  const [pickupMenuPos, setPickupMenuPos] = useState(null);
+  const [pickupSaving, setPickupSaving] = useState(() => new Set());
+  const pickupMenuRef = useRef(null);
+
   // Открыть/закрыть меню статуса; позицию считаем от кнопки (для fixed-портала)
   const toggleStatusMenu = (e, orderId) => {
     e.stopPropagation();
@@ -159,6 +166,7 @@ const OrderPanel = () => {
     // высоту меню доступным местом, внутри появится прокрутка
     const room = openUp ? r.top - 16 : spaceBelow - 4;
     setCourierMenuFor(null);
+    setPickupMenuFor(null);
     setMenuPos({
       maxHeight: room < menuH ? Math.max(room, 120) : null,
       up: openUp,
@@ -452,6 +460,7 @@ const OrderPanel = () => {
     const r = e.currentTarget.getBoundingClientRect();
     setCourierMenuPos(computeMenuPos(r, couriers.length + 1));
     setStatusMenuFor(null);
+    setPickupMenuFor(null);
     setCourierMenuFor(orderId);
   };
 
@@ -507,6 +516,119 @@ const OrderPanel = () => {
       });
     }
   }
+
+  // Список ресторанов компании для выпадающего списка. Тот же маршрут, что в
+  // CreateOrder/EditOrder. Ошибка загрузки не критична: панель работает как
+  // раньше, а в списке будет только текущий ресторан заказа.
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch(`${API}/order-support/pickup-points`, { headers: authHeaders });
+        if (!r.ok) return;
+        const d = await r.json();
+        if (!cancelled && d?.ok && Array.isArray(d.items)) setPickupPoints(d.items);
+      } catch (e) {
+        console.warn("load pickup points", e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [token]); // eslint-disable-line
+
+  // Открыть/закрыть меню ресторана; позицию считаем от кнопки (fixed-портал)
+  const togglePickupMenu = (e, orderId) => {
+    e.stopPropagation();
+    if (pickupMenuFor === orderId) {
+      setPickupMenuFor(null);
+      return;
+    }
+    const r = e.currentTarget.getBoundingClientRect();
+    setPickupMenuPos(computeMenuPos(r, pickupPoints.length + 1));
+    setStatusMenuFor(null);
+    setCourierMenuFor(null);
+    setPickupMenuFor(orderId);
+  };
+
+  // Быстрая смена ресторана прямо из таблицы.
+  //
+  // Идёт через отдельный маршрут PUT /:id/pickup, который меняет ТОЛЬКО
+  // ресторан комплектации. Сервер сам рассылает по WS order_updated с заказом
+  // целиком — другие панели и курьерское приложение обновятся без перезагрузки.
+  //
+  // Оптимистично обновляем UI, при ошибке — откат.
+  async function changePickup(order, newPickupId) {
+    setPickupMenuFor(null);
+    if (newPickupId == null) return;
+    if (String(newPickupId) === String(order.pickupId ?? "")) return;
+
+    const name = pickupPoints.find((p) => String(p.id) === String(newPickupId))?.nickname || "";
+    const optimistic = { ...order, pickupId: newPickupId, pickupName: name };
+
+    setPickupSaving((prev) => new Set(prev).add(order.id));
+
+    if (isHistory) {
+      setHistoryOrders((prev) => prev.map((x) => (x.id === order.id ? optimistic : x)));
+    } else {
+      upsertOrderToTabs(optimistic);
+    }
+
+    try {
+      const res = await fetch(`${API}/current-orders/${order.id}/pickup`, {
+        method: "PUT",
+        headers: { ...authHeaders, "Content-Type": "application/json" },
+        body: JSON.stringify({ pickupId: newPickupId }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "pickup update failed");
+      // живые вкладки подтвердит WS; архив WS не трогает — кладём ответ вручную
+      if (isHistory && data.item) {
+        setHistoryOrders((prev) => prev.map((x) => (x.id === data.item.id ? data.item : x)));
+      }
+    } catch (e) {
+      console.error("changePickup", e);
+      if (isHistory) {
+        setHistoryOrders((prev) => prev.map((x) => (x.id === order.id ? order : x)));
+      } else {
+        loadTab(activeTab).catch(() => {});
+      }
+      alert(t("orderPanel.errors.pickupUpdateFailed", { defaultValue: "Не удалось изменить ресторан" }));
+    } finally {
+      setPickupSaving((prev) => {
+        const next = new Set(prev);
+        next.delete(order.id);
+        return next;
+      });
+    }
+  }
+
+  // Закрытие меню ресторана: клик вне (кнопки и самого меню), Escape, скролл,
+  // ресайз. Прокрутка внутри самого меню его не закрывает.
+  useEffect(() => {
+    if (pickupMenuFor == null) return;
+    const onDocClick = (e) => {
+      const onButton = e.target.closest?.(".pickup-badge-btn");
+      const inMenu = pickupMenuRef.current && pickupMenuRef.current.contains(e.target);
+      if (!onButton && !inMenu) setPickupMenuFor(null);
+    };
+    const onKey = (e) => e.key === "Escape" && setPickupMenuFor(null);
+    const close = () => setPickupMenuFor(null);
+    const onScroll = (e) => {
+      const tg = e.target;
+      if (tg && tg.nodeType && pickupMenuRef.current && pickupMenuRef.current.contains(tg)) return;
+      close();
+    };
+    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", onScroll, true);
+    window.addEventListener("resize", close);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", onScroll, true);
+      window.removeEventListener("resize", close);
+    };
+  }, [pickupMenuFor]);
 
   // Закрытие меню курьера: клик вне (кнопки и самого меню), Escape, скролл
   // страницы, ресайз. Прокрутка внутри самого меню его не закрывает.
@@ -927,9 +1049,35 @@ const OrderPanel = () => {
                   </span>
                 </div>
 
-                <div className="cell items-cell">
-                  <span className="items">{order.pickupName}</span>
-                </div>
+                {(() => {
+                  // Завершённым и отменённым заказам ресторан не меняют —
+                  // для них остаётся обычный текст
+                  const finished = order.status === "completed" || order.status === "cancelled";
+                  if (finished) {
+                    return (
+                      <div className="cell items-cell">
+                        <span className="items">{order.pickupName}</span>
+                      </div>
+                    );
+                  }
+                  const label =
+                    order.pickupName ||
+                    t("orderPanel.pickup.unassigned", { defaultValue: "Выбрать" });
+                  return (
+                    <div className="cell items-cell" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        className={`pickup-badge pickup-badge-btn ${order.pickupName ? "" : "is-unassigned"}`}
+                        title={label}
+                        disabled={pickupSaving.has(order.id)}
+                        onClick={(e) => togglePickupMenu(e, order.id)}
+                      >
+                        <span className="pickup-badge-label">{label}</span>
+                        <ChevronDown size={14} />
+                      </button>
+                    </div>
+                  );
+                })()}
 
                 {(() => {
                   // Завершённым и отменённым заказам курьера не назначают —
@@ -1008,6 +1156,54 @@ const OrderPanel = () => {
           overflow таблицы и не перекрывалось соседними строками */}
       {/* Меню выбора курьера: тот же приём — fixed-портал; фон пункта — цвет
           курьера из его аккаунта */}
+      {/* Меню выбора ресторана: тот же приём — fixed-портал, оформление как у
+          меню курьера, но без цветных точек (у ресторанов цвета нет) */}
+      {pickupMenuFor != null && pickupMenuPos && (() => {
+        const menuOrder = orders.find((o) => o.id === pickupMenuFor);
+        if (!menuOrder) return null;
+        const curId = menuOrder.pickupId == null ? null : String(menuOrder.pickupId);
+        // Ресторан заказа мог быть отключён и не попасть в список активных —
+        // показываем его первым, чтобы текущее значение не пропало из меню
+        const hasCurrent = curId == null || pickupPoints.some((p) => String(p.id) === curId);
+        const list = hasCurrent
+          ? pickupPoints
+          : [{ id: menuOrder.pickupId, nickname: menuOrder.pickupName || `#${curId}` }, ...pickupPoints];
+        return createPortal(
+          <div
+            ref={pickupMenuRef}
+            className="status-menu courier-menu pickup-menu"
+            role="listbox"
+            style={{
+              ...(pickupMenuPos.up ? { bottom: pickupMenuPos.bottom } : { top: pickupMenuPos.top }),
+              left: pickupMenuPos.left,
+              minWidth: Math.max(pickupMenuPos.width, 170),
+              maxHeight: pickupMenuPos.maxHeight,
+              overflowY: "auto",
+            }}
+          >
+            {list.map((p) => {
+              const isCurrent = curId === String(p.id);
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  role="option"
+                  aria-selected={isCurrent}
+                  className={`status-menu-item courier-menu-item ${isCurrent ? "current" : ""}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    changePickup(menuOrder, p.id);
+                  }}
+                >
+                  {p.nickname}
+                </button>
+              );
+            })}
+          </div>,
+          document.body
+        );
+      })()}
+
       {courierMenuFor != null && courierMenuPos && (() => {
         const menuOrder = orders.find((o) => o.id === courierMenuFor);
         if (!menuOrder) return null;

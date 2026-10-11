@@ -16,6 +16,8 @@ const PERCENT_PRESETS = [5, 10, 15, 20];
 
 const MAX_ORDERS_BEFORE = 100;
 const MAX_FIXED = 1000;
+const MAX_MIN_ORDER = 1000;
+const MIN_ORDER_PRESETS = [0, 10, 20, 30];
 
 // Фраза, которую нужно ввести, чтобы подтвердить отключение программы
 const CONFIRM_PHRASE = "cancel loyalty";
@@ -40,6 +42,8 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
   const [ordersBefore, setOrdersBefore] = useState("10");
   const [type, setType] = useState("fixed");
   const [value, setValue] = useState("5");
+  // Минимальная сумма заказа (итог с доставкой), с которой заказ идёт в счёт. 0 — все.
+  const [minOrder, setMinOrder] = useState("0");
 
   // Что сохранено на сервере — чтобы показывать «есть несохранённые изменения»
   const [saved, setSaved] = useState(null);
@@ -59,11 +63,13 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
       type: s.type === "percent" ? "percent" : "fixed",
       // value 0 = ещё не настраивали → подставляем разумное значение
       value: s.value > 0 ? String(s.value) : (s.type === "percent" ? "10" : "5"),
+      minOrder: String(Number(s.minOrderAmount) > 0 ? Number(s.minOrderAmount) : 0),
     };
     setEnabled(next.enabled);
     setOrdersBefore(next.ordersBefore);
     setType(next.type);
     setValue(next.value);
+    setMinOrder(next.minOrder);
     setSaved(next);
   };
 
@@ -89,6 +95,8 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
 
   const nOrders = Math.trunc(parseNum(ordersBefore));
   const nValue = parseNum(value);
+  // Пустое поле = 0 (без ограничения)
+  const nMin = String(minOrder).trim() === "" ? 0 : parseNum(minOrder);
 
   // Ошибки валидации (те же границы, что и на сервере)
   const errors = useMemo(() => {
@@ -105,8 +113,13 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
     } else if (type === "fixed" && nValue > MAX_FIXED) {
       e.value = t("loyalty.errors.fixedMax", { defaultValue: "Не больше {{max}} €", max: MAX_FIXED });
     }
+    if (!Number.isFinite(nMin) || nMin < 0) {
+      e.minOrder = t("loyalty.errors.minOrderInvalid", { defaultValue: "Некорректная сумма" });
+    } else if (nMin > MAX_MIN_ORDER) {
+      e.minOrder = t("loyalty.errors.minOrderMax", { defaultValue: "Не больше {{max}} €", max: MAX_MIN_ORDER });
+    }
     return e;
-  }, [nOrders, nValue, type, t]);
+  }, [nOrders, nValue, nMin, type, t]);
   const hasErrors = Object.keys(errors).length > 0;
 
   // Настройки можно менять только при включённой программе (и готовой миграции).
@@ -118,7 +131,8 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
     (saved.enabled !== enabled ||
       saved.ordersBefore !== ordersBefore ||
       saved.type !== type ||
-      saved.value !== value);
+      saved.value !== value ||
+      saved.minOrder !== minOrder);
 
   // Несохранённые изменения / сохранение / окно подтверждения — не мешаем окном обновления
   useBlockUpdate(dirty || saving || confirmOpen);
@@ -176,7 +190,7 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
       const res = await fetch(`${API}/loyalty/settings`, {
         method: "PUT",
         headers: authHeaders,
-        body: JSON.stringify({ enabled, ordersBefore: nOrders, type, value: nValue }),
+        body: JSON.stringify({ enabled, ordersBefore: nOrders, type, value: nValue, minOrderAmount: nMin }),
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
@@ -403,6 +417,61 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
             </div>
             {errors.value && <div className="lo-error">{errors.value}</div>}
           </div>
+
+          {/* 3. С какой суммы заказ идёт в счёт */}
+          <div className="lo-group">
+            <div className="lo-group-head">
+              <span className="lo-step">3</span>
+              <div>
+                <h4>{t("loyalty.minOrder.title", { defaultValue: "Минимальная сумма заказа" })}</h4>
+                <p>
+                  {t("loyalty.minOrder.hint", {
+                    defaultValue: "Заказы дешевле этой суммы в счёт не идут. 0 — учитываются все",
+                  })}
+                </p>
+              </div>
+            </div>
+
+            <div className="lo-value-row">
+              <div className={`lo-value ${errors.minOrder ? "has-error" : ""}`}>
+                <input
+                  inputMode="decimal"
+                  value={minOrder}
+                  disabled={locked}
+                  onChange={(e) => setMinOrder(e.target.value.replace(/[^\d.,]/g, "").slice(0, 7))}
+                  aria-label={t("loyalty.minOrder.label", { defaultValue: "Минимальная сумма заказа" })}
+                />
+                <span className="lo-value-suffix">€</span>
+              </div>
+
+              <div className="lo-chips">
+                {MIN_ORDER_PRESETS.map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    disabled={locked}
+                    className={nMin === p ? "active" : ""}
+                    onClick={() => setMinOrder(String(p))}
+                  >
+                    {p === 0
+                      ? t("loyalty.minOrder.any", { defaultValue: "Любая" })
+                      : `${p} €`}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {errors.minOrder && <div className="lo-error">{errors.minOrder}</div>}
+            {enabled && !!saved && saved.minOrder !== minOrder && (
+              <div className="lo-note-warn">
+                <AlertTriangle size={14} />
+                <span>
+                  {t("loyalty.minOrder.recalc", {
+                    defaultValue: "После сохранения прогресс клиентов пересчитается сразу: заказы дешевле порога перестанут учитываться",
+                  })}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="lo-footer">
@@ -512,6 +581,17 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
             {t("loyalty.rules.best", {
               defaultValue: "Не складывается с другими скидками — применяется наибольшая",
             })}
+          </li>
+          <li>
+            <Info size={14} />
+            {nMin > 0
+              ? t("loyalty.rules.minOrder", {
+                  defaultValue: "В счёт идут заказы от {{v}} € (итог с доставкой). Скидку можно получить на заказ любой суммы",
+                  v: formatCents(toCents(nMin)),
+                })
+              : t("loyalty.rules.minOrderAny", {
+                  defaultValue: "В счёт идут все заказы, независимо от суммы",
+                })}
           </li>
           <li>
             <Info size={14} />
