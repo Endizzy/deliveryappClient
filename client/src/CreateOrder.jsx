@@ -21,6 +21,7 @@ import useOrderResources from "./hooks/useOrderResources.js";
 import useCustomerAddresses from "./hooks/useCustomerAddresses.js";
 import useCustomerLookup from "./hooks/useCustomerLookup.js";
 import useOrderItems from "./hooks/useOrderItems.js";
+import { useBlockUpdate } from "./hooks/useBlockUpdate.js";
 import CustomerSection from "./components/CreateOrder/CustomerSection.jsx";
 import DeliverySection from "./components/CreateOrder/DeliverySection.jsx";
 import ItemsSection from "./components/CreateOrder/ItemsSection.jsx";
@@ -49,6 +50,8 @@ const stampNow = () => {
 };
 
 const CreateOrder = () => {
+  // Пока открыта форма заказа — окно «Доступна новая версия» не показываем
+  useBlockUpdate(true);
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;

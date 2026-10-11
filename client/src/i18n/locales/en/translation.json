@@ -715,6 +715,15 @@
       "clearConfirm": "Delivery time {{when}} will be removed. Continue?"
     }
   },
+  "appUpdate": {
+    "title": "A new version is available",
+    "text": "An app update has been released. Refresh the page to use the latest version.",
+    "textForce": "An important app update has been released. You need to refresh the page.",
+    "hint": "Save your work before refreshing.",
+    "later": "Later",
+    "now": "Update now",
+    "chip": "New version available — update"
+  },
   "loyalty": {
     "confirmOff": {
       "title": "Turn off the loyalty program?",

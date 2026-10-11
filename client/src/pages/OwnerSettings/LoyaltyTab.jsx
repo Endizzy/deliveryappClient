@@ -6,6 +6,7 @@ import {
 import "./loyaltyTab.css";
 import LoyaltyCustomers from "./LoyaltyCustomers.jsx";
 import { formatCents, toCents } from "../../utils/money.js";
+import { useBlockUpdate } from "../../hooks/useBlockUpdate.js";
 
 // Пример заказа для предпросмотра, €
 const EXAMPLE_ORDER_EUR = 40;
@@ -118,6 +119,9 @@ export default function LoyaltyTab({ API, authHeaders, t, ui }) {
       saved.ordersBefore !== ordersBefore ||
       saved.type !== type ||
       saved.value !== value);
+
+  // Несохранённые изменения / сохранение / окно подтверждения — не мешаем окном обновления
+  useBlockUpdate(dirty || saving || confirmOpen);
 
   const stepOrders = (delta) => {
     const cur = Number.isFinite(nOrders) ? nOrders : 10;

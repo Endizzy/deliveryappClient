@@ -21,6 +21,7 @@ import { SoundProvider } from "./provider/SoundContext.jsx";
 import { TimeCounterProvider } from "./provider/TimeContext.jsx";
 import OrderPrediction from "./pages/OrderPrediction/OrderPrediction.jsx";
 import Report from "./pages/Report/Report.jsx";
+import UpdatePrompt from "./components/UpdatePrompt/UpdatePrompt.jsx";
 
 createRoot(document.getElementById("root")).render(
     <BrowserRouter>
@@ -112,6 +113,7 @@ createRoot(document.getElementById("root")).render(
                             }
                         />
                     </Routes>
+                    <UpdatePrompt />
                 </ThemeProvider>
                 </TimeCounterProvider>
             </SoundProvider>

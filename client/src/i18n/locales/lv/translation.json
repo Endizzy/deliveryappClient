@@ -716,6 +716,15 @@
       "clearConfirm": "Piegādes laiks {{when}} tiks dzēsts. Turpināt?"
     }
   },
+  "appUpdate": {
+    "title": "Pieejama jauna versija",
+    "text": "Ir izdots lietotnes atjauninājums. Atjaunojiet lapu, lai strādātu ar aktuālo versiju.",
+    "textForce": "Ir izdots svarīgs lietotnes atjauninājums. Lapa ir jāatjauno.",
+    "hint": "Pirms atjaunošanas saglabājiet iesākto darbu.",
+    "later": "Vēlāk",
+    "now": "Atjaunot tagad",
+    "chip": "Pieejama jauna versija — atjaunot"
+  },
   "loyalty": {
     "confirmOff": {
       "title": "Izslēgt lojalitātes programmu?",

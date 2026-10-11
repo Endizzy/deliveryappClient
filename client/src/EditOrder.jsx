@@ -35,6 +35,7 @@ import { pad2, toLocalDateInput, toLocalTimeInput, localInputsToISO } from "./ut
 import { formatPhoneInput, isValidPhone } from "./utils/phone.js";
 import { searchMenu } from "./utils/menuSearch.js";
 import Loader from "./components/Loader/Loader.jsx";
+import { useBlockUpdate } from "./hooks/useBlockUpdate.js";
 import InvoiceTemplate from "./pages/InvoiceSettings/InvoiceTemplate.jsx";
 import AddressMapField from "./components/CreateOrder/AddressMapField.jsx";
 import DeliveryMapModal from "./components/CreateOrder/DeliveryMapModal.jsx";
@@ -54,6 +55,8 @@ const PAYMENT_LABELS = {
 const PREORDER_MIN_OFFSET_MIN = 15;
 
 const EditOrder = () => {
+  // Пока открыта форма правки заказа — окно «Доступна новая версия» не показываем
+  useBlockUpdate(true);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { t } = useTranslation();

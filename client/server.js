@@ -40,7 +40,10 @@ function send(res, status, body, headers = {}) {
 function serveIndex(res) {
   fs.readFile(path.join(DIST, "index.html"), (err, html) => {
     if (err) return send(res, 404, "Not found");
-    send(res, 200, html, { "Content-Type": "text/html; charset=utf-8" });
+    send(res, 200, html, {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-cache",
+    });
   });
 }
 
@@ -63,6 +66,9 @@ const server = http.createServer((req, res) => {
         // хэшированные ассеты Vite можно кэшировать надолго
         if (urlPath.startsWith("/assets/")) {
           headers["Cache-Control"] = "public, max-age=31536000, immutable";
+        } else if (ext === ".html" || urlPath === "/version.json") {
+          // index.html и version.json всегда проверяем заново — для окна обновления
+          headers["Cache-Control"] = "no-cache";
         }
         send(res, 200, data, headers);
       });
