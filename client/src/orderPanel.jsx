@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronDown, Trash2, History } from 'lucide-react';
+import { ChevronDown, Trash2, History, ArrowUp, ArrowDown } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import "./orderPanel.css";
 import Header from "./components/Header/Header.jsx";
@@ -907,84 +907,108 @@ const OrderPanel = () => {
             <div
               className={`header-cell filter-header ${
                 filters.status.length > 0 ? "active" : ""
-              }`}
-              onClick={() => setOpenFilterColumn("status")}
+              } ${openFilterColumn === "status" ? "open" : ""}`}
+              data-filter-col="status"
+              aria-haspopup="dialog"
+              aria-expanded={openFilterColumn === "status"}
+              onClick={() => setOpenFilterColumn((c) => (c === "status" ? null : "status"))}
               role="button"
               tabIndex={0}
               onKeyDown={(e) =>
-                e.key === "Enter" && setOpenFilterColumn("status")
+                e.key === "Enter" && setOpenFilterColumn((c) => (c === "status" ? null : "status"))
               }
             >
-              {t("orderPanel.table.status")}
-              <ChevronDown size={18}/>
-              {filters.status.length > 0 && <span className="filter-badge"> •</span>}
+              <span className="header-label">{t("orderPanel.table.status")}</span>
+              {filters.status.length > 0 && (
+                <span className="filter-chip">{filters.status.length}</span>
+              )}
+              <ChevronDown className="filter-chevron" size={18} />
             </div>
             <div
               className={`header-cell filter-header ${
                 filters.timeSort ? "active" : ""
-              }`}
-              onClick={() => setOpenFilterColumn("time")}
+              } ${openFilterColumn === "time" ? "open" : ""}`}
+              data-filter-col="time"
+              aria-haspopup="dialog"
+              aria-expanded={openFilterColumn === "time"}
+              onClick={() => setOpenFilterColumn((c) => (c === "time" ? null : "time"))}
               role="button"
               tabIndex={0}
               onKeyDown={(e) =>
-                e.key === "Enter" && setOpenFilterColumn("time")
+                e.key === "Enter" && setOpenFilterColumn((c) => (c === "time" ? null : "time"))
               }
             >
-              {t("orderPanel.table.time")}
-              <ChevronDown size={18}/>
+              <span className="header-label">{t("orderPanel.table.time")}</span>
               {filters.timeSort && (
-                <span className="filter-badge"> •</span>
+                <span className="filter-chip">
+                  {filters.timeSort === "asc" ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
+                </span>
               )}
+              <ChevronDown className="filter-chevron" size={18} />
             </div>
             <div className="header-cell">{t("orderPanel.table.address")}</div>
             <div className="header-cell">{t("orderPanel.table.customer")}</div>
             <div
               className={`header-cell filter-header ${
                 filters.amountSort ? "active" : ""
-              }`}
-              onClick={() => setOpenFilterColumn("amount")}
+              } ${openFilterColumn === "amount" ? "open" : ""}`}
+              data-filter-col="amount"
+              aria-haspopup="dialog"
+              aria-expanded={openFilterColumn === "amount"}
+              onClick={() => setOpenFilterColumn((c) => (c === "amount" ? null : "amount"))}
               role="button"
               tabIndex={0}
               onKeyDown={(e) =>
-                e.key === "Enter" && setOpenFilterColumn("amount")
+                e.key === "Enter" && setOpenFilterColumn((c) => (c === "amount" ? null : "amount"))
               }
             >
-              {t("orderPanel.table.amount")}
-              <ChevronDown size={18} />
+              <span className="header-label">{t("orderPanel.table.amount")}</span>
               {filters.amountSort && (
-                <span className="filter-badge"> •</span>
+                <span className="filter-chip">
+                  {filters.amountSort === "asc" ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
+                </span>
               )}
+              <ChevronDown className="filter-chevron" size={18} />
             </div>
             <div
               className={`header-cell filter-header ${
                 filters.restaurant.length > 0 ? "active" : ""
-              }`}
-              onClick={() => setOpenFilterColumn("restaurant")}
+              } ${openFilterColumn === "restaurant" ? "open" : ""}`}
+              data-filter-col="restaurant"
+              aria-haspopup="dialog"
+              aria-expanded={openFilterColumn === "restaurant"}
+              onClick={() => setOpenFilterColumn((c) => (c === "restaurant" ? null : "restaurant"))}
               role="button"
               tabIndex={0}
               onKeyDown={(e) =>
-                e.key === "Enter" && setOpenFilterColumn("restaurant")
+                e.key === "Enter" && setOpenFilterColumn((c) => (c === "restaurant" ? null : "restaurant"))
               }
             >
-              {t("orderPanel.table.restaurant")}
-              <ChevronDown size={18}/>
+              <span className="header-label">{t("orderPanel.table.restaurant")}</span>
               {filters.restaurant.length > 0 && (
-                <span className="filter-badge"> •</span>
+                <span className="filter-chip">{filters.restaurant.length}</span>
               )}
+              <ChevronDown className="filter-chevron" size={18} />
             </div>
             <div
               className={`header-cell filter-header ${
                 filters.courier.length > 0 ? "active" : ""
-              }`}
-              onClick={() => setOpenFilterColumn("courier")}
+              } ${openFilterColumn === "courier" ? "open" : ""}`}
+              data-filter-col="courier"
+              aria-haspopup="dialog"
+              aria-expanded={openFilterColumn === "courier"}
+              onClick={() => setOpenFilterColumn((c) => (c === "courier" ? null : "courier"))}
               role="button"
               tabIndex={0}
               onKeyDown={(e) =>
-                e.key === "Enter" && setOpenFilterColumn("courier")
+                e.key === "Enter" && setOpenFilterColumn((c) => (c === "courier" ? null : "courier"))
               }
             >
-              {t("orderPanel.table.courier")}<ChevronDown size={18}/>
-              {filters.courier.length > 0 && <span className="filter-badge"> •</span>}
+              <span className="header-label">{t("orderPanel.table.courier")}</span>
+              {filters.courier.length > 0 && (
+                <span className="filter-chip">{filters.courier.length}</span>
+              )}
+              <ChevronDown className="filter-chevron" size={18} />
             </div>
             <div className="header-cell">{t("orderPanel.table.dispatcher")}</div>
           </div>

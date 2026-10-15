@@ -107,3 +107,37 @@
         font-size: 11px;
     }
 }
+
+/* segmented: EN | LV | RU в одну линию */
+.segment {
+    display: flex;
+    padding: 3px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.segment_btn {
+    flex: 1;
+    height: 36px;
+    min-width: 40px;
+    padding: 0 8px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.segment_btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+.segment_active,
+.segment_active:hover {
+    background: rgba(255, 255, 255, 0.28);
+    color: white;
+}

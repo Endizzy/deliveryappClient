@@ -551,7 +551,9 @@
       "sortAmountAsc": "Smallest first",
       "sortAmountDesc": "Largest first",
       "selectTimeSort": "Sort by time",
-      "selectAmountSort": "Sort by amount"
+      "selectAmountSort": "Sort by amount",
+      "resetColumn": "Reset",
+      "done": "Done"
     },
     "table": {
       "status": "Status",

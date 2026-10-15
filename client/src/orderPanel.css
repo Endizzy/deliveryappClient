@@ -203,6 +203,63 @@
     font-weight: 700;
 }
 
+/* --- Фильтры в шапке: подпись, галочка, индикатор активного фильтра --- */
+.header-cell.filter-header {
+    position: relative;
+    min-width: 0;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.header-cell.filter-header .header-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.header-cell.filter-header .filter-chevron {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    transition: transform 0.2s ease;
+}
+
+.header-cell.filter-header.open .filter-chevron {
+    transform: rotate(180deg);
+}
+
+.header-cell.filter-header.open {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Фильтр включён: светлая подложка, белая полоса снизу и "пилюля" в углу ячейки
+   со счётчиком (для сортировки — стрелка направления). Видно и при закрытом окне. */
+.header-cell.filter-header.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    box-shadow: inset 0 -3px 0 #fff;
+}
+
+.filter-chip {
+    position: absolute; /* в углу ячейки — не отнимает ширину у подписи */
+    top: 4px;
+    right: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 8px;
+    background: #fff;
+    color: #5b4bbd;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 1;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
 .filter-badge {
     margin-left: 4px;
     display: inline-block;
@@ -922,5 +979,34 @@ input[type="checkbox"] {
     .pickup-badge svg {
         width: 11px;
         height: 11px;
+    }
+}
+
+/* Адаптивные галочки и отступы заголовков с фильтрами */
+@media (max-width: 1200px) {
+    .header-cell.filter-header {
+        padding-left: 8px;
+        padding-right: 8px;
+        gap: 4px;
+    }
+
+    .header-cell.filter-header .filter-chevron {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+@media (max-width: 900px) {
+    .header-cell.filter-header {
+        padding-left: 6px;
+        padding-right: 6px;
+        gap: 3px;
+        font-size: 10px;
+        letter-spacing: 0.3px;
+    }
+
+    .header-cell.filter-header .filter-chevron {
+        width: 14px;
+        height: 14px;
     }
 }

@@ -10,7 +10,9 @@ const LANGUAGES = [
   { code: "ru", label: "RU", country: "RU" },
 ];
 
-const LanguageSelector = () => {
+// variant="segmented" — переключатель EN | LV | RU в одну линию (для мобильного меню);
+// без variant — прежний выпадающий список.
+const LanguageSelector = ({ variant } = {}) => {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -32,6 +34,26 @@ const LanguageSelector = () => {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  if (variant === "segmented") {
+    return (
+      <div className={styles.segment} role="group" aria-label="Language">
+        {LANGUAGES.map((lang) => (
+          <button
+            key={lang.code}
+            type="button"
+            className={`${styles.segment_btn} ${
+              lang.code === currentLang.code ? styles.segment_active : ""
+            }`}
+            onClick={() => i18n.changeLanguage(lang.code)}
+            aria-pressed={lang.code === currentLang.code}
+          >
+            {lang.label}
+          </button>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className={styles.wrapper} ref={ref}>

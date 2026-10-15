@@ -4,6 +4,7 @@
     color: white;
     padding: 0 24px;
     height: auto;
+    min-height: 72px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -55,7 +56,7 @@
 .header_icons {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 6px;
 }
 
 .theme_selector {
@@ -66,35 +67,50 @@
 .icon_span {
     font-size: 10px;
     font-weight: 700;
+    white-space: nowrap;
+    padding-bottom: 2px;
+    border-bottom: 2px solid transparent;
 }
 
 .icon_content {
     display: grid;
     align-items: center;
     text-align: center;
-    margin-bottom: 15px;
 }
 
 .icon_btn {
-    background: rgba(255, 255, 255, 0.1);
+    background: transparent;
     border: none;
-    /*width: 40px;*/
-    height: 40px;
-    border-radius: 10px;
+    height: 56px;
+    min-width: 64px;
+    padding: 0 10px;
+    border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
-    display: grid;
-    place-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
     color: white;
-    /*margin-right: 10px;*/
+    opacity: 0.85;
 }
 
 .icon_btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.15);
+    opacity: 1;
+}
+
+.icon_btn_active {
+    opacity: 1;
+}
+
+.icon_btn_active .icon_span {
+    border-bottom-color: currentColor;
 }
 
 .user_info {
+    margin-left: 6px;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -178,6 +194,15 @@
     background: rgba(255, 255, 255, 0.1);
 }
 
+.mobile_menu_item_active {
+    background: rgba(255, 255, 255, 0.18);
+    font-weight: 700;
+}
+
+.mobile_lang {
+    padding: 4px 16px 12px;
+}
+
 .mobile_user_section {
     display: flex;
     flex-direction: column;
@@ -207,6 +232,36 @@
 
 .mobile_logout_btn:hover {
     background: rgba(255, 255, 255, 0.25);
+}
+
+/* Узкий десктоп: подписи остаются, ужимаем отступы, чтобы всё поместилось */
+@media (max-width: 1279px) {
+    .header_icons {
+        gap: 2px;
+    }
+
+    .icon_btn {
+        padding: 0 6px;
+        min-width: 0;
+    }
+
+    .user_info {
+        margin-left: 2px;
+        padding-left: 10px;
+        gap: 8px;
+    }
+}
+
+@media (max-width: 949px) {
+    .logo_text {
+        display: none;
+    }
+}
+
+@media (max-width: 899px) {
+    .user_name {
+        display: none;
+    }
 }
 
 /* Tablet (768px and below) */
@@ -333,7 +388,7 @@
     }
 
     .header_icons {
-        gap: 24px;
+        gap: 10px;
     }
 
     .logo {
@@ -349,6 +404,6 @@
     }
 
     .header_icons {
-        gap: 32px;
+        gap: 14px;
     }
 }

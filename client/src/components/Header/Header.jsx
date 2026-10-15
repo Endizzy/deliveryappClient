@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import styles from "./Header.module.css";
 import { Map as MapIcon, Settings, MonitorCog, User, Box, Menu, X, BarChart2 } from "lucide-react";
 import { useTheme } from "../../provider/ThemeContext.jsx";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import LanguageSelector from "./../LanguageSelect/LanguageSelect.jsx";
 import { useTranslation } from "react-i18next";
 import useUserStore from "../../store/userStore.js";
@@ -11,6 +11,7 @@ import useUserStore from "../../store/userStore.js";
 // Пропс оставлен опциональным ради обратной совместимости со старыми вызовами.
 const Header = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { openSettings } = useTheme();
   const { t } = useTranslation();
@@ -36,6 +37,9 @@ const Header = () => {
     setIsMobileMenuOpen(false);
     navigate("/login", { replace: true });
   };
+
+  // Подсветка текущей страницы
+  const isActive = (path) => location.pathname.toLowerCase().startsWith(path.toLowerCase());
 
   const displayName =
     user && (user.firstName || user.lastName)
@@ -64,68 +68,73 @@ const Header = () => {
           <LanguageSelector />
 
           <div className={styles.icon_content}>
-            <span className={styles.icon_span}>{t("header.personalization")}</span>
             <button
               className={styles.icon_btn}
               onClick={openSettings}
               title={t("header.personalization")}
             >
               <MonitorCog size={24} />
+              <span className={styles.icon_span}>{t("header.personalization")}</span>
             </button>
           </div>
 
           <div className={styles.icon_content}>
-            <span className={styles.icon_span}>{t("header.ownerSettings")}</span>
             <button
-              className={styles.icon_btn}
+              className={`${styles.icon_btn} ${isActive("/ownerSettings") ? styles.icon_btn_active : ""}`}
               onClick={() => handleNavigation("/ownerSettings")}
+              aria-current={isActive("/ownerSettings") ? "page" : undefined}
               title={t("header.ownerSettings")}
             >
               <Settings size={24} />
+              <span className={styles.icon_span}>{t("header.ownerSettings")}</span>
             </button>
           </div>
 
           <div className={styles.icon_content}>
-            <span className={styles.icon_span}>{t("header.map")}</span>
             <button
-              className={styles.icon_btn}
+              className={`${styles.icon_btn} ${isActive("/map") ? styles.icon_btn_active : ""}`}
               onClick={() => handleNavigation("/map")}
+              aria-current={isActive("/map") ? "page" : undefined}
               title={t("header.map")}
             >
               <MapIcon size={24} />
+              <span className={styles.icon_span}>{t("header.map")}</span>
             </button>
           </div>
 
           <div className={styles.icon_content}>
-            <span className={styles.icon_span}>{t("header.profile")}</span>
             <button
-              className={styles.icon_btn}
+              className={`${styles.icon_btn} ${isActive("/userProfile") ? styles.icon_btn_active : ""}`}
               onClick={() => handleNavigation("/userProfile")}
+              aria-current={isActive("/userProfile") ? "page" : undefined}
               title={t("header.profile")}
             >
               <User size={24} />
+              <span className={styles.icon_span}>{t("header.profile")}</span>
             </button>
           </div>
 
           <div className={styles.icon_content}>
-            <span className={styles.icon_span}>{t("header.orders")}</span>
             <button
-              className={styles.icon_btn}
+              className={`${styles.icon_btn} ${isActive("/orderPanel") ? styles.icon_btn_active : ""}`}
               onClick={() => handleNavigation("/orderPanel")}
+              aria-current={isActive("/orderPanel") ? "page" : undefined}
               title={t("header.orders")}
             >
               <Box size={24} />
+              <span className={styles.icon_span}>{t("header.orders")}</span>
             </button>
           </div>
 
           <div className={styles.icon_content}>
-            <span className={styles.icon_span}>{t("header.report")}</span>
             <button
-              className={styles.icon_btn}
+              className={`${styles.icon_btn} ${isActive("/report") ? styles.icon_btn_active : ""}`}
               onClick={() => handleNavigation("/report")}
+              aria-current={isActive("/report") ? "page" : undefined}
               title={t("header.report")}
             >
               <BarChart2 size={24} />
+              <span className={styles.icon_span}>{t("header.report")}</span>
             </button>
           </div>
 
@@ -151,46 +160,58 @@ const Header = () => {
       {isMobileMenuOpen && (
         <nav className={styles.mobile_menu}>
           <div className={styles.mobile_menu_content}>
-            <button className={styles.mobile_menu_item} onClick={openSettings}>
-              <MonitorCog size={20} />
-              <span>{t("header.personalization")}</span>
-            </button>
+            <div className={styles.mobile_lang}>
+              <LanguageSelector variant="segmented" />
+            </div>
 
             <button
-              className={styles.mobile_menu_item}
-              onClick={() => handleNavigation("/ownerSettings")}
-            >
-              <Settings size={20} />
-              <span>{t("header.ownerSettings")}</span>
-            </button>
-
-            <button className={styles.mobile_menu_item} onClick={() => handleNavigation("/map")}>
-              <MapIcon size={20} />
-              <span>{t("header.map")}</span>
-            </button>
-
-            <button
-              className={styles.mobile_menu_item}
-              onClick={() => handleNavigation("/userProfile")}
-            >
-              <User size={20} />
-              <span>{t("header.profile")}</span>
-            </button>
-
-            <button
-              className={styles.mobile_menu_item}
+              className={`${styles.mobile_menu_item} ${isActive("/orderPanel") ? styles.mobile_menu_item_active : ""}`}
               onClick={() => handleNavigation("/orderPanel")}
+              aria-current={isActive("/orderPanel") ? "page" : undefined}
             >
               <Box size={20} />
               <span>{t("header.orders")}</span>
             </button>
 
             <button
-              className={styles.mobile_menu_item}
+              className={`${styles.mobile_menu_item} ${isActive("/map") ? styles.mobile_menu_item_active : ""}`}
+              onClick={() => handleNavigation("/map")}
+              aria-current={isActive("/map") ? "page" : undefined}
+            >
+              <MapIcon size={20} />
+              <span>{t("header.map")}</span>
+            </button>
+
+            <button
+              className={`${styles.mobile_menu_item} ${isActive("/report") ? styles.mobile_menu_item_active : ""}`}
               onClick={() => handleNavigation("/report")}
+              aria-current={isActive("/report") ? "page" : undefined}
             >
               <BarChart2 size={20} />
               <span>{t("header.report")}</span>
+            </button>
+
+            <button
+              className={`${styles.mobile_menu_item} ${isActive("/userProfile") ? styles.mobile_menu_item_active : ""}`}
+              onClick={() => handleNavigation("/userProfile")}
+              aria-current={isActive("/userProfile") ? "page" : undefined}
+            >
+              <User size={20} />
+              <span>{t("header.profile")}</span>
+            </button>
+
+            <button
+              className={`${styles.mobile_menu_item} ${isActive("/ownerSettings") ? styles.mobile_menu_item_active : ""}`}
+              onClick={() => handleNavigation("/ownerSettings")}
+              aria-current={isActive("/ownerSettings") ? "page" : undefined}
+            >
+              <Settings size={20} />
+              <span>{t("header.ownerSettings")}</span>
+            </button>
+
+            <button className={styles.mobile_menu_item} onClick={openSettings}>
+              <MonitorCog size={20} />
+              <span>{t("header.personalization")}</span>
             </button>
 
             <div className={styles.mobile_user_section}>

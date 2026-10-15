@@ -551,7 +551,9 @@
       "sortAmountAsc": "Vispirms mazākie",
       "sortAmountDesc": "Vispirms lielākie",
       "selectTimeSort": "Kārtot pēc laika",
-      "selectAmountSort": "Kārtot pēc summas"
+      "selectAmountSort": "Kārtot pēc summas",
+      "resetColumn": "Atiestatīt",
+      "done": "Gatavs"
     },
     "table": {
       "status": "Statuss",

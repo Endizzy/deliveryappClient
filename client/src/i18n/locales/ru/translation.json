@@ -551,7 +551,9 @@
       "sortAmountAsc": "Сначала меньшие",
       "sortAmountDesc": "Сначала большие",
       "selectTimeSort": "Сортировать по времени",
-      "selectAmountSort": "Сортировать по сумме"
+      "selectAmountSort": "Сортировать по сумме",
+      "resetColumn": "Сбросить",
+      "done": "Готово"
     },
     "table": {
       "status": "Состояние",
