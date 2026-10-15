@@ -21,6 +21,20 @@
     pointer-events: none;
 }
 
+.logo_icon {
+    width: 70px;
+    height: 65px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo_image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
 .blobA {
     width: 480px;
     height: 480px;

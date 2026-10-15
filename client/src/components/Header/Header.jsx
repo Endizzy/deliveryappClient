@@ -51,12 +51,9 @@ const Header = () => {
       <div className={styles.header_left}>
         <div className={styles.logo}>
           <div className={styles.logo_icon}>
-            <svg viewBox="0 0 24 24" width="32" height="32">
-              <path
-                fill="currentColor"
-                d="M12 2L2 7L12 12L22 7L12 2M2 17L12 22L22 17M2 12L12 17L22 12"
-              />
-            </svg>
+            <a href="/orderPanel">
+              <img src="/logoDeli.png" alt="Logo" className={styles.logo_image} />
+            </a>
           </div>
           <span className={styles.logo_text}>{t("header.appName")}</span>
         </div>

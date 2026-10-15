@@ -322,18 +322,18 @@ export default function CustomersTab({ API, authHeaders, t, ui }) {
           {!loading && (
             <div className="cfd-result">
               <span>
-                Показано <strong>{visibleSummary.customers}</strong> из{" "}
-                <strong>{items.length}</strong> клиентов
-              </span>
+                Показано <span className="cfd-result-value">{visibleSummary.customers}</span> из{" "}
+                <span className="cfd-result-value">{items.length}</span> клиентов
+              </span >
               {visibleSummary.customers > 0 && (
                 <>
                   <span>·</span>
                   <span>
-                    заказов <strong>{visibleSummary.orders}</strong>
+                    заказов <span className="cfd-result-value">{visibleSummary.orders}</span>
                   </span>
                   <span>·</span>
                   <span>
-                    на <strong>{toEUR(visibleSummary.revenue)}</strong>
+                    на <span className="cfd-result-value">{toEUR(visibleSummary.revenue)}</span>
                   </span>
                 </>
               )}

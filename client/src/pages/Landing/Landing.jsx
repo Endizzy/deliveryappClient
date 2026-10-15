@@ -31,9 +31,8 @@ export default function Landing() {
             <div className={`${styles.blob} ${styles.blobB}`} />
 
             <header className={styles.topbar}>
-                <div className={styles.brand}>
-                    <span className={styles.brandIcon}><Truck size={22} /></span>
-                    {t('app.brand')}
+                <div className={styles.logo_icon}>
+                    <img src="/logoDeli.png" alt="Logo" className={styles.logo_image} />
                 </div>
                 <LanguageSelector />
             </header>
@@ -49,12 +48,12 @@ export default function Landing() {
                 >
                     {/* пунктирный маршрут */}
                     <path d="M32 132 C 70 132, 78 92, 120 92 S 196 60, 224 40"
-                          stroke="rgba(255,255,255,0.5)" strokeWidth="2.5"
-                          strokeDasharray="2 9" strokeLinecap="round" />
+                        stroke="rgba(255,255,255,0.5)" strokeWidth="2.5"
+                        strokeDasharray="2 9" strokeLinecap="round" />
 
                     {/* точка назначения (пин) */}
                     <path d="M224 20 c 11 0 20 9 20 20 c 0 14 -20 30 -20 30 s -20 -16 -20 -30 c 0 -11 9 -20 20 -20 z"
-                          fill="rgba(255,255,255,0.16)" stroke="#fff" strokeWidth="2.5" />
+                        fill="rgba(255,255,255,0.16)" stroke="#fff" strokeWidth="2.5" />
                     <circle cx="224" cy="40" r="7" fill="#fff" />
 
                     {/* земля */}
@@ -62,22 +61,22 @@ export default function Landing() {
 
                     {/* короб на багажнике */}
                     <rect x="34" y="70" width="42" height="38" rx="5"
-                          fill="rgba(255,255,255,0.18)" stroke="#fff" strokeWidth="2.5" />
+                        fill="rgba(255,255,255,0.18)" stroke="#fff" strokeWidth="2.5" />
                     <line x1="55" y1="70" x2="55" y2="108" stroke="#fff" strokeWidth="2" opacity="0.7" />
                     <line x1="34" y1="86" x2="76" y2="86" stroke="#fff" strokeWidth="2" opacity="0.7" />
 
                     {/* корпус скутера */}
                     <path d="M40 132 h 44 l 14 -22 h 22"
-                          stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                        stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
                     <path d="M84 132 c 14 0 22 -10 30 -22"
-                          stroke="#fff" strokeWidth="3" strokeLinecap="round" fill="none" />
+                        stroke="#fff" strokeWidth="3" strokeLinecap="round" fill="none" />
                     <path d="M120 110 h 20 l -4 14"
-                          stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                        stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
 
                     {/* курьер */}
                     <circle cx="96" cy="60" r="10" fill="rgba(255,255,255,0.9)" />
                     <path d="M92 70 l -6 26 M100 70 l 8 20"
-                          stroke="#fff" strokeWidth="3" strokeLinecap="round" />
+                        stroke="#fff" strokeWidth="3" strokeLinecap="round" />
 
                     {/* колёса */}
                     <circle cx="46" cy="140" r="15" fill="rgba(255,255,255,0.1)" stroke="#fff" strokeWidth="3" />
@@ -121,15 +120,15 @@ export default function Landing() {
                 <span>{t('app.footerRights', { year: new Date().getFullYear() })}</span>
                 <div className={styles.social}>
                     <a className={styles.socialLink} href={LINKS.landing} target="_blank" rel="noreferrer"
-                       aria-label={t('app.links.landing')} title={t('app.links.landing')}>
+                        aria-label={t('app.links.landing')} title={t('app.links.landing')}>
                         <Globe size={18} />
                     </a>
                     <a className={styles.socialLink} href={LINKS.github} target="_blank" rel="noreferrer"
-                       aria-label="GitHub" title="GitHub">
+                        aria-label="GitHub" title="GitHub">
                         <Github size={18} />
                     </a>
                     <a className={styles.socialLink} href={LINKS.linkedin} target="_blank" rel="noreferrer"
-                       aria-label="LinkedIn" title="LinkedIn">
+                        aria-label="LinkedIn" title="LinkedIn">
                         <Linkedin size={18} />
                     </a>
                 </div>

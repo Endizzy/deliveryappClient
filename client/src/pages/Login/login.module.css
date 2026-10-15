@@ -45,19 +45,19 @@
 }
 
 .logoIcon {
-    width: 48px;
-    height: 48px;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 12px;
+    width: 60px;
+    height: 55px;
     display: flex;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(10px);
 }
 
-.logoIcon svg {
-    color: white;
+.logo_image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
+
 
 .logoText {
     font-size: 28px;

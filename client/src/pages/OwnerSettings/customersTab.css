@@ -44,6 +44,9 @@
 .cust-toolbar-right { display: flex; align-items: center; gap: 12px; }
 .cust-selected-count { font-size: 13px; color: #475569; }
 
+/* .cfd-result span { color: #fdfdfd; font-weight: 700; } */
+.cfd-result-value { color: #dce7fd; font-weight: 700; }
+
 /* Таблица */
 .cust-table-card {
   background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;

@@ -193,12 +193,7 @@ const Login = () => {
                     <div className={styles.logoSection}>
                         <div className={styles.logo}>
                             <div className={styles.logoIcon}>
-                                <svg viewBox="0 0 24 24" width="32" height="32">
-                                    <path
-                                        fill="currentColor"
-                                        d="M12 2L2 7L12 12L22 7L12 2M2 17L12 22L22 17M2 12L12 17L22 12"
-                                    />
-                                </svg>
+                                <img src="/logoDeli.png" alt="Logo" className={styles.logo_image} />
                             </div>
                             <span className={styles.logoText}>DeliveryApp</span>
                         </div>
@@ -276,17 +271,12 @@ const Login = () => {
                 <div className={styles.logoSection}>
                     <div className={styles.logo}>
                         <div className={styles.logoIcon}>
-                            <svg viewBox="0 0 24 24" width="32" height="32">
-                                <path
-                                    fill="currentColor"
-                                    d="M12 2L2 7L12 12L22 7L12 2M2 17L12 22L22 17M2 12L12 17L22 12"
-                                />
-                            </svg>
+                            <img src="/logoDeli.png" alt="Logo" className={styles.logo_image} />
                         </div>
                         <span className={styles.logoText}>DeliveryApp</span>
                     </div>
                     <p className={styles.authSubtitle}>{t('login.subtitle')}</p>
-                    <p className={styles.authDesc}>{t('login.ownerDesc')}</p>
+                    {/* <p className={styles.authDesc}>{t('login.ownerDesc')}</p> */}
                 </div>
 
                 <div className={styles.authCard}>
