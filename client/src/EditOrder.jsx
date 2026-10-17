@@ -646,7 +646,7 @@ const EditOrder = () => {
       e.phone = t("createOrder.validation.phoneInvalid");
     }
     if (selectedItems.length === 0) e.items = t("createOrder.validation.itemsRequired");
-    if (!formData.pickupId) e.restaurant = t("createOrder.validation.pickupRequired");
+    // if (!formData.pickupId) e.restaurant = t("createOrder.validation.pickupRequired");
     if (!formData.payment) e.payment = t("createOrder.validation.paymentRequired");
     // Половина времени доставки хуже, чем его отсутствие: заказ уйдёт с датой
     // без часа (или наоборот) и в базе окажется NULL. Поэтому для активного
