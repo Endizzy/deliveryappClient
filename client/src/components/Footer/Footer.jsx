@@ -6,7 +6,7 @@ const Footer = () => {
     return (
         <footer className={styles.footer}>
             <div className={styles.footerText}>
-                <p>Version: prod_v2.5.0</p>
+                <p>Version: prod_v3.0.0</p>
             </div>
         </footer>
     );
