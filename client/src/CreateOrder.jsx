@@ -23,6 +23,7 @@ import useCustomerLookup from "./hooks/useCustomerLookup.js";
 import useOrderItems from "./hooks/useOrderItems.js";
 import { useBlockUpdate } from "./hooks/useBlockUpdate.js";
 import CustomerSection from "./components/CreateOrder/CustomerSection.jsx";
+import useAddressSuggest, { suggestionToAddress } from "./hooks/useAddressSuggest.js";
 import DeliverySection from "./components/CreateOrder/DeliverySection.jsx";
 import ItemsSection from "./components/CreateOrder/ItemsSection.jsx";
 import NotesSection from "./components/CreateOrder/NotesSection.jsx";
@@ -107,6 +108,8 @@ const CreateOrder = () => {
   const [geoConfirmed, setGeoConfirmed] = useState(false);
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState(null);
+  // Сервис геокодинга недоступен (лимит Geoapify и т.п.) — подтверждение адреса не требуется
+  const [geoUnavailable, setGeoUnavailable] = useState(false);
 
   // Зоны доставки компании (для показа на карте и определения зоны точки)
   const [zones, setZones] = useState([]);
@@ -139,6 +142,15 @@ const CreateOrder = () => {
     } catch (e) { }
     navigate("/login");
   }, [navigate]);
+
+  // Подсказки адреса при вводе (Geoapify Autocomplete через сервер)
+  const addressSuggest = useAddressSuggest({
+    API,
+    authHeaders,
+    onUnauthorized: handleUnauthorized,
+  });
+  const closeAddressSuggest = addressSuggest.close;
+  const mapUnavailable = geoUnavailable || addressSuggest.unavailable;
 
   // ---- курьеры/точки/меню ----
   const { couriers, pickupPoints, allMenu } = useOrderResources({
@@ -634,13 +646,34 @@ const CreateOrder = () => {
       setGeoConfirmed(false);
       setGeoError(null);
     }
+
+    // Подсказки адреса: только при ручном вводе улицы/дома
+    if (field === "street") addressSuggest.search(value, formData.house);
+    if (field === "house") addressSuggest.search(formData.street, value);
   };
+
+  // Выбран вариант из списка подсказок: подставляем улицу/дом и (для конкретного дома) точку на карте.
+  // Подтверждение адреса по-прежнему нужно.
+  const pickSuggestion = useCallback((s) => {
+    const a = suggestionToAddress(s);
+    setFormData((prev) => ({
+      ...prev,
+      street: a.street,
+      house: a.house || prev.house,
+    }));
+    if (a.point) setGeo(a.point);
+    setGeoConfirmed(false);
+    setGeoError(null);
+    setErrors((prev) => ({ ...prev, address: "" }));
+    closeAddressSuggest();
+  }, [closeAddressSuggest]);
 
   // ── Геокодинг адреса через сервер (ключ Geoapify скрыт на бэкенде) ──
   const verifyAddress = useCallback(async () => {
     if (!formData.street.trim()) return;
     setGeoLoading(true);
     setGeoError(null);
+    let mapDown = false;
     try {
       const res = await fetch(`${API}/geocode`, {
         method: "POST",
@@ -658,19 +691,26 @@ const CreateOrder = () => {
       }
       const data = await res.json();
       if (!res.ok || !data.ok || !Number.isFinite(Number(data.lat))) {
+        mapDown = !!data?.unavailable;
         throw new Error(data.error || "geocode failed");
       }
       setGeo({ lat: Number(data.lat), lng: Number(data.lng) });
       setGeoConfirmed(false);
+      setGeoUnavailable(false);
     } catch (e) {
       setGeo(null);
       setGeoConfirmed(false);
-      setGeoError(
-        t("createOrder.map.error", {
-          defaultValue:
-            "Не удалось определить координаты. Уточните адрес и попробуйте снова.",
-        })
-      );
+      if (mapDown) {
+        // Сервис недоступен: понятное сообщение показывает блок карты, подтверждение не требуется
+        setGeoUnavailable(true);
+      } else {
+        setGeoError(
+          t("createOrder.map.error", {
+            defaultValue:
+              "Не удалось определить координаты. Уточните адрес и попробуйте снова.",
+          })
+        );
+      }
     } finally {
       setGeoLoading(false);
     }
@@ -702,7 +742,8 @@ const CreateOrder = () => {
   // последнего заказа (оно обязательное, а кнопки «Заполнить данные» больше нет).
   // Уже введённое диспетчером имя не перезаписываем: по одному номеру может
   // заказывать другой человек. Телефон и заметки не трогаем.
-  // Координаты сбрасываем: новый адрес надо заново проверить на карте.
+  // Если у адреса есть точка из прежнего заказа — ставим её (без запроса в геокодер),
+  // иначе координаты сбрасываем и адрес надо проверить на карте. Подтверждение нужно в обоих случаях.
   const pickCustomerAddress = useCallback((a) => {
     if (!a) return;
     const knownName = String(customerLookupData?.customerName || "").trim();
@@ -716,7 +757,11 @@ const CreateOrder = () => {
       code: a.code || "",
       customer: String(prev.customer || "").trim() ? prev.customer : knownName || prev.customer,
     }));
-    setGeo(null);
+    setGeo(
+      Number.isFinite(Number(a.lat)) && Number.isFinite(Number(a.lng)) && a.lat != null && a.lng != null
+        ? { lat: Number(a.lat), lng: Number(a.lng) }
+        : null
+    );
     setGeoConfirmed(false);
     setGeoError(null);
     setErrors((prev) => ({
@@ -806,7 +851,8 @@ const CreateOrder = () => {
     }
 
     // Если указан адрес доставки — он должен быть проверен и подтверждён на карте
-    if (formData.street.trim() && (!geoConfirmed || !geo)) {
+    // (кроме случая, когда сервис карт недоступен и точки нет — тогда заказ создаётся без неё)
+    if (formData.street.trim() && (geo ? !geoConfirmed : !mapUnavailable)) {
       e.address = t("createOrder.map.mustConfirm", {
         defaultValue: "Подтвердите адрес доставки на карте перед созданием заказа",
       });
@@ -973,6 +1019,11 @@ const CreateOrder = () => {
               clearCustomerFields={clearCustomerFields}
               customerAddresses={customerAddresses}
               onPickAddress={pickCustomerAddress}
+              addressSuggest={{
+                items: addressSuggest.items,
+                onPick: pickSuggestion,
+                onClose: closeAddressSuggest,
+              }}
               minDate={minDate}
               minTimeToday={minTimeToday}
               preorderMinOffset={PREORDER_MIN_OFFSET_MIN}
@@ -1028,6 +1079,7 @@ const CreateOrder = () => {
               onMarkerMove={handleMarkerMove}
               onExpandMap={() => setIsMapOpen(true)}
               zones={zones}
+              mapUnavailable={mapUnavailable}
               currentZone={currentZone}
               pastOrdersCount={pastOrders.length}
               onOpenPastOrders={() => setPastOrdersOpen(true)}
@@ -1187,9 +1239,13 @@ const CreateOrder = () => {
                   </div>
                 ) : (
                   <div className="co-rail-status warn">
-                    {t("createOrder.map.mustConfirm", {
-                      defaultValue: "Подтвердите адрес доставки на карте",
-                    })}
+                    {mapUnavailable && !geo
+                      ? t("createOrder.suggest.unavailableRail", {
+                          defaultValue: "Карта недоступна — подтверждение адреса не требуется",
+                        })
+                      : t("createOrder.map.mustConfirm", {
+                          defaultValue: "Подтвердите адрес доставки на карте",
+                        })}
                   </div>
                 ))}
 

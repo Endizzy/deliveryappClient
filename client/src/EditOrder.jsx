@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   Save,
@@ -11,6 +11,7 @@ import {
   Minus,
   X,
   Printer,
+  MapPin,
 } from "lucide-react";
 import "./CreateOrder.css";
 import { useNavigate, useParams } from "react-router-dom";
@@ -39,6 +40,10 @@ import Loader from "./components/Loader/Loader.jsx";
 import { useBlockUpdate } from "./hooks/useBlockUpdate.js";
 import InvoiceTemplate from "./pages/InvoiceSettings/InvoiceTemplate.jsx";
 import AddressMapField from "./components/CreateOrder/AddressMapField.jsx";
+import AddressSuggestList from "./components/CreateOrder/AddressSuggestList.jsx";
+import CustomerAddressList from "./components/CreateOrder/CustomerAddressList.jsx";
+import useCustomerAddresses from "./hooks/useCustomerAddresses.js";
+import useAddressSuggest, { suggestionToAddress } from "./hooks/useAddressSuggest.js";
 import DeliveryMapModal from "./components/CreateOrder/DeliveryMapModal.jsx";
 import DeliverySection from "./components/CreateOrder/DeliverySection.jsx";
 import { findZoneForPoint } from "./utils/zones.js";
@@ -80,6 +85,16 @@ const EditOrder = () => {
     () => ({ "Content-Type": "application/json", Authorization: `Bearer ${token}` }),
     [token]
   );
+
+  // Подсказки адреса при вводе (Geoapify Autocomplete через сервер)
+  const addressSuggest = useAddressSuggest({
+    API,
+    authHeaders,
+    onUnauthorized: () => navigate("/login"),
+  });
+
+  // Прошлые адреса клиента (список под телефоном)
+  const handleUnauthorized = useCallback(() => navigate("/login"), [navigate]);
 
   // Загрузка реквизитов накладной компании (для печати)
   useEffect(() => {
@@ -155,6 +170,7 @@ const EditOrder = () => {
   const [geo, setGeo] = useState(null);
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState(null);
+  const [geoUnavailable, setGeoUnavailable] = useState(false);
   const [zones, setZones] = useState([]);
   const [isMapOpen, setIsMapOpen] = useState(false);
   const currentZone = useMemo(
@@ -595,6 +611,24 @@ const EditOrder = () => {
     if (["street", "house", "building", "apart"].includes(field)) {
       setGeoError(null);
     }
+
+    // Подсказки адреса: только при ручном вводе улицы/дома
+    if (field === "street") addressSuggest.search(value, formData.house);
+    if (field === "house") addressSuggest.search(formData.street, value);
+  };
+
+  // Выбран вариант из списка подсказок: подставляем улицу/дом и (для конкретного дома) точку на карте
+  const pickSuggestion = (s) => {
+    const a = suggestionToAddress(s);
+    setFormData((prev) => ({
+      ...prev,
+      street: a.street,
+      house: a.house || prev.house,
+    }));
+    if (a.point) setGeo(a.point);
+    setGeoError(null);
+    setErrors((prev) => ({ ...prev, address: "" }));
+    addressSuggest.close();
   };
 
   // Перегеокодировать адрес (если поменяли адрес) — подтверждение не требуется
@@ -602,6 +636,7 @@ const EditOrder = () => {
     if (!formData.street.trim()) return;
     setGeoLoading(true);
     setGeoError(null);
+    let mapDown = false;
     try {
       const res = await fetch(`${API}/geocode`, {
         method: "POST",
@@ -616,17 +651,58 @@ const EditOrder = () => {
       if (res.status === 401) { navigate("/login"); return; }
       const data = await res.json();
       if (!res.ok || !data.ok || !Number.isFinite(Number(data.lat))) {
+        mapDown = !!data?.unavailable;
         throw new Error(data.error || "geocode failed");
       }
       setGeo({ lat: Number(data.lat), lng: Number(data.lng) });
+      setGeoUnavailable(false);
     } catch (e) {
-      setGeoError(
-        t("createOrder.map.error", {
-          defaultValue: "Не удалось определить координаты. Уточните адрес.",
-        })
-      );
+      if (mapDown) {
+        setGeoUnavailable(true);
+      } else {
+        setGeoError(
+          t("createOrder.map.error", {
+            defaultValue: "Не удалось определить координаты. Уточните адрес.",
+          })
+        );
+      }
     } finally {
       setGeoLoading(false);
+    }
+  };
+
+  const customerAddresses = useCustomerAddresses({
+    phone: formData.phone,
+    API,
+    authHeaders,
+    handleUnauthorized,
+  });
+
+  // Выбран прошлый адрес клиента: подставляем адресные поля. Если у адреса есть точка из прежнего заказа —
+  // ставим её (без запроса в геокодер); иначе старая точка относилась к другому адресу — сбрасываем её
+  // и определяем заново (один запрос геокодинга); если сервис карт недоступен, точки не будет.
+  const [verifyTick, setVerifyTick] = useState(0);
+  useEffect(() => {
+    if (verifyTick > 0) verifyAddress();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [verifyTick]);
+  const pickCustomerAddress = (a) => {
+    if (!a) return;
+    setFormData((prev) => ({
+      ...prev,
+      street: a.street || "",
+      house: a.house || "",
+      building: a.building || "",
+      apart: a.apart || "",
+      floor: a.floor || "",
+      code: a.code || "",
+    }));
+    setGeoError(null);
+    if (a.lat != null && a.lng != null && Number.isFinite(Number(a.lat)) && Number.isFinite(Number(a.lng))) {
+      setGeo({ lat: Number(a.lat), lng: Number(a.lng) });
+    } else {
+      setGeo(null);
+      setVerifyTick((n) => n + 1);
     }
   };
 
@@ -799,6 +875,20 @@ const EditOrder = () => {
                   </div>
                 </div>
 
+                {customerAddresses.length > 0 && (
+                  <div className="co-addr-chips">
+                    <div className="co-addr-chips-title">
+                      <MapPin size={14} aria-hidden="true" />
+                      {t("createOrder.addresses.title", { defaultValue: "Адреса клиента" })} ({customerAddresses.length})
+                    </div>
+                    <CustomerAddressList
+                      addresses={customerAddresses}
+                      formData={formData}
+                      onPick={pickCustomerAddress}
+                    />
+                  </div>
+                )}
+
                 <div className="form-row">
                   <div className="form-group">
                     <label>{t("createOrder.fields.street")}</label>
@@ -818,6 +908,13 @@ const EditOrder = () => {
                     />
                   </div>
                 </div>
+
+                <AddressSuggestList
+                  items={addressSuggest.items}
+                  onPick={pickSuggestion}
+                  onClose={addressSuggest.close}
+                  t={t}
+                />
 
                 <div className="form-row">
                   <div className="form-group">
@@ -1188,6 +1285,7 @@ const EditOrder = () => {
                   geoLoading={geoLoading}
                   geoError={geoError}
                   requireConfirm={false}
+                  unavailable={geoUnavailable || addressSuggest.unavailable}
                   onVerifyAddress={verifyAddress}
                   onMarkerMove={handleMarkerMove}
                   onExpandMap={() => setIsMapOpen(true)}

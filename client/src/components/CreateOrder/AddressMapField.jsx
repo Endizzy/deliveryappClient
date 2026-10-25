@@ -20,6 +20,7 @@ const AddressMapField = ({
   zones,
   currentZone,
   requireConfirm = true,
+  unavailable = false,
 }) => {
   const hasZones = Array.isArray(zones) && zones.length > 0;
   return (
@@ -90,6 +91,28 @@ const AddressMapField = ({
       )}
 
       {geoError && <span className="error-text">{geoError}</span>}
+
+      {unavailable && !geo && (
+        <div
+          style={{
+            marginTop: 4,
+            marginBottom: 8,
+            padding: "8px 10px",
+            borderRadius: 8,
+            background: "rgba(245,158,11,0.10)",
+            border: "1px solid rgba(245,158,11,0.4)",
+            fontSize: 13,
+            fontWeight: 600,
+            color: "#B45309",
+          }}
+        >
+          ⚠{" "}
+          {t("createOrder.suggest.unavailable", {
+            defaultValue:
+              "Сервис карт сейчас недоступен (возможно, закончился лимит). Заказ можно создать без точки на карте: адрес уйдёт текстом, подсказки и проверка временно не работают.",
+          })}
+        </div>
+      )}
 
       {geo && (
         <>

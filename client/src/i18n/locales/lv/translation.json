@@ -278,7 +278,20 @@
     },
     "addresses": {
       "title": "Klienta adreses",
-      "usedTimes": "Pasūtījumi uz šo adresi: {{n}}"
+      "usedTimes": "Pasūtījumi uz šo adresi: {{n}}",
+      "last": "Pēdējā",
+      "orders": "Pasūtījumi: {{n}}",
+      "showMore": "Rādīt vēl {{n}}",
+      "showLess": "Sakļaut",
+      "delete": "Dzēst adresi",
+      "deleteSoon": "Adrešu dzēšana drīz būs pieejama — adrese vēl nav dzēsta"
+    },
+    "suggest": {
+      "title": "Izvēlieties adresi no saraksta",
+      "unavailable": "Karšu pakalpojums pašlaik nav pieejams (iespējams, beidzies limits). Pasūtījumu var izveidot bez punkta kartē: adrese tiks nosūtīta tekstā, padomi un pārbaude īslaicīgi nedarbojas.",
+      "unavailableRail": "Karte nav pieejama — adreses apstiprināšana nav nepieciešama",
+      "exact": "ar punktu",
+      "street": "iela"
     }
   },
   "userProfile": {

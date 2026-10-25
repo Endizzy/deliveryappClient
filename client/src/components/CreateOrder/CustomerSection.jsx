@@ -2,7 +2,8 @@ import React from "react";
 import { User, Phone, Eraser, MapPin } from "lucide-react";
 import { formatPhoneInput } from "../../utils/phone.js";
 import TimeSelect24 from "./TimeSelect24.jsx";
-import { formatAddressLabel, isSameAddress } from "../../utils/addressLabel.js";
+import AddressSuggestList from "./AddressSuggestList.jsx";
+import CustomerAddressList from "./CustomerAddressList.jsx";
 
 // Секция «Данные клиента»: контакты, адрес и — последним пунктом — тип заказа
 // (текущий / предзаказ) вместе с датой и временем предзаказа.
@@ -19,6 +20,7 @@ const CustomerSection = ({
   clearCustomerFields,
   customerAddresses = [],
   onPickAddress,
+  addressSuggest,
   minDate,
   minTimeToday,
   preorderMinOffset,
@@ -121,33 +123,11 @@ const CustomerSection = ({
             )}
           </div>
           {hasAddresses && (
-          <div className="co-addr-chips-list">
-            {customerAddresses.map((a) => {
-              const label = formatAddressLabel(a);
-              const details = [
-                a.floor && `${t("createOrder.fields.floor")}: ${a.floor}`,
-                a.code && `${t("createOrder.fields.code")}: ${a.code}`,
-                t("createOrder.addresses.usedTimes", {
-                  n: a.count,
-                  defaultValue: "Заказов по этому адресу: {{n}}",
-                }),
-              ]
-                .filter(Boolean)
-                .join(" · ");
-              return (
-                <button
-                  key={`${a.street}|${a.house}|${a.building}|${a.apart}`}
-                  type="button"
-                  className={`co-addr-chip${isSameAddress(a, formData) ? " is-active" : ""}`}
-                  title={details}
-                  onClick={() => onPickAddress(a)}
-                >
-                  <span className="co-addr-chip-label">{label}</span>
-                  <span className="co-addr-chip-count">{a.count}×</span>
-                </button>
-              );
-            })}
-          </div>
+            <CustomerAddressList
+              addresses={customerAddresses}
+              formData={formData}
+              onPick={onPickAddress}
+            />
           )}
         </div>
       )}
@@ -173,6 +153,15 @@ const CustomerSection = ({
           />
         </div>
       </div>
+
+      {addressSuggest && (
+        <AddressSuggestList
+          items={addressSuggest.items}
+          onPick={addressSuggest.onPick}
+          onClose={addressSuggest.onClose}
+          t={t}
+        />
+      )}
 
       <div className="form-row">
         <div className="form-group">

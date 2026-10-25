@@ -278,7 +278,20 @@
     },
     "addresses": {
       "title": "Customer addresses",
-      "usedTimes": "Orders to this address: {{n}}"
+      "usedTimes": "Orders to this address: {{n}}",
+      "last": "Latest",
+      "orders": "Orders: {{n}}",
+      "showMore": "Show {{n}} more",
+      "showLess": "Show less",
+      "delete": "Delete address",
+      "deleteSoon": "Deleting addresses is coming soon — the address has not been deleted"
+    },
+    "suggest": {
+      "title": "Choose an address from the list",
+      "unavailable": "The map service is unavailable right now (the limit may have run out). You can still create the order without a map point: the address will be sent as text, suggestions and verification are temporarily off.",
+      "unavailableRail": "Map unavailable — address confirmation is not required",
+      "exact": "with pin",
+      "street": "street"
     }
   },
   "userProfile": {

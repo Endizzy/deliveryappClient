@@ -34,6 +34,7 @@ const ItemsSection = ({
   onExpandMap,
   zones,
   currentZone,
+  mapUnavailable = false,
   // ── прошлые заказы клиента ──
   pastOrdersCount = 0,
   onOpenPastOrders,
@@ -300,6 +301,7 @@ const ItemsSection = ({
         onExpandMap={onExpandMap}
         zones={zones}
         currentZone={currentZone}
+        unavailable={mapUnavailable}
       />
     </div>
   );

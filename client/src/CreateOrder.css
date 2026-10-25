@@ -1205,13 +1205,286 @@
 .co-addr-found {
     display: inline-flex;
     align-items: center;
-    margin-left: 4px;
-    padding: 4px 8px;
-    border: 1px solid #16a34a;
-    border-radius: 20px;
-    background: #22c55e;
-    font-size: 10px;
-    font-weight: 400;
-    line-height: 1.2;
+    margin-left: 5px;
+    padding: 4px 9px;
+
+    color: #ffffff;
+    background: linear-gradient(120deg, #166534, #15803d);
+    border: 1px solid rgba(134, 239, 172, 0.35);
+    border-radius: 5px;
+
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.3;
     white-space: nowrap;
+
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+
+
+
+
+
+/* ── Подсказки адреса (выпадающий список под «Улица / Дом») ── */
+.addr-suggest-wrap {
+    position: relative;
+    height: 0;
+    margin-top: -20px; /* компенсирует gap flex-колонки .form-section */
+    z-index: 40;
+}
+
+.addr-suggest {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 4px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 6px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.18);
+}
+
+.addr-suggest-title {
+    padding: 4px 8px 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.addr-suggest-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+    padding: 9px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #1e293b;
+    font: inherit;
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.addr-suggest-item:hover,
+.addr-suggest-item:focus-visible {
+    background: #eef4ff;
+    outline: none;
+}
+
+.addr-suggest-item svg {
+    flex: none;
+    color: #64748b;
+}
+
+.addr-suggest-text {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.addr-suggest-main {
+    display: block;
+    font-weight: 600;
+}
+
+.addr-suggest-sub {
+    display: block;
+    margin-top: 1px;
+    font-size: 12.5px;
+    color: #64748b;
+}
+
+.co-feed .addr-suggest-wrap {
+    margin-top: -18px;
+}
+
+/* ── Список прошлых адресов клиента (вариант «список с выбором») ── */
+.co-addr-list {
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.co-addr-row {
+    display: flex;
+    align-items: stretch;
+    border-bottom: 1px solid #eef2f7;
+    background: #ffffff;
+}
+
+.co-addr-row:last-child {
+    border-bottom: 0;
+}
+
+.co-addr-row.is-active {
+    background: #f5f7ff;
+}
+
+.co-addr-row-main {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 11px 8px 11px 16px;
+    border: 0;
+    background: transparent;
+    color: #1e293b;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.co-addr-row-main:hover {
+    background: #f8fafc;
+}
+
+.co-addr-row.is-active .co-addr-row-main:hover {
+    background: transparent;
+}
+
+.co-addr-row-main:focus-visible,
+.co-addr-row-del:focus-visible,
+.co-addr-more:focus-visible {
+    outline: 2px solid #667eea;
+    outline-offset: -2px;
+}
+
+.co-addr-radio {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #cbd5e1;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+}
+
+.co-addr-row.is-active .co-addr-radio {
+    border-color: #667eea;
+}
+
+.co-addr-radio i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--app-gradient, #667eea);
+}
+
+.co-addr-row-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.co-addr-row-title {
+    font-size: 14.5px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.co-addr-row-tag {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #4338ca;
+    font-size: 11px;
+    font-weight: 700;
+    vertical-align: 1px;
+}
+
+.co-addr-row-details {
+    font-size: 12.5px;
+    color: #64748b;
+}
+
+.co-addr-row-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    font-size: 12px;
+    line-height: 1.35;
+    color: #64748b;
+    white-space: nowrap;
+}
+
+.co-addr-row-meta b {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.co-addr-row-del {
+    flex: none;
+    width: 44px;
+    border: 0;
+    background: transparent;
+    color: #94a3b8;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+}
+
+.co-addr-row-del:hover {
+    color: #dc2626;
+    background: #fef2f2;
+}
+
+.co-addr-more {
+    width: 100%;
+    padding: 10px;
+    border: 0;
+    border-top: 1px solid #eef2f7;
+    background: #fafbfd;
+    color: #4f46e5;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.co-addr-more svg.is-up {
+    transform: rotate(180deg);
+}
+
+.co-addr-notice {
+    margin-top: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #b45309;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+@media (max-width: 600px) {
+    .co-addr-row-main {
+        grid-template-columns: 20px minmax(0, 1fr);
+    }
+
+    .co-addr-row-meta {
+        grid-column: 2;
+        align-items: flex-start;
+        flex-direction: row;
+        gap: 8px;
+    }
 }
