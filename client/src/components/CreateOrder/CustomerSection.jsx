@@ -20,6 +20,7 @@ const CustomerSection = ({
   clearCustomerFields,
   customerAddresses = [],
   onPickAddress,
+  onNewAddress,
   addressSuggest,
   minDate,
   minTimeToday,
@@ -127,6 +128,7 @@ const CustomerSection = ({
               addresses={customerAddresses}
               formData={formData}
               onPick={onPickAddress}
+              onNew={onNewAddress}
             />
           )}
         </div>

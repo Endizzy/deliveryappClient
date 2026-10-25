@@ -284,6 +284,7 @@
       "showMore": "Show {{n}} more",
       "showLess": "Show less",
       "delete": "Delete address",
+      "new": "Add new address",
       "deleteSoon": "Deleting addresses is coming soon — the address has not been deleted"
     },
     "suggest": {

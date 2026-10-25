@@ -706,6 +706,22 @@ const EditOrder = () => {
     }
   };
 
+  // «Добавить новый адрес»: очищаем только адрес (телефон и имя клиента остаются)
+  const startNewAddress = () => {
+    setFormData((prev) => ({
+      ...prev,
+      street: "",
+      house: "",
+      building: "",
+      apart: "",
+      floor: "",
+      code: "",
+    }));
+    setGeo(null);
+    setGeoError(null);
+    addressSuggest.close();
+  };
+
   const handleMarkerMove = (latlng) => {
     if (!latlng || !Number.isFinite(latlng.lat)) return;
     setGeo({ lat: latlng.lat, lng: latlng.lng });
@@ -885,6 +901,7 @@ const EditOrder = () => {
                       addresses={customerAddresses}
                       formData={formData}
                       onPick={pickCustomerAddress}
+                      onNew={startNewAddress}
                     />
                   </div>
                 )}

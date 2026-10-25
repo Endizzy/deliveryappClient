@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { MapPin, Trash2, ChevronDown } from "lucide-react";
+import { MapPin, Trash2, ChevronDown, Plus } from "lucide-react";
 import { formatAddressLabel, isSameAddress } from "../../utils/addressLabel.js";
 
 // Список прошлых адресов клиента (под полями «Телефон / Клиент»).
 // Клик по строке подставляет адрес в форму; выбранный (совпадает с полями) отмечен.
+// Кнопка «Добавить новый адрес» (onNew) очищает поля адреса в форме.
 // Кнопка «Удалить адрес» пока заглушка: показывает сообщение и ничего не удаляет.
 const VISIBLE = 3;
 
@@ -20,7 +21,7 @@ function formatDate(value, lang) {
   });
 }
 
-const CustomerAddressList = ({ addresses = [], formData, onPick }) => {
+const CustomerAddressList = ({ addresses = [], formData, onPick, onNew }) => {
   const { t, i18n } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [notice, setNotice] = useState(false);
@@ -114,6 +115,12 @@ const CustomerAddressList = ({ addresses = [], formData, onPick }) => {
                   defaultValue: "Показать ещё {{n}}",
                 })}
             <ChevronDown size={14} aria-hidden="true" className={expanded ? "is-up" : ""} />
+          </button>
+        )}
+        {onNew && (
+          <button type="button" className="co-addr-new" onClick={onNew}>
+            <Plus size={14} aria-hidden="true" />
+            {t("createOrder.addresses.new", { defaultValue: "Добавить новый адрес" })}
           </button>
         )}
       </div>

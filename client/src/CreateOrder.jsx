@@ -771,6 +771,24 @@ const CreateOrder = () => {
     }));
   }, [customerLookupData]);
 
+  // «Добавить новый адрес»: очищаем только адрес (телефон и имя клиента остаются)
+  const startNewAddress = useCallback(() => {
+    setFormData((prev) => ({
+      ...prev,
+      street: "",
+      house: "",
+      building: "",
+      apart: "",
+      floor: "",
+      code: "",
+    }));
+    setGeo(null);
+    setGeoConfirmed(false);
+    setGeoError(null);
+    setErrors((prev) => ({ ...prev, address: "" }));
+    closeAddressSuggest();
+  }, [closeAddressSuggest]);
+
   const applyFoundCustomerData = useCallback(() => {
     if (!customerLookupData) return;
 
@@ -1019,6 +1037,7 @@ const CreateOrder = () => {
               clearCustomerFields={clearCustomerFields}
               customerAddresses={customerAddresses}
               onPickAddress={pickCustomerAddress}
+              onNewAddress={startNewAddress}
               addressSuggest={{
                 items: addressSuggest.items,
                 onPick: pickSuggestion,

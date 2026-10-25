@@ -1428,6 +1428,7 @@
 .co-addr-row-del {
     flex: none;
     width: 44px;
+    padding: 0 !important;
     border: 0;
     background: transparent;
     color: #94a3b8;
@@ -1487,4 +1488,25 @@
         flex-direction: row;
         gap: 8px;
     }
+}
+
+.co-addr-new {
+    width: 100%;
+    padding: 10px;
+    border: 0;
+    border-top: 1px solid #eef2f7;
+    background: #fff;
+    color: #4f46e5;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.co-addr-new:hover {
+    background: #f5f7ff;
 }

@@ -284,6 +284,7 @@
       "showMore": "Rādīt vēl {{n}}",
       "showLess": "Sakļaut",
       "delete": "Dzēst adresi",
+      "new": "Pievienot jaunu adresi",
       "deleteSoon": "Adrešu dzēšana drīz būs pieejama — adrese vēl nav dzēsta"
     },
     "suggest": {
