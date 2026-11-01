@@ -1,0 +1,137 @@
+/* ============================================================================
+   ui-check — единый вид чекбоксов («карточка»). Подключается один раз в main.jsx.
+
+   Использование (разметка прежняя, добавляется только класс):
+     <label className="ui-check">
+       <input type="checkbox" checked={...} onChange={...} />
+       Текст
+     </label>
+
+   С заголовком и подсказкой внутри карточки:
+     <label className="ui-check">
+       <input type="checkbox" ... />
+       <span className="ui-check-body">
+         <span className="ui-check-title">Заголовок</span>
+         <span className="ui-check-hint">Пояснение</span>
+       </span>
+     </label>
+
+   Модификатор ui-check--danger — красный акцент (запреты, опасные опции).
+   Несколько карточек подряд — в обёртке <div className="ui-check-group">.
+   Цвет акцента задаётся переменной --ui-check-accent.
+   ============================================================================ */
+
+.ui-check {
+    --ui-check-accent: #667eea;
+    --ui-check-soft: #f5f7ff;
+    --ui-check-ring: rgba(102, 126, 234, .28);
+
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 12px;
+    background: #fff;
+    color: #334155;
+    font-size: 14px;
+    line-height: 20px;
+    cursor: pointer;
+    transition: background .15s, border-color .15s, box-shadow .15s;
+}
+
+.ui-check--danger {
+    --ui-check-accent: #dc2626;
+    --ui-check-soft: #fef2f2;
+    --ui-check-ring: rgba(220, 38, 38, .25);
+}
+
+.ui-check input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    flex: none;
+    box-sizing: border-box;
+    margin: 1px 0 0;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid #8493a8;
+    border-radius: 6px;
+    background: #fff;
+    display: grid;
+    place-content: center;
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+}
+
+.ui-check input[type="checkbox"]::after {
+    content: "";
+    width: 5px;
+    height: 10px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: translateY(-1px) rotate(45deg) scale(0);
+    transition: transform .15s;
+}
+
+.ui-check input[type="checkbox"]:checked {
+    background: var(--ui-check-accent);
+    border-color: var(--ui-check-accent);
+}
+
+.ui-check input[type="checkbox"]:checked::after {
+    transform: translateY(-1px) rotate(45deg) scale(1);
+}
+
+.ui-check:has(input:checked) {
+    background: var(--ui-check-soft);
+    border-color: var(--ui-check-accent);
+}
+
+.ui-check:hover:not(:has(input:disabled)) {
+    border-color: var(--ui-check-accent);
+}
+
+.ui-check:has(input:focus-visible) {
+    border-color: var(--ui-check-accent);
+    box-shadow: 0 0 0 3px var(--ui-check-ring);
+}
+
+.ui-check input[type="checkbox"]:focus {
+    outline: none;
+}
+
+.ui-check:has(input:disabled) {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.ui-check:has(input:disabled) input[type="checkbox"] {
+    cursor: not-allowed;
+}
+
+.ui-check-body {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.ui-check-title {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.ui-check-hint {
+    font-size: 12.5px;
+    line-height: 1.45;
+    font-weight: 400;
+    color: #475569;
+}
+
+.ui-check-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 14px;
+}

@@ -824,6 +824,12 @@
     gap: 6px;
     color: #475569;
 }
+owner-checkbox {
+    display: flex;
+    align-items: right;
+    gap: 6px;
+    color: #475569;
+}
 
 /* modal */
 .owner-modal {

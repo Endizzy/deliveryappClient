@@ -1372,28 +1372,36 @@ export default function OwnerSettings() {
                 />
               </div>
 
-              <label className="owner-checkbox">
-                <input
-                  type="checkbox"
-                  checked={!!menuModal.form.noDiscount}
-                  onChange={(e) => setMenuModal(m => ({ ...m, form: { ...m.form, noDiscount: e.target.checked, discount: e.target.checked ? 0 : m.form.discount } }))}
-                />
-                {t("ownerSettings.menuModal.fields.noDiscount", { defaultValue: "Скидки запрещены" })}
-              </label>
-              {menuModal.form.noDiscount && (
-                <span className="hint muted" style={{ fontSize: 12 }}>
-                  {t("ownerSettings.menuModal.noDiscountHint", { defaultValue: "Блюдо всегда по полной цене: скидки клиента и разовые не действуют. Скидка лояльности действует." })}
-                </span>
-              )}
+              <div className="ui-check-group">
+                <label className="ui-check ui-check--danger">
+                  <input
+                    type="checkbox"
+                    checked={!!menuModal.form.noDiscount}
+                    onChange={(e) => setMenuModal(m => ({ ...m, form: { ...m.form, noDiscount: e.target.checked, discount: e.target.checked ? 0 : m.form.discount } }))}
+                  />
+                  <span className="ui-check-body">
+                    <span className="ui-check-title">
+                      {t("ownerSettings.menuModal.fields.noDiscount", { defaultValue: "Скидки запрещены" })}
+                    </span>
+                    {menuModal.form.noDiscount && (
+                      <span className="ui-check-hint">
+                        {t("ownerSettings.menuModal.noDiscountHint", { defaultValue: "Блюдо всегда по полной цене: скидки клиента и разовые не действуют. Скидка лояльности действует." })}
+                      </span>
+                    )}
+                  </span>
+                </label>
 
-              <label className="owner-checkbox">
-                <input
-                  type="checkbox"
-                  checked={menuModal.form.available}
-                  onChange={(e) => setMenuModal(m => ({ ...m, form: { ...m.form, available: e.target.checked } }))}
-                />
-                {t("ownerSettings.menuModal.fields.available")}
-              </label>
+                <label className="ui-check">
+                  <input
+                    type="checkbox"
+                    checked={menuModal.form.available}
+                    onChange={(e) => setMenuModal(m => ({ ...m, form: { ...m.form, available: e.target.checked } }))}
+                  />
+                  <span className="ui-check-body">
+                    <span className="ui-check-title">{t("ownerSettings.menuModal.fields.available")}</span>
+                  </span>
+                </label>
+              </div>
             </div>
 
             <div className="owner-modal-footer">

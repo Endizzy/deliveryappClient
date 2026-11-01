@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Landing from "./pages/Landing/Landing.jsx";
 import Map from "./pages/Map/map.jsx";
 import "./index.css";
+import "./uiCheck.css";
 import OrderPanel from "./orderPanel.jsx";
 import CreateOrder from "./CreateOrder.jsx";
 import OwnerSettings from "./pages/OwnerSettings/OwnerSettings.jsx";
