@@ -166,6 +166,13 @@ const ItemsSection = ({
                         })}
                       </span>
                     )}
+                    {item.noDiscount && (
+                      <span className="item-nodiscount-note">
+                        {t("createOrder.items.discountsForbidden", {
+                          defaultValue: "Скидки запрещены",
+                        })}
+                      </span>
+                    )}
                   </div>
                   <Plus size={16} className="add-icon" />
                 </div>
@@ -203,6 +210,13 @@ const ItemsSection = ({
                         defaultValue:
                           "Товар со скидкой {{percent}}% — скидка клиента не применяется",
                         percent: item.discount,
+                      })}
+                    </span>
+                  )}
+                  {item.noDiscount && (
+                    <span className="item-nodiscount-note">
+                      {t("createOrder.items.discountsForbidden", {
+                        defaultValue: "Скидки запрещены",
                       })}
                     </span>
                   )}

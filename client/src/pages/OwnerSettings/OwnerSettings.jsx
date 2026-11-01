@@ -4,7 +4,7 @@ import {
   Save, Upload, Image as ImageIcon, Plus, Edit, Trash2,
   Search, Percent, Package, Users, Shield, Phone, Mail,
   BadgeCheck, X, ChevronDown, ChevronUp, Map as MapIcon, FileText,
-  MapPin, Clock, Globe, Building2, Info, UserCog, Pencil, BarChart3, Gift
+  MapPin, Clock, Globe, Building2, Info, UserCog, Pencil, BarChart3, Gift, History
 } from "lucide-react";
 import "./ownerSettings.css";
 import Header from "../../components/Header/Header.jsx";
@@ -13,6 +13,7 @@ import InvoiceSettingsTab from "./InvoiceSettingsTab.jsx";
 import CustomersTab from "./CustomersTab.jsx";
 import AnalyticsTab from "./AnalyticsTab.jsx";
 import LoyaltyTab from "./LoyaltyTab.jsx";
+import OrderAuditTab from "./OrderAuditTab.jsx";
 import GeneralDashboard from "./GeneralDashboard.jsx";
 import OwnerDialog, { useOwnerDialog } from "./OwnerDialog.jsx";
 import { useTranslation } from "react-i18next";
@@ -293,13 +294,13 @@ export default function OwnerSettings() {
   // ---- MENU modal ----
   const [menuModal, setMenuModal] = useState({
     open: false, editId: null,
-    form: { name: "", price: "", discount: 0, category: "", available: true }
+    form: { name: "", price: "", discount: 0, noDiscount: false, category: "", available: true }
   });
 
   const openAddMenu = () =>
     setMenuModal({
       open: true, editId: null,
-      form: { name: "", price: "", discount: 0, category: "", available: true }
+      form: { name: "", price: "", discount: 0, noDiscount: false, category: "", available: true }
     });
 
   const openEditMenu = (item) =>
@@ -309,6 +310,7 @@ export default function OwnerSettings() {
         name: item.name,
         price: item.price,
         discount: item.discount,
+        noDiscount: !!item.noDiscount,
         category: item.category,
         available: !!item.available
       }
@@ -456,7 +458,8 @@ export default function OwnerSettings() {
           name: f.name,
           category: f.category,
           price: formatCents(priceCents),
-          discount: discountNum,
+          discount: f.noDiscount ? 0 : discountNum,
+          noDiscount: !!f.noDiscount,
           available: !!f.available,
         });
         setMenu(list => list.map(it => (it.id === updated.id ? updated : it)));
@@ -465,7 +468,8 @@ export default function OwnerSettings() {
           name: f.name,
           category: f.category,
           price: formatCents(priceCents),
-          discount: discountNum,
+          discount: f.noDiscount ? 0 : discountNum,
+          noDiscount: !!f.noDiscount,
           available: !!f.available,
         });
         setMenu(list => [...list, created]);
@@ -709,6 +713,18 @@ export default function OwnerSettings() {
         >
           <BarChart3 size={18} />
           <span>{t("ownerSettings.sections.analytics", { defaultValue: "Анализ" })}</span>
+          <b className="owner-nav-new">NEW</b>
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === "journal"}
+          className={`owner-nav-tab ${activeTab === "journal" ? "active" : ""}`}
+          onClick={() => setActiveTab("journal")}
+        >
+          <History size={18} />
+          <span>{t("ownerSettings.sections.journal", { defaultValue: "Журнал" })}</span>
           <b className="owner-nav-new">NEW</b>
         </button>
 
@@ -1097,7 +1113,11 @@ export default function OwnerSettings() {
                   <div className="owner-cell">{it.category || "-"}</div>
                   <div className="owner-cell">{toEUR(it.price)}</div>
                   <div className="owner-cell">
-                    {it.discount ? (
+                    {it.noDiscount ? (
+                      <span className="owner-nodiscount">
+                        {t("ownerSettings.menu.noDiscountBadge", { defaultValue: "Скидки запрещены" })}
+                      </span>
+                    ) : it.discount ? (
                       <span className="owner-discount">
                         <Percent size={12} /> -{it.discount}%
                       </span>
@@ -1267,6 +1287,11 @@ export default function OwnerSettings() {
           <AnalyticsTab API={API} authHeaders={authHeaders} t={t} />
         )}
 
+        {/* Журнал изменений заказов. Только чтение, только владелец. */}
+        {activeTab === "journal" && (
+          <OrderAuditTab API={API} authHeaders={authHeaders} t={t} />
+        )}
+
         {/* Invoice settings */}
         {activeTab === "invoice" && (
           <InvoiceSettingsTab API={API} authHeaders={authHeaders} t={t} ui={ui} />
@@ -1340,11 +1365,26 @@ export default function OwnerSettings() {
                 <label>{t("ownerSettings.menuModal.fields.discount")}</label>
                 <input
                   type="number" min="0" max="100"
-                  value={menuModal.form.discount}
+                  value={menuModal.form.noDiscount ? 0 : menuModal.form.discount}
+                  disabled={!!menuModal.form.noDiscount}
                   onChange={(e) => setMenuModal(m => ({ ...m, form: { ...m.form, discount: e.target.value } }))}
                   placeholder="0"
                 />
               </div>
+
+              <label className="owner-checkbox">
+                <input
+                  type="checkbox"
+                  checked={!!menuModal.form.noDiscount}
+                  onChange={(e) => setMenuModal(m => ({ ...m, form: { ...m.form, noDiscount: e.target.checked, discount: e.target.checked ? 0 : m.form.discount } }))}
+                />
+                {t("ownerSettings.menuModal.fields.noDiscount", { defaultValue: "Скидки запрещены" })}
+              </label>
+              {menuModal.form.noDiscount && (
+                <span className="hint muted" style={{ fontSize: 12 }}>
+                  {t("ownerSettings.menuModal.noDiscountHint", { defaultValue: "Блюдо всегда по полной цене: скидки клиента и разовые не действуют. Скидка лояльности действует." })}
+                </span>
+              )}
 
               <label className="owner-checkbox">
                 <input

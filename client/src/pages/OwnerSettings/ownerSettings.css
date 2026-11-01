@@ -618,6 +618,18 @@
 }
 
 /* discount chip */
+/* Блюдо с флагом «Скидки запрещены» */
+.owner-nodiscount {
+    display: inline-flex;
+    align-items: center;
+    background: #fee2e2;
+    color: #b91c1c;
+    font-weight: 700;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
 .owner-discount {
     display: inline-flex;
     align-items: center;

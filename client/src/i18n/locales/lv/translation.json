@@ -253,7 +253,8 @@
     },
     "items": {
       "hasMenuDiscount": "Precei jau ir {{percent}}% atlaide — klienta atlaide netiek piemērota",
-      "noCustomerDiscount": "klienta atlaide netiek piemērota"
+      "noCustomerDiscount": "klienta atlaide netiek piemērota",
+      "discountsForbidden": "Atlaides aizliegtas"
     },
     "manualDiscount": {
       "none": "Bez atlaides",
@@ -388,9 +389,119 @@
       "invoice": "Pavadzīme",
       "zones": "Piegādes zonas",
       "analytics": "Analīze",
-      "loyalty": "Lojalitāte"
+      "loyalty": "Lojalitāte",
+      "journal": "Žurnāls"
     },
-    "invoice": {
+"audit": {
+      "title": "Pasūtījumu izmaiņu žurnāls",
+      "export": "Lejupielādēt CSV",
+      "exporting": "Sagatavoju failu…",
+      "exportError": "Neizdevās lejupielādēt failu",
+      "notReady": "Žurnāls vēl nav ieslēgts: jāizpilda SQL migrācija order_audit_log.sql. Pēc tam tas sāks aizpildīties pats.",
+      "loading": "Ielāde…",
+      "empty": "Izvēlētajā periodā izmaiņu nav",
+      "loadError": "Neizdevās ielādēt žurnālu",
+      "retry": "Mēģināt vēlreiz",
+      "unassigned": "nav piešķirts",
+      "systemActor": "Sistēma",
+      "orderDay": "Pasūtījuma diena",
+      "itemsCount": "pozīcijas: {{n}}",
+      "loyaltyOn": "Lojalitātes atlaide piešķirta",
+      "loyaltyOff": "Lojalitātes atlaide noņemta",
+      "prev": "Atpakaļ",
+      "next": "Tālāk",
+      "rowsInfo": "Rindas {{from}}–{{to}} no {{total}}",
+      "coverage": "Žurnālā tiek ierakstītas izmaiņas kopš tā ieslēgšanas: tīmekļa panelī, kurjera lietotnē un automātiska priekšpasūtījumu aktivizēšana.",
+      "csvCustomer": "Klients",
+      "csvPhone": "Tālrunis",
+      "csvOld": "Bija",
+      "csvNew": "Kļuva",
+      "csvDelta": "Starpība, €",
+      "csvImportant": "Svarīgi",
+      "csvRole": "Loma",
+      "kpi": {
+        "events": "notikumi periodā",
+        "amount": "summas izmaiņas",
+        "courier": "kurjera maiņas",
+        "afterDelivery": "labojumi pēc piegādes"
+      },
+      "filters": {
+        "period": "Periods",
+        "today": "Šodien",
+        "d7": "7 dienas",
+        "d30": "30 dienas",
+        "custom": "Savs periods",
+        "from": "No datuma",
+        "to": "Līdz datumam",
+        "allStaff": "Visi darbinieki",
+        "allTypes": "Visi veidi",
+        "allSources": "Visi avoti",
+        "search": "Pasūtījuma nr., tālrunis, klients",
+        "important": "Tikai svarīgie"
+      },
+      "cols": {
+        "time": "Laiks",
+        "order": "Pasūtījums",
+        "what": "Kas mainīts",
+        "change": "Bija → Kļuva",
+        "who": "Kas",
+        "source": "Avots"
+      },
+      "types": {
+        "created": "Izveidots",
+        "status": "Statuss",
+        "courier": "Kurjers",
+        "pickup": "Restorāns",
+        "address": "Adrese",
+        "point": "Punkts kartē",
+        "items": "Pozīcijas",
+        "amount": "Summa",
+        "discount": "Vienreizēja atlaide",
+        "loyalty": "Lojalitāte",
+        "delivery_fee": "Piegāde",
+        "payment": "Apmaksa",
+        "schedule": "Veids un laiks",
+        "customer": "Klients",
+        "people": "Personas",
+        "notes": "Piezīme"
+      },
+      "flags": {
+        "after_delivery": "pēc piegādes",
+        "cancel": "atcelšana",
+        "reopen": "pasūtījums atkal atvērts",
+        "courier_change": "kurjera maiņa",
+        "manual_discount": "manuāla atlaide"
+      },
+      "sources": {
+        "web": "Administrēšana",
+        "courier_app": "Kurjera lietotne",
+        "system": "Sistēma"
+      },
+      "roles": {
+        "owner": "īpašnieks",
+        "admin": "administrators",
+        "courier": "kurjers"
+      },
+      "status": {
+        "new": "Jauns",
+        "preparing": "Gatavo",
+        "ready": "Gatavs",
+        "enroute": "Ceļā",
+        "completed": "Piegādāts",
+        "cancelled": "Atcelts"
+      },
+      "payment": {
+        "cash": "Skaidra nauda",
+        "card": "Karte",
+        "wire": "Pārskaitījums",
+        "paid": "Apmaksāts"
+      },
+      "orderTypes": {
+        "active": "Parasts",
+        "preorder": "Priekšpasūtījums"
+      }
+    },
+        "invoice": {
       "title": "Rēķina priekšskatījums",
       "editTemplate": "Rediģēt veidni",
       "notConfigured": "Veidne nav konfigurēta",
@@ -455,6 +566,7 @@
       "searchPlaceholder": "Meklēt pēc nosaukuma/kategorijas…",
       "addItem": "Pievienot pozīciju",
       "inSale": "Pārdošanā",
+      "noDiscountBadge": "Atlaides aizliegtas",
       "hidden": "Paslēpts",
       "empty": "Nav pozīciju. Pievienojiet pirmo.",
       "sort": {
@@ -487,11 +599,13 @@
     "menuModal": {
       "addTitle": "Pievienot pozīciju",
       "editTitle": "Rediģēt pozīciju",
+      "noDiscountHint": "Ēdiens vienmēr par pilnu cenu: klienta un vienreizējās atlaides nedarbojas. Lojalitātes atlaide darbojas.",
       "fields": {
         "name": "Nosaukums",
         "category": "Kategorija",
         "price": "Cena",
         "discount": "Atlaide, %",
+        "noDiscount": "Atlaides aizliegtas",
         "available": "Pārdošanā"
       },
       "placeholders": {

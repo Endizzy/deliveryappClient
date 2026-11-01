@@ -322,6 +322,7 @@ const EditOrder = () => {
         name: i.name,
         price: Number(i.price || 0),
         discount: Number(i.discount || 0),
+        noDiscount: i.noDiscount === true,
         quantity: Number(i.quantity || 1),
       }))
     );
@@ -1185,6 +1186,13 @@ const EditOrder = () => {
                                   })}
                                 </span>
                               )}
+                              {item.noDiscount && (
+                                <span className="item-nodiscount-note">
+                                  {t("createOrder.items.discountsForbidden", {
+                                    defaultValue: "Скидки запрещены",
+                                  })}
+                                </span>
+                              )}
                             </div>
                             <Plus size={16} className="add-icon" />
                           </div>
@@ -1220,6 +1228,13 @@ const EditOrder = () => {
                                   defaultValue:
                                     "Товар со скидкой {{percent}}% — скидка клиента не применяется",
                                   percent: item.discount,
+                                })}
+                              </span>
+                            )}
+                            {item.noDiscount && (
+                              <span className="item-nodiscount-note">
+                                {t("createOrder.items.discountsForbidden", {
+                                  defaultValue: "Скидки запрещены",
                                 })}
                               </span>
                             )}

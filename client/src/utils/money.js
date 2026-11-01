@@ -33,6 +33,20 @@ export function lineTotalCents(price, discountPercent, quantity) {
 export function percentDiscountBaseCents(items) {
   return (Array.isArray(items) ? items : []).reduce((sum, it) => {
     if (Number(it?.discount) > 0) return sum;
+    // Блюдо с флагом «Скидки запрещены» (noDiscount) скидки клиента не получает
+    if (it?.noDiscount === true) return sum;
+    return sum + lineTotalCents(it?.price, 0, it?.quantity);
+  }, 0);
+}
+
+/**
+ * База для ПРОЦЕНТНОЙ скидки лояльности: как percentDiscountBaseCents, но блюдо
+ * «Скидки запрещены» входит (лояльность на него действует). Позиции со скидкой
+ * в меню по-прежнему не входят.
+ */
+export function loyaltyPercentBaseCents(items) {
+  return (Array.isArray(items) ? items : []).reduce((sum, it) => {
+    if (Number(it?.discount) > 0) return sum;
     return sum + lineTotalCents(it?.price, 0, it?.quantity);
   }, 0);
 }
@@ -85,6 +99,14 @@ export function orderDiscountBreakdown(items, discount, manualPercent = 0, loyal
     0
   );
   const percentBase = percentDiscountBaseCents(list);
+  const loyaltyBase = loyaltyPercentBaseCents(list);
+  // Сумма позиций, на которые скидка клиента вообще может действовать
+  // (без блюд «Скидки запрещены»): фиксированная скидка не больше неё.
+  const discountableTotal = list.reduce(
+    (sum, it) =>
+      it?.noDiscount === true ? sum : sum + lineTotalCents(it?.price, it?.discount, it?.quantity),
+    0
+  );
 
   // Постоянная скидка клиента
   let personalCents = 0;
@@ -92,7 +114,7 @@ export function orderDiscountBreakdown(items, discount, manualPercent = 0, loyal
   if (discount && value > 0) {
     personalCents =
       discount.type === "fixed"
-        ? Math.min(toCents(value), itemsTotal)
+        ? Math.min(toCents(value), discountableTotal)
         : Math.round((percentBase * Math.min(value, 100)) / 100);
   }
 
@@ -110,7 +132,7 @@ export function orderDiscountBreakdown(items, discount, manualPercent = 0, loyal
   if (loyalty && lv > 0) {
     loyaltyCents =
       loyalty.type === "percent"
-        ? Math.round((percentBase * Math.min(lv, 100)) / 100)
+        ? Math.round((loyaltyBase * Math.min(lv, 100)) / 100)
         : Math.min(toCents(lv), itemsTotal);
   }
 

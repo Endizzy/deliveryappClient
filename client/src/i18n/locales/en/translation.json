@@ -253,7 +253,8 @@
     },
     "items": {
       "hasMenuDiscount": "Item already has {{percent}}% off — customer discount does not apply",
-      "noCustomerDiscount": "customer discount does not apply"
+      "noCustomerDiscount": "customer discount does not apply",
+      "discountsForbidden": "Discounts forbidden"
     },
     "manualDiscount": {
       "none": "No discount",
@@ -388,9 +389,119 @@
       "invoice": "Invoice",
       "zones": "Delivery zones",
       "analytics": "Analytics",
-      "loyalty": "Loyalty"
+      "loyalty": "Loyalty",
+      "journal": "Journal"
     },
-    "invoice": {
+"audit": {
+      "title": "Order change journal",
+      "export": "Download CSV",
+      "exporting": "Preparing file…",
+      "exportError": "Could not download the file",
+      "notReady": "The journal is not enabled yet: run the SQL migration order_audit_log.sql. After that it will start filling in on its own.",
+      "loading": "Loading…",
+      "empty": "No changes in the selected period",
+      "loadError": "Could not load the journal",
+      "retry": "Retry",
+      "unassigned": "unassigned",
+      "systemActor": "System",
+      "orderDay": "Order day",
+      "itemsCount": "items: {{n}}",
+      "loyaltyOn": "Loyalty discount granted",
+      "loyaltyOff": "Loyalty discount removed",
+      "prev": "Back",
+      "next": "Next",
+      "rowsInfo": "Rows {{from}}–{{to}} of {{total}}",
+      "coverage": "The journal records changes since it was enabled: in the web panel, in the courier app and automatic pre-order activation.",
+      "csvCustomer": "Customer",
+      "csvPhone": "Phone",
+      "csvOld": "Was",
+      "csvNew": "Now",
+      "csvDelta": "Difference, €",
+      "csvImportant": "Important",
+      "csvRole": "Role",
+      "kpi": {
+        "events": "events in period",
+        "amount": "amount changes",
+        "courier": "courier changes",
+        "afterDelivery": "edits after delivery"
+      },
+      "filters": {
+        "period": "Period",
+        "today": "Today",
+        "d7": "7 days",
+        "d30": "30 days",
+        "custom": "Custom period",
+        "from": "From date",
+        "to": "To date",
+        "allStaff": "All staff",
+        "allTypes": "All types",
+        "allSources": "All sources",
+        "search": "Order no., phone, customer",
+        "important": "Important only"
+      },
+      "cols": {
+        "time": "Time",
+        "order": "Order",
+        "what": "What changed",
+        "change": "Was → Now",
+        "who": "Who",
+        "source": "Source"
+      },
+      "types": {
+        "created": "Created",
+        "status": "Status",
+        "courier": "Courier",
+        "pickup": "Restaurant",
+        "address": "Address",
+        "point": "Map point",
+        "items": "Items",
+        "amount": "Amount",
+        "discount": "One-off discount",
+        "loyalty": "Loyalty",
+        "delivery_fee": "Delivery",
+        "payment": "Payment",
+        "schedule": "Type and time",
+        "customer": "Customer",
+        "people": "People",
+        "notes": "Note"
+      },
+      "flags": {
+        "after_delivery": "after delivery",
+        "cancel": "cancelled",
+        "reopen": "order reopened",
+        "courier_change": "courier changed",
+        "manual_discount": "manual discount"
+      },
+      "sources": {
+        "web": "Admin panel",
+        "courier_app": "Courier app",
+        "system": "System"
+      },
+      "roles": {
+        "owner": "owner",
+        "admin": "admin",
+        "courier": "courier"
+      },
+      "status": {
+        "new": "New",
+        "preparing": "Preparing",
+        "ready": "Ready",
+        "enroute": "En route",
+        "completed": "Delivered",
+        "cancelled": "Cancelled"
+      },
+      "payment": {
+        "cash": "Cash",
+        "card": "Card",
+        "wire": "Bank transfer",
+        "paid": "Paid"
+      },
+      "orderTypes": {
+        "active": "Regular",
+        "preorder": "Pre-order"
+      }
+    },
+        "invoice": {
       "title": "Invoice preview",
       "editTemplate": "Edit template",
       "notConfigured": "Template not configured",
@@ -455,6 +566,7 @@
       "searchPlaceholder": "Search by name/category…",
       "addItem": "Add item",
       "inSale": "On sale",
+      "noDiscountBadge": "Discounts forbidden",
       "hidden": "Hidden",
       "empty": "No items yet. Add the first one.",
       "sort": {
@@ -487,11 +599,13 @@
     "menuModal": {
       "addTitle": "Add item",
       "editTitle": "Edit item",
+      "noDiscountHint": "The dish is always full price: customer and one-off discounts do not apply. The loyalty discount does.",
       "fields": {
         "name": "Name",
         "category": "Category",
         "price": "Price",
         "discount": "Discount, %",
+        "noDiscount": "Discounts forbidden",
         "available": "On sale"
       },
       "placeholders": {
