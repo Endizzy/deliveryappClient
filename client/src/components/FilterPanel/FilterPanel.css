@@ -134,6 +134,7 @@
     font-size: 12px;
     font-weight: 700;
     cursor: pointer;
+
 }
 
 .fp-reset {
@@ -143,7 +144,8 @@
 }
 
 .fp-reset:hover:not(:disabled) {
-    background: var(--app-hover, #f1f5f9);
+    background: inherit;
+    /* color: #fff; */
 }
 
 .fp-reset:disabled {
@@ -155,7 +157,7 @@
     flex: 1.4;
     border: none;
     color: #fff;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: var(--app-gradient);
 }
 
 .fp-done:hover {

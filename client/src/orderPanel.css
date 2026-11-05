@@ -871,6 +871,7 @@ input[type="checkbox"] {
     white-space: nowrap;
     cursor: pointer;
     transition: filter 0.15s ease;
+    border: 1px solid currentColor;
 }
 
 .courier-badge svg {
