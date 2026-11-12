@@ -321,6 +321,69 @@
       "ownerUserId": "Īpašnieka ID",
       "menuId": "Ēdienkarte (ID)",
       "createdAt": "Izveidots"
+    },
+    "support": {
+      "title": "Tehniskais atbalsts",
+      "subtitle": "Izveidojiet biļeti par kļūdu vai jautājumu — atbilde parādīsies šeit",
+      "open": "Atvērt"
+    }
+  },
+  "support": {
+    "title": "Tehniskais atbalsts",
+    "subtitle": "Aprakstiet problēmu — atbildēsim šajā čatā. Operators saņem arī Telegram paziņojumu.",
+    "newTicket": "Jauna biļete",
+    "loading": "Ielādē…",
+    "errorTitle": "Kļūda",
+    "notReady": "Biļešu modulis serverī vēl nav ieslēgts. Mēģiniet vēlāk.",
+    "emptyTitle": "Biļešu vēl nav",
+    "emptyText": "Izveidojiet pirmo biļeti — ziņojiet par kļūdu vai uzdodiet jautājumu.",
+    "selectTicket": "Izvēlieties biļeti kreisajā pusē",
+    "pickOrCreateTitle": "Izvēlieties biļeti vai izveidojiet jaunu",
+    "pickOrCreateText": "Kreisajā pusē — vēsture. Labajā — saruna un atbalsta atbildes.",
+    "createTitle": "Jauns pieprasījums",
+    "createHint": "Īsi aprakstiet, kas notika un kā to atkārtot.",
+    "fields": {
+      "subject": "Temats",
+      "body": "Apraksts"
+    },
+    "placeholders": {
+      "subject": "piemēram: pasūtījums nesaglabājas",
+      "body": "Soļi, gaidītā un faktiskā uzvedība, ekrānuzņēmumi tekstā…",
+      "reply": "Pievienojiet precizējumu vai papildu informāciju…"
+    },
+    "cancel": "Atcelt",
+    "send": "Nosūtīt",
+    "sending": "Sūta…",
+    "reply": "Atbildēt",
+    "closeTicket": "Aizvērt biļeti",
+    "closedNote": "Biļete ir aizvērta. Lai turpinātu — izveidojiet jaunu.",
+    "updatedAt": "Atjaunināts: {{time}}",
+    "createdTitle": "Biļete izveidota",
+    "createdMessage": "Pieprasījums saņemts — drīzumā atbildēsim.",
+    "closedTitle": "Biļete aizvērta",
+    "closedMessage": "Pieprasījums atzīmēts kā aizvērts.",
+    "filters": {
+      "all": "Visas",
+      "open": "Atvērtas",
+      "answered": "Ar atbildi",
+      "closed": "Aizvērtas"
+    },
+    "status": {
+      "open": "Atvērta",
+      "answered": "Atbilde",
+      "closed": "Aizvērta"
+    },
+    "roles": {
+      "you": "Jūs",
+      "support": "Atbalsts"
+    },
+    "errors": {
+      "loadList": "Neizdevās ielādēt biļetes",
+      "loadTicket": "Neizdevās atvērt biļeti",
+      "fillAll": "Aizpildiet tematu un aprakstu",
+      "create": "Neizdevās izveidot biļeti",
+      "reply": "Neizdevās nosūtīt ziņojumu",
+      "close": "Neizdevās aizvērt biļeti"
     }
   },
   "ownerSettings": {

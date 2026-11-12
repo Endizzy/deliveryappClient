@@ -321,6 +321,69 @@
       "ownerUserId": "Owner ID",
       "menuId": "Menu (ID)",
       "createdAt": "Created"
+    },
+    "support": {
+      "title": "Support",
+      "subtitle": "Create a ticket about a bug or question — replies show up here",
+      "open": "Open"
+    }
+  },
+  "support": {
+    "title": "Support",
+    "subtitle": "Describe the issue — we’ll reply in this chat. The operator also gets a Telegram notification.",
+    "newTicket": "New ticket",
+    "loading": "Loading…",
+    "errorTitle": "Error",
+    "notReady": "Support tickets are not enabled on the server yet. Please try later.",
+    "emptyTitle": "No tickets yet",
+    "emptyText": "Create the first ticket — report a bug or ask a question.",
+    "selectTicket": "Select a ticket on the left",
+    "pickOrCreateTitle": "Pick a ticket or create a new one",
+    "pickOrCreateText": "Ticket history is on the left. Conversation and replies are on the right.",
+    "createTitle": "New request",
+    "createHint": "Briefly describe what happened and how to reproduce it.",
+    "fields": {
+      "subject": "Subject",
+      "body": "Description"
+    },
+    "placeholders": {
+      "subject": "e.g. order does not save",
+      "body": "Steps, expected vs actual behavior, screenshots as text…",
+      "reply": "Add a follow-up or more details…"
+    },
+    "cancel": "Cancel",
+    "send": "Send",
+    "sending": "Sending…",
+    "reply": "Reply",
+    "closeTicket": "Close ticket",
+    "closedNote": "This ticket is closed. Create a new one to continue.",
+    "updatedAt": "Updated: {{time}}",
+    "createdTitle": "Ticket created",
+    "createdMessage": "We received your request and will reply soon.",
+    "closedTitle": "Ticket closed",
+    "closedMessage": "The request was marked as closed.",
+    "filters": {
+      "all": "All",
+      "open": "Open",
+      "answered": "Answered",
+      "closed": "Closed"
+    },
+    "status": {
+      "open": "Open",
+      "answered": "Answered",
+      "closed": "Closed"
+    },
+    "roles": {
+      "you": "You",
+      "support": "Support"
+    },
+    "errors": {
+      "loadList": "Failed to load tickets",
+      "loadTicket": "Failed to open ticket",
+      "fillAll": "Please fill in subject and description",
+      "create": "Failed to create ticket",
+      "reply": "Failed to send message",
+      "close": "Failed to close ticket"
     }
   },
   "ownerSettings": {

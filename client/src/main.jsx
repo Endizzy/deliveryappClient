@@ -9,6 +9,7 @@ import OrderPanel from "./orderPanel.jsx";
 import CreateOrder from "./CreateOrder.jsx";
 import OwnerSettings from "./pages/OwnerSettings/OwnerSettings.jsx";
 import UserProfile from "./pages/UserProfile/userProfile.jsx";
+import Support from "./pages/Support/Support.jsx";
 import Login from "./pages/Login/login.jsx";
 import Registration from "./pages/Registration/registration.jsx";
 import { ThemeProvider } from "./provider/ThemeContext.jsx";
@@ -78,6 +79,14 @@ createRoot(document.getElementById("root")).render(
                             element={
                                 <ProtectedRoute allowedRoles={["owner", "admin"]}>
                                     <UserProfile />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/support"
+                            element={
+                                <ProtectedRoute allowedRoles={["owner", "admin"]}>
+                                    <Support />
                                 </ProtectedRoute>
                             }
                         />
