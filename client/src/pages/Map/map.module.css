@@ -348,3 +348,63 @@
     height: 100%;
     box-sizing: border-box;
 }
+
+/* Сброс дефолтного leaflet-div-icon (белый квадрат + рамка) */
+:global(.leaflet-div-icon.courierDivIcon) {
+    background: transparent;
+    border: none;
+}
+
+/* Маркер курьера: SVG-пин (из car.png) + капсула */
+
+.courierMarker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.28));
+}
+
+.courierPin {
+    width: 32px;
+    height: 43px;
+    display: block;
+    flex-shrink: 0;
+}
+
+.courierTip {
+    margin-top: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.82);
+    color: #fff;
+    font-size: 11px;
+    line-height: 1.2;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+}
+
+.courierDot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+}
+
+.courierName {
+    font-weight: 600;
+    max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.courierSpeed {
+    opacity: 0.72;
+    padding-left: 6px;
+    margin-left: 2px;
+    border-left: 1px solid rgba(255, 255, 255, 0.22);
+    font-variant-numeric: tabular-nums;
+}

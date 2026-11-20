@@ -313,38 +313,46 @@ export default function DeliveryMap() {
     return courierColorsRef.current.get(String(id)) || courierColor(id);
   }
 
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
   function createCourierIconHTML(key, speedKmh, nickname, color) {
     const speedText =
       typeof speedKmh === "number"
         ? t("map.speedValue", { value: speedKmh.toFixed(0) })
         : t("map.speedDash");
 
+    const label = nickname?.trim() ? nickname.trim() : `#${key}`;
     const title = nickname
       ? t("map.markerTitleWithNickname", { nickname, id: key })
       : t("map.markerTitle", { id: key });
 
+    // Старый car.png как SVG: цвет пина = цвет курьера, машина внутри фиксированная
+    const pinSvg = `
+      <svg class="${styles.courierPin}" viewBox="0 0 48 64" aria-hidden="true">
+        <path fill="${color}" d="M24 0C12.4 0 3 9.4 3 21c0 14.8 17.2 39.4 18 40.5a3.1 3.1 0 0 0 4.9 0C26.8 60.4 45 35.8 45 21 45 9.4 35.6 0 24 0z"/>
+        <circle cx="24" cy="21" r="15.2" fill="#ffffff"/>
+        <path fill="#F5A623" d="M14.2 18.4c.4-3.2 2.3-5.6 5-6.4h9.6c2.7.8 4.6 3.2 5 6.4l.7 5.2c.2 1.3-.8 2.4-2.1 2.4H15.6c-1.3 0-2.3-1.1-2.1-2.4l.7-5.2z"/>
+        <path fill="#7EC8E3" d="M17.4 15.2c.3-1.5 1.4-2.5 2.8-2.5h7.6c1.4 0 2.5 1 2.8 2.5l.3 1.6H17.1l.3-1.6z"/>
+        <rect x="16.2" y="22.2" width="3.4" height="1.6" rx="0.8" fill="#E8E8E8"/>
+        <rect x="28.4" y="22.2" width="3.4" height="1.6" rx="0.8" fill="#E8E8E8"/>
+        <rect x="15.4" y="25.2" width="4.2" height="2.2" rx="1.1" fill="#4A4A4A"/>
+        <rect x="28.4" y="25.2" width="4.2" height="2.2" rx="1.1" fill="#4A4A4A"/>
+      </svg>
+    `;
+
     return `
-      <div style="display:flex;flex-direction:column;align-items:center;">
-        <div style="
-            width:46px;height:46px;border-radius:50%;
-            background:${color}26;border:2px solid ${color};
-            display:flex;align-items:center;justify-content:center;
-            box-shadow:0 2px 8px rgba(0,0,0,.28);
-        ">
-          <img src="/car.png" style="width:32px;height:32px;"/>
-        </div>
-        <div style="
-            margin-top:3px;
-            background: rgba(15, 23, 42, 0.66);
-            border-bottom:3px solid ${color};
-            padding:2px 6px;
-            border-radius:4px;
-            font-size:12px;
-            color:#fff;
-            text-align:center;
-            white-space:nowrap;
-        ">
-            ${title} | ${speedText}
+      <div class="${styles.courierMarker}" title="${escapeHtml(title)}">
+        ${pinSvg}
+        <div class="${styles.courierTip}">
+          <span class="${styles.courierDot}" style="background:${color}"></span>
+          <span class="${styles.courierName}">${escapeHtml(label)}</span>
+          <span class="${styles.courierSpeed}">${escapeHtml(speedText)}</span>
         </div>
       </div>
     `;
@@ -440,24 +448,20 @@ export default function DeliveryMap() {
       marker = null;
     }
 
+    // Шире пина: тултип с именем не обрезается. Якорь — остриё пина.
+    const iconOpts = {
+      html,
+      className: "courierDivIcon",
+      iconSize: [160, 80],
+      iconAnchor: [80, 43],
+    };
+
     if (!marker) {
-      const icon = L.divIcon({
-        html,
-        className: "",
-        iconSize: [46, 74],
-        iconAnchor: [23, 46],
-      });
+      const icon = L.divIcon(iconOpts);
       marker = L.marker([lat, lng], { icon }).addTo(map);
       courierMarkersRef.current.set(key, marker);
     } else {
-      marker.setIcon(
-        L.divIcon({
-          html,
-          className: "",
-          iconSize: [46, 74],
-          iconAnchor: [23, 46],
-        })
-      );
+      marker.setIcon(L.divIcon(iconOpts));
 
       const from = marker.getLatLng();
       const to = L.latLng(lat, lng);
