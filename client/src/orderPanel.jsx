@@ -46,10 +46,10 @@ const byScheduledSoonest = (a, b) => {
   return (a.id || 0) - (b.id || 0);
 };
 
-function mergeById(oldArr = [], newArr = []) {
+function mergeById(oldArr = [], newArr = [], compare = byNewest) {
   const map = new Map(oldArr.map((o) => [o.id, o]));
   newArr.forEach((o) => map.set(o.id, o));
-  return Array.from(map.values()).sort(byNewest);
+  return Array.from(map.values()).sort(compare);
 }
 
 // Допустимые статусы заказа (совпадают с EditOrder и серверным PATCH)
@@ -281,7 +281,11 @@ const OrderPanel = () => {
   const res = await fetch(`${API}/current-orders?tab=${tab}`, { headers: authHeaders });
   const data = await res.json();
   if (!res.ok || !data.ok) throw new Error(data.error || t("orderPanel.errors.loadOrdersFailed"));
-  setOrdersByTab((prev) => ({ ...prev, [tab]: data.items || [] }));
+  const items = data.items || [];
+  // Предзаказы держим в том же порядке, что и на экране: ближайшая выдача сверху
+  const sorted =
+    tab === "preorders" ? [...items].sort(byScheduledSoonest) : items;
+  setOrdersByTab((prev) => ({ ...prev, [tab]: sorted }));
 }
 
   // Архив за один операционный день. Заказы за прошедший день не меняются
@@ -352,7 +356,11 @@ const OrderPanel = () => {
           next[k] = (next[k] || []).filter((x) => x.id !== order.id);
         }
       });
-      next[tabKey] = mergeById(next[tabKey], [order]);
+      next[tabKey] = mergeById(
+        next[tabKey],
+        [order],
+        tabKey === "preorders" ? byScheduledSoonest : byNewest
+      );
       return next;
     });
   }

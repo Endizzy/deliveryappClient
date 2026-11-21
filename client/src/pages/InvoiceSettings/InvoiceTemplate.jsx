@@ -123,9 +123,9 @@ const InvoiceTemplate = React.forwardRef(function InvoiceTemplate({ settings = {
       </div>
 
       {/* Notes bar */}
-      <div className={styles.notesBar}>
+      {/* <div className={styles.notesBar}>
         <strong>Piezīmes:</strong> {order.notes || "-"}
-      </div>
+      </div> */}
 
       {/* Items table */}
       <table className={styles.itemsTable}>
@@ -155,8 +155,8 @@ const InvoiceTemplate = React.forwardRef(function InvoiceTemplate({ settings = {
       <div className={styles.bottomSection}>
         {/* Left: wishes box */}
         <div className={styles.wishesBox}>
-          <div className={styles.wishesTitle}>Vēlējumi klientam:</div>
-          <div className={styles.wishesContent}>{order.wishes || ""}</div>
+          <div className={styles.wishesTitle}>Piezīmes:</div>
+          <div className={styles.wishesContent}>{order.notes || "-"}</div>
         </div>
 
         {/* Right: summary table */}
